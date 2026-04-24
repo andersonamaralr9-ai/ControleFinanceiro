@@ -1,7 +1,8 @@
-/* ===== MOBILE FIX v5.9.5 ===== */
+/* ===== MOBILE FIX v5.9.6 ===== */
 
-/* Resumo - Gráfico receita x despesa ajustado */
 @media(max-width:768px){
+
+  /* ---- RESUMO ---- */
   .chart-box{padding:14px;overflow:hidden;}
   .bar-chart{height:160px;gap:4px;overflow:hidden;}
   .bar-group{min-width:0;}
@@ -10,57 +11,74 @@
   .bar-label{font-size:.55em;}
   .top-cat-item{margin-bottom:10px;}
   .top-cat-hdr{font-size:.76em;}
-
-  /* Resumo - cards menores */
-  .resumo-cards,.cards{margin-top:14px;}
+  .cards{margin-top:14px;}
   .card{padding:10px 8px;}
   .card .card-value{font-size:1.05rem;}
   .card .card-label{font-size:.68em;}
 
-  /* Lançamentos - formulário coluna única */
-  #pg-lancs .form-grid{grid-template-columns:1fr!important;}
-  #pg-lancs .table-wrap{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  /* ---- NAVEGAÇÃO DE MÊS (não esticar botões ◄ ►) ---- */
+  .month-nav{display:flex;align-items:center;justify-content:center;gap:10px;}
+  .month-nav .btn-outline{width:auto!important;min-width:40px;padding:8px 14px;display:inline-flex;align-items:center;justify-content:center;}
+  .month-nav .mes-label{font-size:.9em;min-width:120px;text-align:center;}
+
+  /* ---- FORMULÁRIOS coluna única ---- */
+  .form-grid{grid-template-columns:1fr!important;}
+  .form-section{padding:16px;}
+  .form-control{padding:12px;font-size:.9em;}
+
+  /* ---- BOTÕES: só os de ação ficam full-width ---- */
+  .form-grid .btn{width:100%;text-align:center;}
+  .filter-bar .btn{width:100%;text-align:center;}
+  .sub-box-actions .btn{width:auto;}
+  .btn-sm{width:auto!important;display:inline-block!important;}
+  .btn-outline{width:auto!important;}
+
+  /* ---- FILTROS ---- */
+  .filter-bar{flex-direction:column;align-items:stretch;gap:8px;}
+  .filter-bar .form-control{max-width:100%!important;}
+
+  /* ---- TABELAS scroll horizontal ---- */
+  .table-wrap{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-left:-14px;margin-right:-14px;border-radius:0;border-left:none;border-right:none;}
+  table{min-width:500px;}
+  table th,table td{white-space:nowrap;padding:8px 10px;font-size:.75em;}
+
+  /* ---- LANÇAMENTOS ---- */
   #pg-lancs table{min-width:600px;}
 
-  /* Extrato - filtros em coluna, tabela scroll */
-  #pg-extrato .filter-bar{flex-direction:column;align-items:stretch;gap:8px;}
-  #pg-extrato .filter-bar .form-control{max-width:100%!important;}
-  #pg-extrato .filter-bar .btn{width:100%;}
-  #pg-extrato .table-wrap{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  /* ---- EXTRATO ---- */
   #pg-extrato table{min-width:550px;}
 
-  /* Balancete - scroll horizontal */
-  #pg-balancete .filter-bar{flex-direction:column;align-items:stretch;gap:8px;}
-  #pg-balancete .filter-bar .form-control{max-width:100%!important;}
-  #pg-balancete .filter-bar .btn{width:100%;}
-  #pg-balancete .table-wrap,
+  /* ---- BALANCETE ---- */
   #balArea .table-wrap,
   #balArea>div{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%;}
   #balArea table{min-width:700px;font-size:.75em;}
 
-  /* Compras cartão - formulário coluna única, tabela scroll */
-  #pg-compras .form-grid{grid-template-columns:1fr!important;}
-  #pg-compras .table-wrap{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  /* ---- COMPRAS CARTÃO ---- */
   #pg-compras table{min-width:600px;}
 
-  /* Todos os formulários coluna única */
-  .form-grid{grid-template-columns:1fr!important;}
-
-  /* Tabelas - permitir scroll suave */
-  .table-wrap{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;}
-  table{min-width:500px;}
-  table th,table td{white-space:nowrap;padding:8px 10px;font-size:.75em;}
-
-  /* Botões full-width */
-  .btn{width:100%;text-align:center;display:block;}
-  .btn-sm{width:auto;display:inline-block;}
-
-  /* Modais mais largos */
+  /* ---- MODAIS ---- */
   .modal-content{width:98%!important;max-height:92vh!important;}
+  .modal-body{padding:16px;}
+  .modal-header{padding:14px 16px;}
+  .modal-body .form-group{margin-bottom:10px;}
+  .modal-body .btn{width:100%;}
+
+  /* ---- GRIDS de cards ---- */
+  .cc-grid,.sub-grid{grid-template-columns:1fr;}
+  .cc-card{padding:16px;}
+  .sub-box-header{padding:12px 14px;font-size:.9em;}
+  .sub-box-body{padding:12px 14px;}
+  .sub-box-actions{padding:8px 14px 12px;}
+
+  /* ---- TEMAS ---- */
+  .theme-grid{grid-template-columns:repeat(3,1fr);gap:8px;}
+  .theme-opt{padding:14px 8px 12px;font-size:.75em;}
+  .theme-opt .dot{width:24px;height:24px;}
 }
 
 @media(max-width:380px){
   .cards{grid-template-columns:1fr!important;}
   .bar-chart{height:140px;}
   .card .card-value{font-size:.95rem;}
+  .month-nav .mes-label{font-size:.82em;min-width:100px;}
 }
