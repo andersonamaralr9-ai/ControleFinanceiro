@@ -1,26 +1,18 @@
-// auth.js v3 — Multiusuário com dados separados + integração correta com cloud
+// auth.js v4 — Fix: usa window.gistToken explicitamente para acessar a variável do index.html
 (function(){
 'use strict';
 
-// ================================================================
-// CONFIGURAÇÃO
-// ================================================================
 var AUTH_GIST_KEY = 'finApp_auth_gist_id';
 var SESSION_KEY = 'finApp_session';
-var SESSION_DURATION = 24 * 60 * 60 * 1000; // 24h
+var SESSION_DURATION = 24 * 60 * 60 * 1000;
 
-// ================================================================
-// SHA-256
-// ================================================================
 async function sha256(text){
   var enc = new TextEncoder();
   var buf = await crypto.subtle.digest('SHA-256', enc.encode(text));
   return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
 }
 
-// ================================================================
-// CSS (igual antes)
-// ================================================================
+// CSS
 var sty = document.createElement('style');
 sty.textContent = `
 .auth-overlay{position:fixed;inset:0;z-index:10000;background:var(--bg);display:flex;align-items:center;justify-content:center;transition:opacity .3s;}
@@ -53,9 +45,7 @@ sty.textContent = `
 `;
 document.head.appendChild(sty);
 
-// ================================================================
-// HTML — Tela de Login
-// ================================================================
+// HTML Login
 var overlay = document.createElement('div');
 overlay.className = 'auth-overlay';
 overlay.id = 'authOverlay';
@@ -74,7 +64,6 @@ overlay.innerHTML =
   '</div>';
 document.body.appendChild(overlay);
 
-// Barra inferior
 var ubar = document.createElement('div');
 ubar.className = 'auth-ubar';
 ubar.id = 'authUBar';
@@ -86,30 +75,31 @@ document.body.appendChild(ubar);
 document.getElementById('authPass').addEventListener('keydown',function(e){if(e.key==='Enter')window._authDoLogin();});
 document.getElementById('authUser').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('authPass').focus();});
 
-// ================================================================
-// ESTADO GLOBAL
-// ================================================================
 window._authCurrentUser = null;
 
 // ================================================================
-// GIST DE AUTENTICAÇÃO
-// Usa o MESMO token (finApp_gist_token) do sistema de cloud,
-// mas um Gist SEPARADO para dados de autenticação.
+// HELPER: setar token em TODOS os lugares
 // ================================================================
-function _getToken(){
-  return localStorage.getItem('finApp_gist_token') || '';
+function _setGistToken(t){
+  window.gistToken = t;  // variável global (var no index.html)
+  localStorage.setItem('finApp_gist_token', t);
 }
 
+function _getToken(){
+  // Tentar window.gistToken primeiro, depois localStorage
+  return window.gistToken || localStorage.getItem('finApp_gist_token') || '';
+}
+
+// ================================================================
+// GIST DE AUTENTICAÇÃO
+// ================================================================
 async function readAuthGist(){
   var token = _getToken();
   if(!token) return null;
   var gistId = localStorage.getItem(AUTH_GIST_KEY);
   if(!gistId){
-    // Tentar buscar nos gists do usuário
     gistId = await findAuthGist(token);
-    if(!gistId){
-      gistId = await createAuthGist(token);
-    }
+    if(!gistId) gistId = await createAuthGist(token);
     if(!gistId) return null;
   }
   try{
@@ -132,7 +122,6 @@ async function readAuthGist(){
   }catch(e){return null;}
 }
 
-// Buscar o Gist de auth entre os gists existentes do usuário
 async function findAuthGist(token){
   try{
     var r = await fetch('https://api.github.com/gists?per_page=100',{
@@ -212,15 +201,11 @@ function switchToUserData(username){
   var userKey = getUserStorageKey(username);
   window._userSK = userKey;
 
-  // Se o usuário nunca logou E existe dados antigos na chave original, migrar
   if(!localStorage.getItem(userKey)){
     var existing = localStorage.getItem('finApp_v5');
-    if(existing){
-      localStorage.setItem(userKey, existing);
-    }
+    if(existing) localStorage.setItem(userKey, existing);
   }
 
-  // Carregar dados do usuário
   try{
     var d = JSON.parse(localStorage.getItem(userKey));
     if(d){
@@ -241,24 +226,19 @@ function switchToUserData(username){
     S = defState();
   }
 
-  // *** CORREÇÃO PRINCIPAL ***
-  // Override salvar() para usar a chave do usuário
-  // E TAMBÉM corrigir o cloud sync para usar a chave certa
+  // Override salvar — grava na chave do usuário
   window.salvar = function(){
     localStorage.setItem(window._userSK, JSON.stringify(S));
     if(typeof scheduleSync === 'function') scheduleSync();
   };
 
-  // Override das funções de cloud para ler/gravar na chave do usuário
-  // ao invés da chave fixa SK
-  var _origConnectCloud = window.connectCloud;
+  // Override connectCloud — usa _setGistToken para propagar token
   window.connectCloud = async function(){
     var t = (document.getElementById('inputToken') || {}).value;
     if(!t) t = (document.getElementById('bkToken') || {}).value;
     if(!t || !t.trim()){alert('Informe o token.');return;}
     t = t.trim();
-    gistToken = t;
-    localStorage.setItem('finApp_gist_token', t);
+    _setGistToken(t);
     syncUI('loading','Conectando...');
     var tokenModal = document.getElementById('modalToken');
     if(tokenModal && tokenModal.classList.contains('show')) closeM('modalToken');
@@ -270,7 +250,6 @@ function switchToUserData(username){
     } else if(data && typeof data === 'object'){
       if(data.lancamentos || data.cartoes || data.contratos){
         S = mergeState(data);
-        // Gravar na chave do USUÁRIO, não na fixa
         localStorage.setItem(window._userSK, JSON.stringify(S));
         renderAll();
       }
@@ -283,9 +262,13 @@ function switchToUserData(username){
     if(typeof renderCloudArea === 'function') renderCloudArea();
   };
 
-  var _origInitCloud = window.initCloud;
+  // Override initCloud
   window.initCloud = async function(){
-    if(!gistToken){
+    // Garantir que o token está sincronizado
+    var savedToken = localStorage.getItem('finApp_gist_token') || '';
+    if(savedToken) window.gistToken = savedToken;
+    
+    if(!window.gistToken){
       openM('modalToken');
       return;
     }
@@ -293,7 +276,6 @@ function switchToUserData(username){
     var data = await gistRead();
     if(data && typeof data === 'object' && (data.lancamentos || data.cartoes || data.contratos)){
       S = mergeState(data);
-      // Gravar na chave do USUÁRIO
       localStorage.setItem(window._userSK, JSON.stringify(S));
       renderAll();
     }
@@ -301,7 +283,7 @@ function switchToUserData(username){
     syncUI('on','Cloud conectado');
   };
 
-  var _origDoPullGist = window.doPullGist;
+  // Override doPullGist
   window.doPullGist = async function(){
     syncUI('loading','Baixando...');
     var data = await gistRead();
@@ -315,12 +297,12 @@ function switchToUserData(username){
     }
   };
 
+  // Override doConnectFromBk
   window.doConnectFromBk = async function(){
     var t = (document.getElementById('bkToken') || {}).value;
     if(!t || !t.trim()){alert('Informe o token.');return;}
     t = t.trim();
-    gistToken = t;
-    localStorage.setItem('finApp_gist_token', t);
+    _setGistToken(t);
     syncUI('loading','Conectando...');
     var data = await gistRead();
     if(data && (data.lancamentos || data.cartoes || data.contratos)){
@@ -335,7 +317,16 @@ function switchToUserData(username){
     if(typeof renderCloudArea === 'function') renderCloudArea();
   };
 
-  // Aplicar tema e re-renderizar
+  // Override doSyncNow
+  window.doSyncNow = async function(){
+    var savedToken = localStorage.getItem('finApp_gist_token') || '';
+    if(savedToken) window.gistToken = savedToken;
+    syncUI('loading','Sincronizando...');
+    var ok = await gistWrite(S);
+    if(ok) syncUI('on','Sync '+new Date().toLocaleTimeString('pt-BR'));
+    else syncUI('on','Erro sync');
+  };
+
   if(S.config && S.config.theme && typeof setTheme === 'function') setTheme(S.config.theme);
   if(typeof renderAll === 'function') renderAll();
 }
@@ -365,7 +356,6 @@ window._authDoLogin = async function(){
   var role = 'user';
   var validado = false;
 
-  // Tentar validar via Gist (precisa de token)
   var token = _getToken();
   if(token){
     var authData = await readAuthGist();
@@ -381,7 +371,6 @@ window._authDoLogin = async function(){
     }
   }
 
-  // Fallback offline: Anderson / 202328
   if(!validado){
     var fallback = await sha256('202328');
     if(username.toLowerCase() === 'anderson' && inputHash === fallback){
@@ -397,8 +386,6 @@ window._authDoLogin = async function(){
     switchToUserData(username);
     showApp(username, role);
 
-    // *** CORREÇÃO: Disparar initCloud DEPOIS do login/switch ***
-    // Isso garante que o cloud sync use a chave do usuário correto
     setTimeout(function(){
       if(typeof initCloud === 'function') initCloud();
     }, 500);
@@ -459,9 +446,6 @@ function hideApp(){
   document.getElementById('authError').textContent = '';
 }
 
-// ================================================================
-// RESTRIÇÕES POR PERFIL
-// ================================================================
 function applyRoleRestrictions(role){
   if(role === 'admin') return;
   setTimeout(function(){
@@ -581,42 +565,9 @@ window._authDelUser = async function(username){
 };
 
 // ================================================================
-// INTERCEPTAR initCloud DO index.html
-// O index.html chama initCloud() no final do script.
-// Precisamos impedir que ele rode antes do login,
-// e depois rodar NOSSO initCloud após o switchToUserData.
-// ================================================================
-// Guardar o initCloud original e substituir por noop temporário
-var _origInitCloudBackup = null;
-
-function interceptInitCloud(){
-  // Se initCloud já existe (definido pelo index.html), interceptar
-  if(typeof window.initCloud === 'function' && !window._initCloudIntercepted){
-    _origInitCloudBackup = window.initCloud;
-    window._initCloudIntercepted = true;
-    // Substituir por versão que espera o login
-    window.initCloud = function(){
-      // Se já logou, rodar normalmente
-      if(window._authCurrentUser){
-        if(_origInitCloudBackup) _origInitCloudBackup();
-      }
-      // Se não logou, não fazer nada — será chamado após login
-    };
-  }
-}
-
-// Tentar interceptar agora (pode não existir ainda se o script inline não rodou)
-interceptInitCloud();
-// Tentar novamente em instantes (para pegar quando o script inline definir)
-setTimeout(interceptInitCloud, 0);
-setTimeout(interceptInitCloud, 50);
-setTimeout(interceptInitCloud, 100);
-
-// ================================================================
-// INICIALIZAÇÃO — esconder app, verificar sessão
+// INICIALIZAÇÃO
 // ================================================================
 (function(){
-  // Esconder app imediatamente
   var sidebar = document.getElementById('sidebar');
   var main = document.querySelector('.main');
   var mh = document.getElementById('mobHeader');
@@ -629,11 +580,10 @@ setTimeout(interceptInitCloud, 100);
     window._authCurrentUser = {username:session.user, role:session.role||'user'};
     switchToUserData(session.user);
     showApp(session.user, session.role||'user');
-    // Cloud será iniciado pelo initCloud interceptado
   } else {
     setTimeout(function(){ document.getElementById('authUser').focus(); }, 200);
   }
 })();
 
-console.log('[Financeiro Pro] Auth v3 — multiusuário + cloud integrado.');
+console.log('[Financeiro Pro] Auth v4 — fix escopo gistToken.');
 })();
