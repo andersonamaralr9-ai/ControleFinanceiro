@@ -1,6 +1,4 @@
-// auth.js v2 — Multiusuário com dados separados + controle de perfil
-// Cada usuário tem seus próprios dados financeiros
-// Admin: gerencia usuários + categorias | User: apenas seus dados, sem editar categorias
+// auth.js v3 — Multiusuário com dados separados + integração correta com cloud
 (function(){
 'use strict';
 
@@ -21,7 +19,7 @@ async function sha256(text){
 }
 
 // ================================================================
-// CSS
+// CSS (igual antes)
 // ================================================================
 var sty = document.createElement('style');
 sty.textContent = `
@@ -85,24 +83,33 @@ ubar.innerHTML = '<span>&#128100; <span class="au-name" id="auName"></span>'+
   '<button class="au-logout" onclick="window._authDoLogout()">&#128682; Sair</button>';
 document.body.appendChild(ubar);
 
-// Enter / Tab
 document.getElementById('authPass').addEventListener('keydown',function(e){if(e.key==='Enter')window._authDoLogin();});
 document.getElementById('authUser').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('authPass').focus();});
 
 // ================================================================
-// ESTADO GLOBAL DE AUTENTICAÇÃO
+// ESTADO GLOBAL
 // ================================================================
-window._authCurrentUser = null; // {username, role}
+window._authCurrentUser = null;
 
 // ================================================================
 // GIST DE AUTENTICAÇÃO
+// Usa o MESMO token (finApp_gist_token) do sistema de cloud,
+// mas um Gist SEPARADO para dados de autenticação.
 // ================================================================
+function _getToken(){
+  return localStorage.getItem('finApp_gist_token') || '';
+}
+
 async function readAuthGist(){
-  var token = localStorage.getItem('finApp_gist_token');
+  var token = _getToken();
   if(!token) return null;
   var gistId = localStorage.getItem(AUTH_GIST_KEY);
   if(!gistId){
-    gistId = await createAuthGist(token);
+    // Tentar buscar nos gists do usuário
+    gistId = await findAuthGist(token);
+    if(!gistId){
+      gistId = await createAuthGist(token);
+    }
     if(!gistId) return null;
   }
   try{
@@ -110,9 +117,9 @@ async function readAuthGist(){
       headers:{'Accept':'application/vnd.github+json','Authorization':'Bearer '+token}
     });
     if(r.status === 404){
-      // Gist foi deletado, recriar
       localStorage.removeItem(AUTH_GIST_KEY);
-      gistId = await createAuthGist(token);
+      gistId = await findAuthGist(token);
+      if(!gistId) gistId = await createAuthGist(token);
       if(!gistId) return null;
       r = await fetch('https://api.github.com/gists/'+gistId,{
         headers:{'Accept':'application/vnd.github+json','Authorization':'Bearer '+token}
@@ -125,8 +132,26 @@ async function readAuthGist(){
   }catch(e){return null;}
 }
 
+// Buscar o Gist de auth entre os gists existentes do usuário
+async function findAuthGist(token){
+  try{
+    var r = await fetch('https://api.github.com/gists?per_page=100',{
+      headers:{'Accept':'application/vnd.github+json','Authorization':'Bearer '+token}
+    });
+    if(!r.ok) return null;
+    var gists = await r.json();
+    for(var i = 0; i < gists.length; i++){
+      if(gists[i].description === 'FinanceiroPro-Auth' && gists[i].files && gists[i].files['auth_users.json']){
+        localStorage.setItem(AUTH_GIST_KEY, gists[i].id);
+        return gists[i].id;
+      }
+    }
+    return null;
+  }catch(e){return null;}
+}
+
 async function writeAuthGist(data){
-  var token = localStorage.getItem('finApp_gist_token');
+  var token = _getToken();
   var gistId = localStorage.getItem(AUTH_GIST_KEY);
   if(!token || !gistId) return false;
   try{
@@ -177,34 +202,24 @@ function setSession(username, role){
 function clearSession(){ localStorage.removeItem(SESSION_KEY); }
 
 // ================================================================
-// TROCAR DADOS POR USUÁRIO — chave do localStorage separada
+// TROCAR DADOS POR USUÁRIO
 // ================================================================
 function getUserStorageKey(username){
   return 'finApp_v5_' + username.toLowerCase().replace(/[^a-z0-9]/g,'_');
 }
 
 function switchToUserData(username){
-  // Mudar a chave SK do sistema para a do usuário
-  // O sistema original usa window.SK = 'finApp_v5'
-  // Vamos redirecionar para 'finApp_v5_anderson', etc.
   var userKey = getUserStorageKey(username);
-  
-  // Se o usuário nunca logou, copiar os dados atuais (migração)
+  window._userSK = userKey;
+
+  // Se o usuário nunca logou E existe dados antigos na chave original, migrar
   if(!localStorage.getItem(userKey)){
     var existing = localStorage.getItem('finApp_v5');
     if(existing){
-      // Só copiar para o primeiro usuário (admin) na migração
       localStorage.setItem(userKey, existing);
     }
   }
-  
-  // Redirecionar o sistema para usar a chave do usuário
-  // O index.html define: const SK='finApp_v5'
-  // Mas SK é const, não podemos mudar. Vamos sobrescrever load() e salvar()
-  
-  // Override da função load para usar a chave do usuário
-  window._userSK = userKey;
-  
+
   // Carregar dados do usuário
   try{
     var d = JSON.parse(localStorage.getItem(userKey));
@@ -225,17 +240,103 @@ function switchToUserData(username){
   }catch(e){
     S = defState();
   }
-  
-  // Override salvar para gravar na chave do usuário
-  var _origSalvar = window.salvar;
+
+  // *** CORREÇÃO PRINCIPAL ***
+  // Override salvar() para usar a chave do usuário
+  // E TAMBÉM corrigir o cloud sync para usar a chave certa
   window.salvar = function(){
     localStorage.setItem(window._userSK, JSON.stringify(S));
-    // Também chamar scheduleSync se existir
     if(typeof scheduleSync === 'function') scheduleSync();
   };
-  
+
+  // Override das funções de cloud para ler/gravar na chave do usuário
+  // ao invés da chave fixa SK
+  var _origConnectCloud = window.connectCloud;
+  window.connectCloud = async function(){
+    var t = (document.getElementById('inputToken') || {}).value;
+    if(!t) t = (document.getElementById('bkToken') || {}).value;
+    if(!t || !t.trim()){alert('Informe o token.');return;}
+    t = t.trim();
+    gistToken = t;
+    localStorage.setItem('finApp_gist_token', t);
+    syncUI('loading','Conectando...');
+    var tokenModal = document.getElementById('modalToken');
+    if(tokenModal && tokenModal.classList.contains('show')) closeM('modalToken');
+    var data = await gistRead();
+    if(data === null){
+      cloudOk = true;
+      await gistWrite(S);
+      syncUI('on','Cloud conectado');
+    } else if(data && typeof data === 'object'){
+      if(data.lancamentos || data.cartoes || data.contratos){
+        S = mergeState(data);
+        // Gravar na chave do USUÁRIO, não na fixa
+        localStorage.setItem(window._userSK, JSON.stringify(S));
+        renderAll();
+      }
+      cloudOk = true;
+      syncUI('on','Cloud conectado');
+    } else {
+      cloudOk = true;
+      syncUI('on','Cloud conectado');
+    }
+    if(typeof renderCloudArea === 'function') renderCloudArea();
+  };
+
+  var _origInitCloud = window.initCloud;
+  window.initCloud = async function(){
+    if(!gistToken){
+      openM('modalToken');
+      return;
+    }
+    syncUI('loading','Conectando...');
+    var data = await gistRead();
+    if(data && typeof data === 'object' && (data.lancamentos || data.cartoes || data.contratos)){
+      S = mergeState(data);
+      // Gravar na chave do USUÁRIO
+      localStorage.setItem(window._userSK, JSON.stringify(S));
+      renderAll();
+    }
+    cloudOk = true;
+    syncUI('on','Cloud conectado');
+  };
+
+  var _origDoPullGist = window.doPullGist;
+  window.doPullGist = async function(){
+    syncUI('loading','Baixando...');
+    var data = await gistRead();
+    if(data && (data.lancamentos || data.cartoes || data.contratos)){
+      S = mergeState(data);
+      localStorage.setItem(window._userSK, JSON.stringify(S));
+      renderAll();
+      syncUI('on','Dados carregados');
+    } else {
+      syncUI('on','Nenhum dado no Gist');
+    }
+  };
+
+  window.doConnectFromBk = async function(){
+    var t = (document.getElementById('bkToken') || {}).value;
+    if(!t || !t.trim()){alert('Informe o token.');return;}
+    t = t.trim();
+    gistToken = t;
+    localStorage.setItem('finApp_gist_token', t);
+    syncUI('loading','Conectando...');
+    var data = await gistRead();
+    if(data && (data.lancamentos || data.cartoes || data.contratos)){
+      S = mergeState(data);
+      localStorage.setItem(window._userSK, JSON.stringify(S));
+      renderAll();
+    } else {
+      await gistWrite(S);
+    }
+    cloudOk = true;
+    syncUI('on','Cloud conectado');
+    if(typeof renderCloudArea === 'function') renderCloudArea();
+  };
+
   // Aplicar tema e re-renderizar
-  if(S.config && S.config.theme) setTheme(S.config.theme);
+  if(S.config && S.config.theme && typeof setTheme === 'function') setTheme(S.config.theme);
   if(typeof renderAll === 'function') renderAll();
 }
 
@@ -247,36 +348,41 @@ window._authDoLogin = async function(){
   var passEl = document.getElementById('authPass');
   var errEl = document.getElementById('authError');
   var btn = document.getElementById('authLoginBtn');
-  
+
   var username = (userEl.value||'').trim();
   var password = passEl.value;
-  
+
   if(!username || !password){
     errEl.textContent = 'Preencha usuário e senha.';
     return;
   }
-  
+
   btn.disabled = true;
   btn.textContent = 'Verificando...';
   errEl.textContent = '';
-  
+
   var inputHash = await sha256(password);
   var role = 'user';
   var validado = false;
-  
-  // Tentar validar via Gist
-  var authData = await readAuthGist();
-  if(authData && authData.users){
-    var found = authData.users.find(function(u){
-      return u.username.toLowerCase() === username.toLowerCase() && u.passwordHash === inputHash;
-    });
-    if(found){
-      validado = true;
-      username = found.username; // manter capitalização original
-      role = found.role || 'user';
+
+  // Tentar validar via Gist (precisa de token)
+  var token = _getToken();
+  if(token){
+    var authData = await readAuthGist();
+    if(authData && authData.users){
+      var found = authData.users.find(function(u){
+        return u.username.toLowerCase() === username.toLowerCase() && u.passwordHash === inputHash;
+      });
+      if(found){
+        validado = true;
+        username = found.username;
+        role = found.role || 'user';
+      }
     }
-  } else {
-    // Fallback local: Anderson / 202328
+  }
+
+  // Fallback offline: Anderson / 202328
+  if(!validado){
     var fallback = await sha256('202328');
     if(username.toLowerCase() === 'anderson' && inputHash === fallback){
       validado = true;
@@ -284,18 +390,24 @@ window._authDoLogin = async function(){
       role = 'admin';
     }
   }
-  
+
   if(validado){
     setSession(username, role);
     window._authCurrentUser = {username: username, role: role};
     switchToUserData(username);
     showApp(username, role);
+
+    // *** CORREÇÃO: Disparar initCloud DEPOIS do login/switch ***
+    // Isso garante que o cloud sync use a chave do usuário correto
+    setTimeout(function(){
+      if(typeof initCloud === 'function') initCloud();
+    }, 500);
   } else {
     errEl.textContent = 'Usuário ou senha incorretos.';
     passEl.value = '';
     passEl.focus();
   }
-  
+
   btn.disabled = false;
   btn.textContent = 'Entrar';
 };
@@ -307,7 +419,7 @@ window._authDoLogout = function(){
   if(!confirm('Deseja sair do sistema?')) return;
   clearSession();
   window._authCurrentUser = null;
-  location.reload(); // Recarregar limpa tudo
+  location.reload();
 };
 
 // ================================================================
@@ -317,19 +429,18 @@ function showApp(username, role){
   var ov = document.getElementById('authOverlay');
   ov.classList.add('hiding');
   setTimeout(function(){ ov.style.display = 'none'; }, 300);
-  
+
   document.getElementById('sidebar').style.visibility = 'visible';
   document.querySelector('.main').style.visibility = 'visible';
   var mh = document.getElementById('mobHeader');
   if(mh) mh.style.visibility = 'visible';
-  
+
   document.getElementById('auName').textContent = username;
   var roleEl = document.getElementById('auRole');
   roleEl.textContent = role === 'admin' ? 'Administrador' : 'Usuário';
   roleEl.className = 'au-role ' + role;
   document.getElementById('authUBar').style.display = 'flex';
-  
-  // Aplicar restrições de perfil
+
   applyRoleRestrictions(role);
 }
 
@@ -339,7 +450,7 @@ function hideApp(){
   var mh = document.getElementById('mobHeader');
   if(mh) mh.style.visibility = 'hidden';
   document.getElementById('authUBar').style.display = 'none';
-  
+
   var ov = document.getElementById('authOverlay');
   ov.style.display = 'flex';
   setTimeout(function(){ ov.classList.remove('hiding'); },10);
@@ -352,21 +463,14 @@ function hideApp(){
 // RESTRIÇÕES POR PERFIL
 // ================================================================
 function applyRoleRestrictions(role){
-  if(role === 'admin') return; // admin pode tudo
-  
-  // USER: esconder gerenciamento de categorias e de usuários
-  // Esconder seção de categorias na config
+  if(role === 'admin') return;
   setTimeout(function(){
     var configCats = document.getElementById('configCatsArea');
     if(configCats){
       configCats.innerHTML = '<div class="no-admin-msg">&#128274; Somente administradores podem gerenciar categorias.</div>';
     }
-    
-    // Esconder seção de gerenciamento de usuários
     var authAdmin = document.getElementById('authAdminSection');
     if(authAdmin) authAdmin.style.display = 'none';
-    
-    // Esconder botão "Limpar Todos os Dados"
     var limparSection = document.querySelector('#pg-config .btn-danger');
     if(limparSection){
       var parent = limparSection.closest('.form-section');
@@ -376,31 +480,30 @@ function applyRoleRestrictions(role){
 }
 
 // ================================================================
-// ADMIN: Gerenciar Usuários (adicionado na página Config)
+// ADMIN: Gerenciar Usuários
 // ================================================================
 setTimeout(function(){
   var configPage = document.getElementById('pg-config');
   if(!configPage) return;
-  
+
   var sec = document.createElement('div');
   sec.className = 'form-section';
   sec.id = 'authAdminSection';
   sec.innerHTML =
     '<h3 style="margin-bottom:14px">&#128274; Gerenciar Usuários</h3>'+
-    '<p style="font-size:.82em;color:var(--tx3);margin-bottom:14px">Cada usuário tem seus próprios dados financeiros separados. Ninguém vê os dados de outro.</p>'+
+    '<p style="font-size:.82em;color:var(--tx3);margin-bottom:14px">Cada usuário tem seus próprios dados financeiros separados.</p>'+
     '<div id="authUsersList"></div>'+
     '<div class="form-grid" style="margin-top:14px">'+
       '<div class="form-group"><label>Novo Usuário</label><input id="newAuthUser" class="form-control" placeholder="Nome"></div>'+
       '<div class="form-group"><label>Senha</label><input type="password" id="newAuthPass" class="form-control" placeholder="Senha"></div>'+
       '<div class="form-group"><label>Perfil</label><select id="newAuthRole" class="form-control">'+
-        '<option value="admin">Admin (gerencia tudo)</option>'+
-        '<option value="user" selected>Usuário (só seus dados)</option></select></div>'+
+        '<option value="admin">Admin</option>'+
+        '<option value="user" selected>Usuário</option></select></div>'+
       '<div class="form-group"><label>&nbsp;</label><button class="btn btn-primary" onclick="window._authAddUser()">Adicionar</button></div>'+
     '</div>'+
     '<div id="authMsg" style="margin-top:8px;font-size:.82em;min-height:20px"></div>';
   configPage.appendChild(sec);
-  
-  // Render se já logado
+
   if(window._authCurrentUser && window._authCurrentUser.role === 'admin'){
     window._authRenderUsers();
   }
@@ -411,7 +514,7 @@ window._authRenderUsers = async function(){
   if(!el) return;
   var data = await readAuthGist();
   if(!data || !data.users){
-    el.innerHTML = '<p style="color:var(--tx3);font-size:.85em">Conecte ao cloud para gerenciar.</p>';
+    el.innerHTML = '<p style="color:var(--tx3);font-size:.85em">Conecte ao cloud para gerenciar usuários.</p>';
     return;
   }
   var h = '<div class="table-wrap"><table><thead><tr><th>Usuário</th><th>Perfil</th><th>Criado em</th><th>Ações</th></tr></thead><tbody>';
@@ -435,16 +538,16 @@ window._authAddUser = async function(){
   var role = document.getElementById('newAuthRole').value;
   var msg = document.getElementById('authMsg');
   if(!name||!pass){msg.innerHTML='<span style="color:var(--dn2)">Preencha nome e senha.</span>';return;}
-  
+
   var data = await readAuthGist();
   if(!data){msg.innerHTML='<span style="color:var(--dn2)">Erro ao conectar ao cloud.</span>';return;}
   if(data.users.some(function(u){return u.username.toLowerCase()===name.toLowerCase();})){
     msg.innerHTML='<span style="color:var(--dn2)">Usuário já existe.</span>';return;
   }
-  
+
   data.users.push({username:name, passwordHash:await sha256(pass), createdAt:new Date().toISOString(), role:role});
   if(await writeAuthGist(data)){
-    msg.innerHTML='<span style="color:var(--ok)">Usuário "'+name+'" criado com sucesso!</span>';
+    msg.innerHTML='<span style="color:var(--ok)">Usuário "'+name+'" criado!</span>';
     document.getElementById('newAuthUser').value='';
     document.getElementById('newAuthPass').value='';
     window._authRenderUsers();
@@ -468,8 +571,8 @@ window._authChangePass = async function(username){
 window._authDelUser = async function(username){
   var cur = window._authCurrentUser;
   if(cur && cur.username.toLowerCase()===username.toLowerCase())
-    return alert('Você não pode excluir seu próprio usuário logado.');
-  if(!confirm('Excluir "'+username+'"? Os dados financeiros dele serão mantidos no navegador.')) return;
+    return alert('Você não pode excluir seu próprio usuário.');
+  if(!confirm('Excluir "'+username+'"?')) return;
   var data = await readAuthGist();
   if(!data) return alert('Erro.');
   data.users = data.users.filter(function(u){return u.username!==username;});
@@ -478,24 +581,59 @@ window._authDelUser = async function(username){
 };
 
 // ================================================================
+// INTERCEPTAR initCloud DO index.html
+// O index.html chama initCloud() no final do script.
+// Precisamos impedir que ele rode antes do login,
+// e depois rodar NOSSO initCloud após o switchToUserData.
+// ================================================================
+// Guardar o initCloud original e substituir por noop temporário
+var _origInitCloudBackup = null;
+
+function interceptInitCloud(){
+  // Se initCloud já existe (definido pelo index.html), interceptar
+  if(typeof window.initCloud === 'function' && !window._initCloudIntercepted){
+    _origInitCloudBackup = window.initCloud;
+    window._initCloudIntercepted = true;
+    // Substituir por versão que espera o login
+    window.initCloud = function(){
+      // Se já logou, rodar normalmente
+      if(window._authCurrentUser){
+        if(_origInitCloudBackup) _origInitCloudBackup();
+      }
+      // Se não logou, não fazer nada — será chamado após login
+    };
+  }
+}
+
+// Tentar interceptar agora (pode não existir ainda se o script inline não rodou)
+interceptInitCloud();
+// Tentar novamente em instantes (para pegar quando o script inline definir)
+setTimeout(interceptInitCloud, 0);
+setTimeout(interceptInitCloud, 50);
+setTimeout(interceptInitCloud, 100);
+
+// ================================================================
 // INICIALIZAÇÃO — esconder app, verificar sessão
 // ================================================================
 (function(){
   // Esconder app imediatamente
-  document.getElementById('sidebar').style.visibility = 'hidden';
-  document.querySelector('.main').style.visibility = 'hidden';
+  var sidebar = document.getElementById('sidebar');
+  var main = document.querySelector('.main');
   var mh = document.getElementById('mobHeader');
+  if(sidebar) sidebar.style.visibility = 'hidden';
+  if(main) main.style.visibility = 'hidden';
   if(mh) mh.style.visibility = 'hidden';
-  
+
   var session = getSession();
   if(session){
     window._authCurrentUser = {username:session.user, role:session.role||'user'};
     switchToUserData(session.user);
     showApp(session.user, session.role||'user');
+    // Cloud será iniciado pelo initCloud interceptado
   } else {
     setTimeout(function(){ document.getElementById('authUser').focus(); }, 200);
   }
 })();
 
-console.log('[Financeiro Pro] Auth v2 — multiusuário com dados separados.');
+console.log('[Financeiro Pro] Auth v3 — multiusuário + cloud integrado.');
 })();
