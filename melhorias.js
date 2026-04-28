@@ -797,3 +797,31 @@ window.abrirHistorico = function(tipo, itemId){
 
 console.log('[Financeiro Pro] Melhorias v4 carregadas.');
 })();
+
+// ================================================================
+// 9. OVERRIDE mesNome e mesNomeFull para garantir PT-BR
+// ================================================================
+(function(){
+  var _meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  var _mesesFull = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  
+  window.mesNome = function(m){
+    if(!m) return '-';
+    var p = m.split('-');
+    return _meses[parseInt(p[1])-1]+'/'+p[0];
+  };
+  
+  window.mesNomeFull = function(m){
+    if(!m) return '-';
+    var p = m.split('-');
+    return _mesesFull[parseInt(p[1])-1]+' de '+p[0];
+  };
+
+  // Forçar toLocaleDateString e toLocaleTimeString para pt-BR
+  var _origSync = window.syncUI;
+  if(_origSync){
+    // O sync mostra hora — garantir pt-BR
+    // Nada a fazer, toLocaleTimeString('pt-BR') já é usado no original
+  }
+})();
+
