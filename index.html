@@ -478,9 +478,9 @@ function closeSidebar(){g('sidebar').classList.remove('open');g('sidebarOverlay'
 /* CLOUD CONFIG */
 const GIST_ID='667e29c52ee1d62185b5eae8c871faa1';
 const TOKEN_KEY='finApp_gist_token';
-let gistToken=localStorage.getItem(TOKEN_KEY)||'';
-let cloudOk=false;
-let syncTimer=null;
+var gistToken=localStorage.getItem(TOKEN_KEY)||'';
+var cloudOk=false;
+var syncTimer=null;
 
 async function gistRead(){try{let r=await fetch('https://api.github.com/gists/'+GIST_ID,{headers:{'Accept':'application/vnd.github+json','Authorization':'Bearer '+gistToken}});if(!r.ok)return null;let j=await r.json();let f=j.files&&j.files['financeiro.json'];return(f&&f.content)?JSON.parse(f.content):null;}catch(e){return null;}}
 async function gistWrite(data){try{let r=await fetch('https://api.github.com/gists/'+GIST_ID,{method:'PATCH',headers:{'Accept':'application/vnd.github+json','Authorization':'Bearer '+gistToken,'Content-Type':'application/json'},body:JSON.stringify({files:{'financeiro.json':{content:JSON.stringify(data,null,2)}}})});return r.ok;}catch(e){return false;}}
