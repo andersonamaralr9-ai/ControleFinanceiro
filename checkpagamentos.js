@@ -1,29 +1,53 @@
-// checkpagamentos.js — Check de Pagamentos do Mês
-// Adiciona um item no menu e uma página para validar todos os pagamentos mensais
+// checkpagamentos.js v2 — Check de Pagamentos do Mês (com cloud sync)
+// Armazena os checks DENTRO de S (state principal) para sincronizar via Gist
 (function(){
 'use strict';
 
 // ================================================================
-// CHAVE DE PERSISTÊNCIA DOS CHECKS
+// PERSISTÊNCIA — agora dentro de S (sincroniza com Gist)
 // ================================================================
-var CHECK_KEY_PREFIX = 'finApp_checks_';
-
-function getCheckKey(mes){
-  // Se auth.js definiu SK com usuário, usar o mesmo prefixo
-  var userSuffix = '';
-  if(window._currentUser) userSuffix = '_' + window._currentUser;
-  return CHECK_KEY_PREFIX + mes + userSuffix;
+function ensureCheckObj(){
+  if(!S.checkPagamentos || typeof S.checkPagamentos !== 'object' || Array.isArray(S.checkPagamentos)){
+    S.checkPagamentos = {};
+  }
 }
 
 function loadChecks(mes){
-  try {
-    return JSON.parse(localStorage.getItem(getCheckKey(mes))) || {};
-  } catch(e){ return {}; }
+  ensureCheckObj();
+  return S.checkPagamentos[mes] || {};
 }
 
 function saveChecks(mes, checks){
-  localStorage.setItem(getCheckKey(mes), JSON.stringify(checks));
+  ensureCheckObj();
+  S.checkPagamentos[mes] = checks;
+  salvar(); // <-- grava no localStorage + scheduleSync() → Gist
 }
+
+// ================================================================
+// GARANTIR QUE mergeState PRESERVE checkPagamentos
+// ================================================================
+var _origMerge = window.mergeState;
+if(_origMerge){
+  window.mergeState = function(d){
+    var st = _origMerge(d);
+    // Preservar checkPagamentos vindo do cloud
+    if(d.checkPagamentos && typeof d.checkPagamentos === 'object' && !Array.isArray(d.checkPagamentos)){
+      if(!st.checkPagamentos) st.checkPagamentos = {};
+      // Merge: para cada mês, combinar checks (cloud ganha se ambos existem)
+      Object.keys(d.checkPagamentos).forEach(function(mes){
+        if(!st.checkPagamentos[mes]) st.checkPagamentos[mes] = {};
+        Object.keys(d.checkPagamentos[mes]).forEach(function(key){
+          st.checkPagamentos[mes][key] = d.checkPagamentos[mes][key];
+        });
+      });
+    }
+    if(!st.checkPagamentos) st.checkPagamentos = {};
+    return st;
+  };
+}
+
+// Garantir que S já tenha o campo
+if(typeof S !== 'undefined') ensureCheckObj();
 
 // ================================================================
 // ESTADO
@@ -96,12 +120,10 @@ sty.textContent = `
 document.head.appendChild(sty);
 
 // ================================================================
-// MENU — adicionar link no sidebar
+// MENU
 // ================================================================
 var sidebar = document.getElementById('sidebar');
 if(!sidebar) return;
-
-// Encontrar o link de "Extrato" para inserir DEPOIS dele (na seção Lançamentos)
 var balLink = document.getElementById('nav-balancete');
 if(!balLink) return;
 
@@ -109,11 +131,10 @@ var newLink = document.createElement('a');
 newLink.id = 'nav-checkpag';
 newLink.onclick = function(){ nav('checkpag'); };
 newLink.innerHTML = '<span>&#9989; Check Pagamentos</span>';
-// Inserir após o Balancete
 balLink.parentNode.insertBefore(newLink, balLink.nextSibling);
 
 // ================================================================
-// PÁGINA — criar o container
+// PÁGINA
 // ================================================================
 var mainDiv = document.querySelector('.main');
 if(!mainDiv) return;
@@ -166,11 +187,15 @@ window.chgCheckM = function(dir){
 };
 
 // ================================================================
-// TOGGLE CHECK
+// TOGGLE / MARCAR / DESMARCAR
 // ================================================================
 window.toggleCheck = function(itemKey){
   var checks = loadChecks(checkMes);
-  checks[itemKey] = !checks[itemKey];
+  if(checks[itemKey]){
+    delete checks[itemKey]; // remove a chave ao desmarcar (mantém o JSON limpo)
+  } else {
+    checks[itemKey] = true;
+  }
   saveChecks(checkMes, checks);
   renderCheckPag();
 };
@@ -179,8 +204,7 @@ window.checkMarcarTodos = function(){
   var entries = allEntries(checkMes);
   var checks = loadChecks(checkMes);
   entries.forEach(function(e){
-    var key = buildItemKey(e);
-    checks[key] = true;
+    checks[buildItemKey(e)] = true;
   });
   saveChecks(checkMes, checks);
   renderCheckPag();
@@ -193,15 +217,14 @@ window.checkDesmarcarTodos = function(){
 };
 
 // ================================================================
-// GERAR CHAVE ÚNICA POR ITEM
+// CHAVE ÚNICA POR ITEM
 // ================================================================
 function buildItemKey(entry){
-  // Combinar origem + descrição + valor para identificar unicamente
   return (entry.origem||'') + '|' + (entry.desc||'') + '|' + (entry.valor||0).toFixed(2);
 }
 
 // ================================================================
-// DETERMINAR ORIGEM SIMPLIFICADA
+// ORIGEM SIMPLIFICADA
 // ================================================================
 function getOrigemSimples(entry){
   var o = entry.origem || '';
@@ -210,7 +233,6 @@ function getOrigemSimples(entry){
   if(o.startsWith('Cart\u00e3o') || entry.isCC) return 'Cart\u00e3o';
   return 'Lan\u00e7amento';
 }
-
 function getOrigemClass(orig){
   if(orig === 'Contrato') return 'contrato';
   if(orig === 'Assinatura') return 'assinatura';
@@ -219,7 +241,7 @@ function getOrigemClass(orig){
 }
 
 // ================================================================
-// RENDER PRINCIPAL
+// RENDER
 // ================================================================
 window.renderCheckPag = function(){
   document.getElementById('checkMesLabel').textContent = mesNomeFull(checkMes);
@@ -227,55 +249,37 @@ window.renderCheckPag = function(){
   var entries = allEntries(checkMes);
   var checks = loadChecks(checkMes);
 
-  // Ordenar: despesas primeiro (mais importante validar), depois por valor desc
   entries.sort(function(a, b){
-    // Despesas antes de receitas
-    if(a.tipo !== b.tipo){
-      return a.tipo === 'despesa' ? -1 : 1;
-    }
-    // Maior valor primeiro
+    if(a.tipo !== b.tipo) return a.tipo === 'despesa' ? -1 : 1;
     return b.valor - a.valor;
   });
 
-  // Filtros
   var filtroTipo = (document.getElementById('checkFiltroTipo') || {}).value || '';
   var filtroOrigem = (document.getElementById('checkFiltroOrigem') || {}).value || '';
   var filtroStatus = (document.getElementById('checkFiltroStatus') || {}).value || '';
 
   var filtered = entries.filter(function(e){
     if(filtroTipo && e.tipo !== filtroTipo) return false;
-    if(filtroOrigem){
-      var orig = getOrigemSimples(e);
-      if(orig !== filtroOrigem) return false;
-    }
+    if(filtroOrigem && getOrigemSimples(e) !== filtroOrigem) return false;
     if(filtroStatus){
-      var key = buildItemKey(e);
-      var isPago = !!checks[key];
+      var isPago = !!checks[buildItemKey(e)];
       if(filtroStatus === 'pendente' && isPago) return false;
       if(filtroStatus === 'pago' && !isPago) return false;
     }
     return true;
   });
 
-  // Estatísticas (sobre TODOS, não filtrados)
   var totalRec = 0, totalDesp = 0, pagosCount = 0, totalCount = entries.length;
   var pagosRec = 0, pagosDesp = 0;
   entries.forEach(function(e){
-    var key = buildItemKey(e);
-    var isPago = !!checks[key];
-    if(e.tipo === 'receita'){
-      totalRec += e.valor;
-      if(isPago) pagosRec += e.valor;
-    } else {
-      totalDesp += e.valor;
-      if(isPago) pagosDesp += e.valor;
-    }
+    var isPago = !!checks[buildItemKey(e)];
+    if(e.tipo === 'receita'){ totalRec += e.valor; if(isPago) pagosRec += e.valor; }
+    else { totalDesp += e.valor; if(isPago) pagosDesp += e.valor; }
     if(isPago) pagosCount++;
   });
 
   var pct = totalCount ? Math.round(pagosCount / totalCount * 100) : 0;
 
-  // Summary cards
   document.getElementById('checkSummary').innerHTML =
     '<div class="check-summary-card"><div class="cs-label">Total Itens</div><div class="cs-value" style="color:var(--pri2)">' + totalCount + '</div></div>' +
     '<div class="check-summary-card"><div class="cs-label">Validados</div><div class="cs-value" style="color:var(--ok)">' + pagosCount + '</div></div>' +
@@ -284,14 +288,12 @@ window.renderCheckPag = function(){
     '<div class="check-summary-card"><div class="cs-label">Despesas Pendentes</div><div class="cs-value" style="color:var(--wn)">' + fmtV(totalDesp - pagosDesp) + '</div></div>' +
     '<div class="check-summary-card"><div class="cs-label">Receitas Confirmadas</div><div class="cs-value" style="color:var(--ok)">' + fmtV(pagosRec) + '</div></div>';
 
-  // Barra de progresso
   document.getElementById('checkProgress').innerHTML =
     '<div class="check-progress">' +
       '<div class="check-progress-fill" style="width:' + pct + '%;' + (pct === 100 ? 'background:var(--ok)' : '') + '"></div>' +
       '<div class="check-progress-text">' + pct + '% conclu\u00eddo (' + pagosCount + '/' + totalCount + ')</div>' +
     '</div>';
 
-  // Agrupar por origem
   var grupos = {};
   var ordemGrupos = ['Contrato', 'Assinatura', 'Cart\u00e3o', 'Lan\u00e7amento'];
   filtered.forEach(function(e){
@@ -305,9 +307,7 @@ window.renderCheckPag = function(){
 
   if(!filtered.length){
     html = '<div class="check-empty">' +
-      (totalCount === 0
-        ? 'Nenhum lan\u00e7amento neste m\u00eas.'
-        : 'Nenhum item corresponde ao filtro.') +
+      (totalCount === 0 ? 'Nenhum lan\u00e7amento neste m\u00eas.' : 'Nenhum item corresponde ao filtro.') +
       '</div>';
   } else {
     ordemGrupos.forEach(function(gNome){
@@ -320,14 +320,13 @@ window.renderCheckPag = function(){
       html += '<div class="check-section">';
       html += '<div class="check-section-title">' +
         '<span>' + getGrupoIcon(gNome) + ' ' + getGrupoLabel(gNome) + ' (' + grupoPagos + '/' + items.length + ')</span>' +
-        '<span class="check-section-total">' + fmtV(grupoTotal) + '</span>' +
-        '</div>';
+        '<span class="check-section-total">' + fmtV(grupoTotal) + '</span></div>';
       html += '<div class="check-list">';
 
       items.forEach(function(e){
         var key = buildItemKey(e);
         var isPago = !!checks[key];
-        var keyEsc = key.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        var keyEsc = key.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;');
         visivelCount++;
 
         html += '<div class="check-item ' + (isPago ? 'checked' : '') + '" onclick="toggleCheck(\'' + keyEsc + '\')">' +
@@ -342,8 +341,7 @@ window.renderCheckPag = function(){
           '<span class="check-origem ' + getOrigemClass(getOrigemSimples(e)) + '">' + (e.origem || 'Manual') + '</span>' +
           '<div class="check-valor ' + (e.tipo === 'receita' ? 'rec' : 'desp') + '">' +
             (e.tipo === 'receita' ? '+' : '-') + fmtV(e.valor) +
-          '</div>' +
-        '</div>';
+          '</div></div>';
       });
 
       html += '</div></div>';
@@ -351,8 +349,6 @@ window.renderCheckPag = function(){
   }
 
   document.getElementById('checkArea').innerHTML = html;
-
-  // Filtro count
   var fc = document.getElementById('checkFilterCount');
   if(fc) fc.textContent = visivelCount + ' de ' + totalCount + ' item(ns)';
 };
@@ -363,7 +359,6 @@ function getGrupoIcon(g){
   if(g === 'Cart\u00e3o') return '&#128179;';
   return '&#128221;';
 }
-
 function getGrupoLabel(g){
   if(g === 'Contrato') return 'Contratos';
   if(g === 'Assinatura') return 'Assinaturas';
@@ -372,7 +367,7 @@ function getGrupoLabel(g){
 }
 
 // ================================================================
-// HOOK NA NAVEGAÇÃO — mesmo padrão do extratoCat no melhorias.js
+// HOOK NAVEGAÇÃO
 // ================================================================
 var _origNav = window.nav;
 window.nav = function(pg){
@@ -381,14 +376,10 @@ window.nav = function(pg){
   if(el) el.classList[pg === 'checkpag' ? 'add' : 'remove']('active');
   var pgEl = document.getElementById('pg-checkpag');
   if(pgEl){
-    if(pg === 'checkpag'){
-      pgEl.classList.add('active');
-      renderCheckPag();
-    } else {
-      pgEl.classList.remove('active');
-    }
+    if(pg === 'checkpag'){ pgEl.classList.add('active'); renderCheckPag(); }
+    else pgEl.classList.remove('active');
   }
 };
 
-console.log('[Financeiro Pro] Check de Pagamentos carregado.');
+console.log('[Financeiro Pro] Check de Pagamentos v2 (cloud sync) carregado.');
 })();
