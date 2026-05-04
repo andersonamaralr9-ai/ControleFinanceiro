@@ -1,109 +1,9 @@
-// cartoes-fix.js — Corrige cálculo de "Usado" nos cartões de crédito
-// Mostra: Fatura Atual (mês corrente), Saldo Devedor Total (parcelas restantes),
-// e Disponível = Limite - Saldo Devedor
+// cartoes-fix.js v2 — Corrige cálculo + Adiciona edição de cartão
 (function(){
 'use strict';
 
 // ================================================================
-// NOVO CÁLCULO: Saldo devedor total do cartão
-// Soma todas as parcelas RESTANTES (do mês atual em diante)
-// + assinaturas ativas (1x mensal como compromisso)
-// ================================================================
-function calcSaldoDevedor(cid){
-  var total = 0;
-  var ma = mesAtual();
-
-  S.comprasCartao.filter(function(c){ return c.cartaoId === cid; }).forEach(function(c){
-    var p = c.parcelas || 1;
-    var mC = getMes(c.data);
-    var vp = (Number(c.valor) || 0) / p;
-
-    for(var i = 0; i < p; i++){
-      var mesParcela = addMes(mC, i);
-      // Parcelas do mês atual em diante = saldo devedor
-      if(mesParcela >= ma){
-        total += vp;
-      }
-    }
-  });
-
-  return total;
-}
-
-// ================================================================
-// NOVO CÁLCULO: Fatura do mês atual
-// Parcelas que caem no mês corrente + assinaturas ativas
-// ================================================================
-function calcFaturaAtual(cid){
-  var total = 0;
-  var ma = mesAtual();
-
-  S.comprasCartao.filter(function(c){ return c.cartaoId === cid; }).forEach(function(c){
-    var p = c.parcelas || 1;
-    var mC = getMes(c.data);
-    var vp = (Number(c.valor) || 0) / p;
-
-    for(var i = 0; i < p; i++){
-      if(addMes(mC, i) === ma){
-        total += vp;
-      }
-    }
-  });
-
-  // Assinaturas ativas no mês atual
-  S.assinaturas.filter(function(s){
-    return s.cartaoId === cid && !s.encerradaEm;
-  }).forEach(function(s){
-    var inicio = (s.inicio || '').substring(0, 7);
-    if(inicio && ma < inicio) return;
-    var val = Number(s.valor) || 0;
-    var hist = Array.isArray(s.historico) ? s.historico : [];
-    for(var h = 0; h < hist.length; h++){
-      var hd = (hist[h].de || hist[h].desde || '').substring(0, 7);
-      if(hd && ma >= hd) val = Number(hist[h].valor) || 0;
-    }
-    total += val;
-  });
-
-  return total;
-}
-
-// ================================================================
-// NOVO CÁLCULO: Total de compras brutas (valor original de todas as compras)
-// ================================================================
-function calcTotalCompras(cid){
-  var total = 0;
-  S.comprasCartao.filter(function(c){ return c.cartaoId === cid; }).forEach(function(c){
-    total += Number(c.valor) || 0;
-  });
-  return total;
-}
-
-// ================================================================
-// NOVO CÁLCULO: Total já pago (parcelas que já passaram)
-// ================================================================
-function calcJaPago(cid){
-  var total = 0;
-  var ma = mesAtual();
-
-  S.comprasCartao.filter(function(c){ return c.cartaoId === cid; }).forEach(function(c){
-    var p = c.parcelas || 1;
-    var mC = getMes(c.data);
-    var vp = (Number(c.valor) || 0) / p;
-
-    for(var i = 0; i < p; i++){
-      var mesParcela = addMes(mC, i);
-      if(mesParcela < ma){
-        total += vp;
-      }
-    }
-  });
-
-  return total;
-}
-
-// ================================================================
-// CSS adicional para os cards melhorados
+// CSS
 // ================================================================
 var sty = document.createElement('style');
 sty.textContent = `
@@ -121,13 +21,101 @@ sty.textContent = `
 document.head.appendChild(sty);
 
 // ================================================================
-// OVERRIDE: calcUsado — agora retorna saldo devedor + assinaturas
+// MODAL DE EDIÇÃO DE CARTÃO
 // ================================================================
-window.calcUsado = function(cid){
-  var saldoDevedor = calcSaldoDevedor(cid);
+var modalEditCC = document.createElement('div');
+modalEditCC.className = 'modal';
+modalEditCC.id = 'modalEditCartao';
+modalEditCC.innerHTML =
+  '<div class="modal-content"><div class="modal-header"><h3>Editar Cart\u00e3o</h3>' +
+  '<span class="modal-close" onclick="closeM(\'modalEditCartao\')">&times;</span></div>' +
+  '<div class="modal-body">' +
+  '<div class="form-group" style="margin-bottom:12px"><label>Nome</label><input id="eccNome" class="form-control"></div>' +
+  '<div class="form-group" style="margin-bottom:12px"><label>Bandeira</label><select id="eccBand" class="form-control">' +
+  '<option>Mastercard</option><option>Visa</option><option>Elo</option><option>Amex</option><option>Outra</option></select></div>' +
+  '<div class="form-group" style="margin-bottom:12px"><label>Limite (R$)</label><input id="eccLimite" class="form-control"></div>' +
+  '<div class="form-group" style="margin-bottom:12px"><label>Dia Fechamento</label><input type="number" id="eccFecha" class="form-control" min="1" max="31"></div>' +
+  '<div class="form-group" style="margin-bottom:12px"><label>Dia Vencimento</label><input type="number" id="eccVence" class="form-control" min="1" max="31"></div>' +
+  '<input type="hidden" id="eccId">' +
+  '<button class="btn btn-primary" onclick="window._updateCartao()" style="width:100%;margin-top:8px">Salvar</button>' +
+  '</div></div>';
+document.body.appendChild(modalEditCC);
 
-  // Assinaturas ativas (valor mensal, como compromisso recorrente)
-  var assinaturaMensal = 0;
+// Abrir edição
+window._editCartao = function(id){
+  var c = S.cartoes.find(function(x){ return x.id === id; });
+  if(!c) return;
+  g('eccId').value = id;
+  g('eccNome').value = c.nome || '';
+  g('eccBand').value = c.bandeira || 'Mastercard';
+  g('eccLimite').value = (c.limite || 0).toFixed(2).replace('.', ',');
+  g('eccFecha').value = c.fechamento || 1;
+  g('eccVence').value = c.vencimento || 10;
+  openM('modalEditCartao');
+};
+
+// Salvar edição
+window._updateCartao = function(){
+  var id = g('eccId').value;
+  var c = S.cartoes.find(function(x){ return x.id === id; });
+  if(!c) return;
+  c.nome = g('eccNome').value.trim();
+  c.bandeira = g('eccBand').value;
+  c.limite = parseN(g('eccLimite').value);
+  c.fechamento = parseInt(g('eccFecha').value) || 1;
+  c.vencimento = parseInt(g('eccVence').value) || 10;
+  salvar();
+  closeM('modalEditCartao');
+  renderCartoes();
+  if(typeof toast === 'function') toast('Cart\u00e3o atualizado!', 'success');
+};
+
+// ================================================================
+// CÁLCULOS
+// ================================================================
+function calcSaldoDevedor(cid){
+  var total = 0;
+  var ma = mesAtual();
+  S.comprasCartao.filter(function(c){ return c.cartaoId === cid; }).forEach(function(c){
+    var p = c.parcelas || 1;
+    var mC = getMes(c.data);
+    var vp = (Number(c.valor) || 0) / p;
+    for(var i = 0; i < p; i++){
+      if(addMes(mC, i) >= ma) total += vp;
+    }
+  });
+  return total;
+}
+
+function calcFaturaAtual(cid){
+  var total = 0;
+  var ma = mesAtual();
+  S.comprasCartao.filter(function(c){ return c.cartaoId === cid; }).forEach(function(c){
+    var p = c.parcelas || 1;
+    var mC = getMes(c.data);
+    var vp = (Number(c.valor) || 0) / p;
+    for(var i = 0; i < p; i++){
+      if(addMes(mC, i) === ma) total += vp;
+    }
+  });
+  S.assinaturas.filter(function(s){
+    return s.cartaoId === cid && !s.encerradaEm;
+  }).forEach(function(s){
+    var inicio = (s.inicio || '').substring(0, 7);
+    if(inicio && ma < inicio) return;
+    var val = Number(s.valor) || 0;
+    var hist = Array.isArray(s.historico) ? s.historico : [];
+    for(var h = 0; h < hist.length; h++){
+      var hd = (hist[h].de || hist[h].desde || '').substring(0, 7);
+      if(hd && ma >= hd) val = Number(hist[h].valor) || 0;
+    }
+    total += val;
+  });
+  return total;
+}
+
+function calcAssinaturasMensal(cid){
+  var total = 0;
   var ma = mesAtual();
   S.assinaturas.filter(function(s){
     return s.cartaoId === cid && !s.encerradaEm;
@@ -140,43 +128,32 @@ window.calcUsado = function(cid){
       var hd = (hist[h].de || hist[h].desde || '').substring(0, 7);
       if(hd && ma >= hd) val = Number(hist[h].valor) || 0;
     }
-    assinaturaMensal += val;
+    total += val;
   });
+  return total;
+}
 
-  return saldoDevedor + assinaturaMensal;
+// ================================================================
+// OVERRIDE: calcUsado
+// ================================================================
+window.calcUsado = function(cid){
+  return calcSaldoDevedor(cid) + calcAssinaturasMensal(cid);
 };
 
 // ================================================================
-// OVERRIDE: renderCartoes — card com informações detalhadas
+// OVERRIDE: renderCartoes
 // ================================================================
-var _origRenderCartoes = window.renderCartoes;
-
 window.renderCartoes = function(){
   popCartSel();
-
+  var ma = mesAtual();
   var html = '';
+
   if(S.cartoes.length){
     html = S.cartoes.map(function(c){
       var limite = Number(c.limite) || 0;
       var faturaAtual = calcFaturaAtual(c.id);
       var saldoDevedor = calcSaldoDevedor(c.id);
-      var assinaturas = 0;
-      var ma = mesAtual();
-
-      S.assinaturas.filter(function(s){
-        return s.cartaoId === c.id && !s.encerradaEm;
-      }).forEach(function(s){
-        var inicio = (s.inicio || '').substring(0, 7);
-        if(inicio && ma < inicio) return;
-        var val = Number(s.valor) || 0;
-        var hist = Array.isArray(s.historico) ? s.historico : [];
-        for(var h = 0; h < hist.length; h++){
-          var hd = (hist[h].de || hist[h].desde || '').substring(0, 7);
-          if(hd && ma >= hd) val = Number(hist[h].valor) || 0;
-        }
-        assinaturas += val;
-      });
-
+      var assinaturas = calcAssinaturasMensal(c.id);
       var usado = saldoDevedor + assinaturas;
       var disponivel = limite - usado;
       var pctUsado = limite ? Math.round(usado / limite * 100) : 0;
@@ -184,7 +161,7 @@ window.renderCartoes = function(){
       var barClass = pctUsado > 90 ? 'cc-bar-danger' : pctUsado > 70 ? 'cc-bar-warn' : 'cc-bar-ok';
       var pctColor = pctUsado > 90 ? 'var(--dn2)' : pctUsado > 70 ? 'var(--wn)' : 'var(--ok)';
 
-      // Contar compras ativas (com parcelas restantes)
+      // Compras ativas
       var comprasAtivas = 0;
       S.comprasCartao.filter(function(cp){ return cp.cartaoId === c.id; }).forEach(function(cp){
         var p = cp.parcelas || 1;
@@ -212,39 +189,42 @@ window.renderCartoes = function(){
       // Fatura Atual
       r += '<div class="cc-card-detail"><span class="cc-label">Fatura Atual (' + mesNome(ma) + ')</span><span class="cc-val" style="color:var(--wn)">' + fmtV(faturaAtual) + '</span></div>';
 
-      // Saldo Devedor (parcelas restantes)
+      // Parcelas restantes
       r += '<div class="cc-card-detail"><span class="cc-label">Parcelas Restantes</span><span class="cc-val" style="color:var(--dn2)">' + fmtV(saldoDevedor) + '</span></div>';
 
-      // Assinaturas mensais
-      r += '<div class="cc-card-detail"><span class="cc-label">Assinaturas/mês</span><span class="cc-val" style="color:var(--pri2)">' + fmtV(assinaturas) + '</span></div>';
+      // Assinaturas
+      r += '<div class="cc-card-detail"><span class="cc-label">Assinaturas/m\u00eas</span><span class="cc-val" style="color:var(--pri2)">' + fmtV(assinaturas) + '</span></div>';
 
       r += '<div class="cc-card-separator"></div>';
 
-      // Comprometido total (saldo devedor + assinaturas)
+      // Comprometido
       r += '<div class="cc-card-detail"><span class="cc-label"><strong>Comprometido Total</strong></span><span class="cc-val" style="color:var(--dn2)">' + fmtV(usado) + '</span></div>';
 
       // Disponível
-      r += '<div class="cc-card-detail"><span class="cc-label"><strong>Disponível</strong></span><span class="cc-val" style="color:' + (disponivel >= 0 ? 'var(--ok)' : 'var(--dn2)') + '">' + fmtV(disponivel) + '</span></div>';
+      r += '<div class="cc-card-detail"><span class="cc-label"><strong>Dispon\u00edvel</strong></span><span class="cc-val" style="color:' + (disponivel >= 0 ? 'var(--ok)' : 'var(--dn2)') + '">' + fmtV(disponivel) + '</span></div>';
 
       r += '<div class="cc-card-separator"></div>';
 
-      // Info extra
+      // Info
       r += '<p style="font-size:.78em;color:var(--tx3)">Fecha: dia ' + (c.fechamento || '-') + ' | Vence: dia ' + (c.vencimento || '-') + '</p>';
       r += '<p style="font-size:.78em;color:var(--tx3)">' + comprasAtivas + ' compra(s) ativa(s) | ' + assinaturasAtivas + ' assinatura(s)</p>';
 
-      // Ações
-      r += '<div style="margin-top:10px"><button class="btn btn-sm btn-danger" onclick="delCartao(\'' + c.id + '\')">&#128465;</button></div>';
+      // AÇÕES: Editar + Excluir
+      r += '<div style="margin-top:10px;display:flex;gap:6px">';
+      r += '<button class="btn btn-sm btn-outline" onclick="window._editCartao(\'' + c.id + '\')" title="Editar cart\u00e3o">&#9998; Editar</button>';
+      r += '<button class="btn btn-sm btn-danger" onclick="delCartao(\'' + c.id + '\')" title="Excluir cart\u00e3o">&#128465;</button>';
       r += '</div>';
 
+      r += '</div>';
       return r;
     }).join('');
   } else {
-    html = '<p style="color:var(--tx3)">Nenhum cartão.</p>';
+    html = '<p style="color:var(--tx3)">Nenhum cart\u00e3o.</p>';
   }
 
   g('ccGrid').innerHTML = html;
 };
 
-console.log('[Financeiro Pro] Cartões Fix v1 carregado.');
+console.log('[Financeiro Pro] Cart\u00f5es Fix v2 carregado.');
 
 })();
