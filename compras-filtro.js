@@ -1,4 +1,4 @@
-// compras-filtro.js — Filtro avançado e visão gerencial das Compras no Cartão
+// compras-filtro.js v2 — Filtro avançado e visão gerencial das Compras no Cartão (com antecipação)
 (function(){
 'use strict';
 
@@ -7,39 +7,29 @@
 // ================================================================
 var sty = document.createElement('style');
 sty.textContent = `
-/* Filtro Compras */
 .cp-filter-bar{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);padding:16px 20px;margin-bottom:20px;box-shadow:var(--sh);}
 .cp-filter-row{display:flex;gap:10px;flex-wrap:wrap;align-items:end;}
 .cp-filter-row .form-group{flex:1;min-width:150px;}
 .cp-filter-row .form-group label{font-size:.72em;color:var(--tx3);font-weight:600;margin-bottom:4px;display:block;}
-
-/* Resumo Compras */
 .cp-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px;}
-
-/* Tabela gerencial */
 .cp-section{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);padding:16px 20px;margin-bottom:20px;box-shadow:var(--sh);}
 .cp-section h3{font-size:.88em;color:var(--tx2);font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
 .cp-section h3 .cp-count{background:var(--bg3);padding:2px 10px;border-radius:12px;font-size:.82em;color:var(--tx3);}
-
 .cp-table{width:100%;border-collapse:collapse;}
 .cp-table th{background:var(--bg3);padding:10px 12px;text-align:left;font-size:.72em;text-transform:uppercase;letter-spacing:1px;color:var(--tx3);font-weight:700;}
 .cp-table td{padding:9px 12px;border-bottom:1px solid var(--bg3);font-size:.84em;}
 .cp-table tr:hover td{background:rgba(108,92,231,.04);}
-
 .cp-parc-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.72em;font-weight:700;}
 .cp-parc-ativa{background:rgba(0,206,201,.12);color:var(--ok);}
 .cp-parc-quitada{background:rgba(108,92,231,.12);color:var(--pri2);}
-
+.cp-parc-antecipada{background:rgba(253,203,110,.12);color:var(--wn);}
 .cp-highlight{background:rgba(253,203,110,.06)!important;}
-
-/* Totalizadores por cartão */
 .cp-totais-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:20px;}
 .cp-total-card{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);padding:14px 18px;box-shadow:var(--sh);}
 .cp-total-card h4{font-size:.82em;color:var(--tx2);margin-bottom:8px;}
 .cp-total-card .cp-tc-row{display:flex;justify-content:space-between;font-size:.82em;padding:3px 0;}
 .cp-total-card .cp-tc-row .cp-tc-label{color:var(--tx3);}
 .cp-total-card .cp-tc-row .cp-tc-val{font-weight:700;}
-
 @media(max-width:768px){
   .cp-filter-row{flex-direction:column;}
   .cp-filter-row .form-group{min-width:100%;}
@@ -56,21 +46,16 @@ document.head.appendChild(sty);
 // ================================================================
 var cpFiltroMes = mesAtual();
 
+// Guardar a referência da renderCompras ANTES de qualquer override (inclusive antecipacao.js)
+// Isso será a renderCompras original do index.html
+var _baseRenderCompras = window.renderCompras;
+
 // ================================================================
 // OVERRIDE renderCompras
 // ================================================================
-var _origRenderCompras = window.renderCompras;
-
 window.renderCompras = function(){
-  // Popular selects do form original
-  popCartSel();
-  var sc = g('cpCat');
-  if(sc){
-    sc.innerHTML = '';
-    (S.cats.compra || S.cats.despesa || []).forEach(function(c){
-      sc.innerHTML += '<option>' + c + '</option>';
-    });
-  }
+  // Chamar a renderCompras original (pode já ter sido overridden pelo antecipacao.js)
+  if(_baseRenderCompras) _baseRenderCompras();
 
   var pgEl = document.getElementById('pg-compras');
   if(!pgEl) return;
@@ -113,13 +98,8 @@ window.renderCompras = function(){
         '</select></div>' +
     '</div></div>';
 
-  // ===== ÁREA DE RESUMO =====
   var resumoHTML = '<div class="cp-summary" id="cpResumoCards"></div>';
-
-  // ===== TOTAIS POR CARTÃO =====
   var totaisHTML = '<div class="cp-totais-grid" id="cpTotaisGrid"></div>';
-
-  // ===== TABELA GERENCIAL =====
   var tabelaHTML = '<div class="cp-section">' +
     '<h3>&#128722; Compras da Compet\u00eancia <span class="cp-count" id="cpResultCount">0</span></h3>' +
     '<div class="table-wrap"><table class="cp-table"><thead><tr>' +
@@ -130,13 +110,13 @@ window.renderCompras = function(){
 
   area.innerHTML = filterHTML + resumoHTML + totaisHTML + tabelaHTML;
 
-  // Esconder tabela original
+  // Esconder tabela original E mobile cards (se existirem)
   var tbOriginal = pgEl.querySelector('.table-wrap');
   if(tbOriginal) tbOriginal.style.display = 'none';
+  var mobCards = document.getElementById('comprasMobCards');
+  if(mobCards) mobCards.style.display = 'none';
 
   pgEl.appendChild(area);
-
-  // Aplicar filtro inicial
   _cpApplyFilter();
 };
 
@@ -149,6 +129,26 @@ window._cpChgMes = function(dir){
   if(inp) inp.value = cpFiltroMes;
   _cpApplyFilter();
 };
+
+// ================================================================
+// HELPER: verificar se compra tem parcelas para antecipar
+// ================================================================
+function _cpTemAntecipacao(compra){
+  if((compra.parcelas || 1) <= 1) return false;
+  // Verificar se existe a função abrirAntecipacao (do antecipacao.js)
+  if(typeof window.abrirAntecipacao !== 'function') return false;
+  return true;
+}
+
+function _cpCountAntecipadas(compra){
+  if(!compra.antecipacoes || !compra.antecipacoes.length) return { count: 0, valor: 0 };
+  var count = 0, valor = 0;
+  compra.antecipacoes.forEach(function(a){
+    count += (a.parcelasNums ? a.parcelasNums.length : 0);
+    valor += (a.valorTotal || 0);
+  });
+  return { count: count, valor: valor };
+}
 
 // ================================================================
 // APLICAR FILTRO E RENDERIZAR
@@ -165,8 +165,6 @@ window._cpApplyFilter = function(){
   var mes = cpFiltroMes;
   var nomeLower = filtroNome.toLowerCase().trim();
 
-  // Montar lista de compras que aparecem na competência
-  // (compras da competência + parceladas ativas na competência)
   var itens = [];
 
   S.comprasCartao.forEach(function(c){
@@ -176,15 +174,11 @@ window._cpApplyFilter = function(){
     var valorParcela = valorTotal / p;
     var cart = S.cartoes.find(function(x){ return x.id === c.cartaoId; });
     var cartNome = cart ? cart.nome : '-';
+    var antInfo = _cpCountAntecipadas(c);
 
-    // Para cada parcela, verificar se cai na competência
     for(var i = 0; i < p; i++){
       var mesParcela = addMes(mCompra, i);
       if(mesParcela === mes){
-        var parcelaAtual = i + 1;
-        var isCompetencia = (mCompra === mes && p === 1); // compra à vista na competência
-        var isParceladaAtiva = (p > 1); // parcelada
-
         itens.push({
           id: c.id,
           cartaoId: c.cartaoId,
@@ -195,21 +189,22 @@ window._cpApplyFilter = function(){
           valorParcela: valorParcela,
           data: c.data,
           parcelas: p,
-          parcelaAtual: parcelaAtual,
+          parcelaAtual: i + 1,
           isParcelada: p > 1,
           isCompetenciaOriginal: mCompra === mes,
-          isUltimaParcela: parcelaAtual === p
+          isUltimaParcela: (i + 1) === p,
+          temAntecipacao: _cpTemAntecipacao(c),
+          antCount: antInfo.count,
+          antValor: antInfo.valor
         });
-        break; // só 1 entrada por compra por mês
+        break;
       }
     }
   });
 
   // Aplicar filtros
   if(nomeLower){
-    itens = itens.filter(function(it){
-      return it.desc.toLowerCase().indexOf(nomeLower) >= 0;
-    });
+    itens = itens.filter(function(it){ return it.desc.toLowerCase().indexOf(nomeLower) >= 0; });
   }
   if(filtroCartao){
     itens = itens.filter(function(it){ return it.cartaoId === filtroCartao; });
@@ -218,7 +213,6 @@ window._cpApplyFilter = function(){
     itens = itens.filter(function(it){ return it.cat === filtroCat; });
   }
   if(filtroStatus === 'ativa'){
-    // Parcelas ativas (parceladas que não terminaram)
     itens = itens.filter(function(it){ return it.isParcelada && !it.isUltimaParcela; });
   } else if(filtroStatus === 'parcelada'){
     itens = itens.filter(function(it){ return it.isParcelada; });
@@ -226,7 +220,6 @@ window._cpApplyFilter = function(){
     itens = itens.filter(function(it){ return !it.isParcelada; });
   }
 
-  // Ordenar: compras da competência primeiro, depois por valor parcela desc
   itens.sort(function(a, b){
     if(a.isCompetenciaOriginal !== b.isCompetenciaOriginal) return a.isCompetenciaOriginal ? -1 : 1;
     return b.valorParcela - a.valorParcela;
@@ -239,12 +232,10 @@ window._cpApplyFilter = function(){
   var totalParceladas = itens.filter(function(it){ return it.isParcelada; }).length;
   var totalAVista = itens.filter(function(it){ return !it.isParcelada; }).length;
 
-  // Total de parcelas futuras (compras parceladas que ainda terão pagamentos após este mês)
   var totalFuturo = 0;
   itens.forEach(function(it){
     if(it.isParcelada && !it.isUltimaParcela){
-      var restantes = it.parcelas - it.parcelaAtual;
-      totalFuturo += it.valorParcela * restantes;
+      totalFuturo += it.valorParcela * (it.parcelas - it.parcelaAtual);
     }
   });
 
@@ -316,12 +307,18 @@ window._cpApplyFilter = function(){
     if(!it.isParcelada){
       statusBadge = '<span class="cp-parc-badge cp-parc-quitada">\u00c0 vista</span>';
     } else if(it.isUltimaParcela){
-      statusBadge = '<span class="cp-parc-badge cp-parc-quitada">\u00daltima parcela</span>';
+      statusBadge = '<span class="cp-parc-badge cp-parc-quitada">\u00daltima</span>';
     } else {
       statusBadge = '<span class="cp-parc-badge cp-parc-ativa">Ativa</span>';
     }
 
-    var rowClass = it.isCompetenciaOriginal && it.parcelas === 1 ? '' : (it.isParcelada && !it.isUltimaParcela ? ' class="cp-highlight"' : '');
+    // Badge de antecipações
+    var antBadge = '';
+    if(it.antCount > 0){
+      antBadge = ' <span class="badge badge-purple" title="' + it.antCount + ' parcela(s) antecipada(s) - ' + fmtV(it.antValor) + '">&#9889; ' + it.antCount + ' ant.</span>';
+    }
+
+    var rowClass = it.isParcelada && !it.isUltimaParcela ? ' class="cp-highlight"' : '';
 
     h += '<tr' + rowClass + '>' +
       '<td>' + fmtD(it.data) + '</td>' +
@@ -329,10 +326,11 @@ window._cpApplyFilter = function(){
       '<td>' + it.desc + '</td>' +
       '<td>' + it.cat + '</td>' +
       '<td style="font-weight:600;color:var(--tx2)">' + fmtV(it.valorTotal) + '</td>' +
-      '<td style="text-align:center">' + (it.isParcelada ? it.parcelaAtual + '/' + it.parcelas : '1/1') + '</td>' +
+      '<td style="text-align:center">' + (it.isParcelada ? it.parcelaAtual + '/' + it.parcelas : '1/1') + antBadge + '</td>' +
       '<td style="font-weight:700;color:var(--dn2)">' + fmtV(it.valorParcela) + '</td>' +
       '<td>' + statusBadge + '</td>' +
       '<td>' +
+        (it.temAntecipacao ? '<button class="btn btn-sm btn-warning" onclick="abrirAntecipacao(\'' + idEsc + '\')" title="Antecipar parcelas">&#9889;</button> ' : '') +
         '<button class="btn btn-sm btn-outline" onclick="editCompra(\'' + idEsc + '\')">&#9998;</button> ' +
         '<button class="btn btn-sm btn-danger" onclick="delCompra(\'' + idEsc + '\')">&#128465;</button>' +
       '</td>' +
@@ -342,5 +340,5 @@ window._cpApplyFilter = function(){
   tbEl.innerHTML = h;
 };
 
-console.log('[Financeiro Pro] Compras Filtro Gerencial carregado.');
+console.log('[Financeiro Pro] Compras Filtro Gerencial v2 carregado.');
 })();
