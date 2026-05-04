@@ -1,4 +1,4 @@
-// investimentos.js v2 — Investimentos melhorado com Aporte, Resgate, Rentabilidade e Alocação
+// investimentos.js v3 — Investimentos com Aporte, Resgate, Rentabilidade e layout otimizado
 (function(){
 'use strict';
 
@@ -41,6 +41,13 @@ sty.textContent = `
 .inv-legend-item{display:flex;align-items:center;gap:8px;font-size:.8em;margin-bottom:6px;}
 .inv-legend-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0;}
 
+/* Rentabilidade mensal - tabela compacta */
+.inv-rent-table-box{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);padding:16px 20px;box-shadow:var(--sh);margin-bottom:24px;}
+.inv-rent-table-box h3{font-size:.88em;margin-bottom:12px;color:var(--tx2);font-weight:600;}
+.inv-rent-table{width:100%;border-collapse:collapse;}
+.inv-rent-table th{font-size:.72em;color:var(--tx3);text-transform:uppercase;letter-spacing:1px;padding:6px 10px;text-align:center;border-bottom:1px solid var(--bg4);}
+.inv-rent-table td{font-size:.92em;font-weight:700;text-align:center;padding:10px;border-bottom:1px solid var(--bg3);}
+
 /* Tabela investimentos */
 .inv-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-bottom:24px;}
 .inv-card{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);box-shadow:var(--sh);overflow:hidden;transition:transform .2s;}
@@ -74,11 +81,6 @@ sty.textContent = `
 .inv-mov-item .inv-mov-tipo.resgate{color:var(--dn2);}
 .inv-mov-item .inv-mov-val{font-weight:700;}
 
-/* Rentabilidade resumo */
-.inv-rent-summary{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px;}
-.inv-rent-summary .inv-rs-card{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);padding:14px 18px;flex:1;min-width:200px;box-shadow:var(--sh);}
-.inv-rs-card h4{font-size:.72em;color:var(--tx3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
-
 /* Botões extras */
 .btn-warning{background:linear-gradient(135deg,#fdcb6e,#e17055);color:#fff;border:none;cursor:pointer;border-radius:var(--rad);padding:6px 12px;font-size:.78em;}
 .btn-warning:hover{opacity:.85;}
@@ -89,7 +91,8 @@ sty.textContent = `
   .inv-alloc{grid-template-columns:1fr;}
   .inv-cards-grid{grid-template-columns:1fr;}
   .inv-summary{grid-template-columns:1fr 1fr;}
-  .inv-rent-summary{flex-direction:column;}
+  .inv-rent-table{font-size:.8em;}
+  .inv-rent-table th,.inv-rent-table td{padding:6px 4px;}
 }
 `;
 document.head.appendChild(sty);
@@ -157,31 +160,26 @@ function getColor(i){ return COLORS[i % COLORS.length]; }
 // HELPERS
 // ================================================================
 function getInvRentTotal(inv){
-  var rents = inv.rentabilidade || [];
-  return rents.reduce(function(s, r){ return s + (Number(r.valor) || 0); }, 0);
+  return (inv.rentabilidade || []).reduce(function(s, r){ return s + (Number(r.valor) || 0); }, 0);
 }
 
 function getInvMovTotal(inv){
-  var movs = inv.movimentacoes || [];
-  return movs.reduce(function(s, m){
+  return (inv.movimentacoes || []).reduce(function(s, m){
     var v = Number(m.valor) || 0;
     return s + (m.tipo === 'resgate' ? -v : v);
   }, 0);
 }
 
 function getInvCapitalAtual(inv){
-  // Capital = valor inicial + aportes - resgates
   return (Number(inv.valor) || 0) + getInvMovTotal(inv);
 }
 
 function getInvSaldoAtual(inv){
-  // Saldo = capital atual + rentabilidade total
   return getInvCapitalAtual(inv) + getInvRentTotal(inv);
 }
 
 function getInvRentMes(inv, mes){
-  var rents = inv.rentabilidade || [];
-  var found = rents.find(function(r){ return r.mes === mes; });
+  var found = (inv.rentabilidade || []).find(function(r){ return r.mes === mes; });
   return found ? (Number(found.valor) || 0) : 0;
 }
 
@@ -193,10 +191,7 @@ function hojeISO(){
 // ================================================================
 // OVERRIDE renderInvest
 // ================================================================
-var _origRenderInvest = window.renderInvest;
-
 window.renderInvest = function(){
-  // Popular o select de tipo do form original
   var st = g('invTipo');
   if(st){
     st.innerHTML = '';
@@ -209,7 +204,6 @@ window.renderInvest = function(){
   var pgEl = document.getElementById('pg-investimentos');
   if(!pgEl) return;
 
-  // Remover conteúdo dinâmico anterior
   var existing = document.getElementById('invDynamicArea');
   if(existing) existing.remove();
 
@@ -231,7 +225,6 @@ window.renderInvest = function(){
     totalRent += rent;
     totalSaldo += saldo;
 
-    // Contabilizar aportes e resgates
     (inv.movimentacoes || []).forEach(function(m){
       var v = Number(m.valor) || 0;
       if(m.tipo === 'aporte') totalAportes += v;
@@ -249,7 +242,6 @@ window.renderInvest = function(){
 
   var rentPct = totalCapital > 0 ? ((totalRent / totalCapital) * 100) : 0;
 
-  // Rentabilidade do mês atual
   var ma = mesAtual();
   var rentMesAtual = 0;
   invs.forEach(function(inv){ rentMesAtual += getInvRentMes(inv, ma); });
@@ -316,17 +308,28 @@ window.renderInvest = function(){
   }
   html += '</div>';
 
-  // ===== RENTABILIDADE POR MÊS (últimos 6 meses) =====
-  html += '<div class="inv-rent-summary">';
+  // ===== RENTABILIDADE POR MÊS — TABELA COMPACTA =====
+  html += '<div class="inv-rent-table-box"><h3>&#128200; Rentabilidade Mensal (últimos 6 meses)</h3>';
+  html += '<table class="inv-rent-table"><thead><tr>';
+  var meses6 = [];
   for(var mi = -5; mi <= 0; mi++){
     var mes = addMes(ma, mi);
+    meses6.push(mes);
+    html += '<th>' + mesNome(mes) + '</th>';
+  }
+  html += '<th style="color:var(--pri2)">Acumulado</th>';
+  html += '</tr></thead><tbody><tr>';
+  var acum6 = 0;
+  meses6.forEach(function(mes){
     var rentMes = 0;
     invs.forEach(function(inv){ rentMes += getInvRentMes(inv, mes); });
-    var corMes = rentMes > 0 ? 'var(--ok)' : (rentMes < 0 ? 'var(--dn2)' : 'var(--tx3)');
-    html += '<div class="inv-rs-card"><h4>' + mesNome(mes) + '</h4>' +
-      '<div style="font-size:1.05em;font-weight:700;color:' + corMes + '">' + (rentMes > 0 ? '+' : '') + fmtV(rentMes) + '</div></div>';
-  }
-  html += '</div>';
+    acum6 += rentMes;
+    var cor = rentMes > 0 ? 'var(--ok)' : (rentMes < 0 ? 'var(--dn2)' : 'var(--tx3)');
+    html += '<td style="color:' + cor + '">' + (rentMes > 0 ? '+' : '') + fmtV(rentMes) + '</td>';
+  });
+  var corAcum = acum6 > 0 ? 'var(--ok)' : (acum6 < 0 ? 'var(--dn2)' : 'var(--tx3)');
+  html += '<td style="color:' + corAcum + ';font-size:1em">' + (acum6 > 0 ? '+' : '') + fmtV(acum6) + '</td>';
+  html += '</tr></tbody></table></div>';
 
   // ===== CARDS DE INVESTIMENTOS =====
   html += '<div class="inv-cards-grid">';
@@ -380,18 +383,18 @@ window.renderInvest = function(){
         html += '</div></div>';
       }
 
-      // Histórico de movimentações (aportes/resgates)
+      // Histórico de movimentações
       if(movs.length){
         html += '<div class="inv-mov-section"><div class="inv-mov-title">Movimenta\u00e7\u00f5es (Aportes / Resgates)</div><div class="inv-mov-list">';
         movs.forEach(function(m){
           var mv = Number(m.valor) || 0;
-          var mesEsc = (m.data || '').replace(/'/g, "\\'");
+          var movIdEsc = (m.id || '').replace(/'/g, "\\'");
           html += '<div class="inv-mov-item">' +
             '<span class="inv-mov-data">' + fmtD(m.data) + '</span>' +
             '<span class="inv-mov-tipo ' + m.tipo + '">' + (m.tipo === 'aporte' ? 'Aporte' : 'Resgate') + '</span>' +
             '<span class="inv-mov-val" style="color:' + (m.tipo === 'aporte' ? 'var(--ok)' : 'var(--dn2)') + '">' +
               (m.tipo === 'aporte' ? '+ ' : '- ') + fmtV(mv) + '</span>' +
-            '<button class="btn btn-sm btn-danger" style="padding:2px 6px;font-size:.65em" onclick="window._invDelMov(\'' + idEsc + '\',\'' + mesEsc + '\',\'' + m.tipo + '\',' + mv + ')">&#128465;</button>' +
+            '<button class="btn btn-sm btn-danger" style="padding:2px 6px;font-size:.65em" onclick="window._invDelMovById(\'' + idEsc + '\',\'' + movIdEsc + '\')">&#128465;</button>' +
           '</div>';
         });
         html += '</div></div>';
@@ -399,8 +402,7 @@ window.renderInvest = function(){
 
       html += '<div class="inv-card-actions">' +
         '<button class="btn btn-sm btn-outline" onclick="window._invEdit(\'' + idEsc + '\')">&#9998; Editar</button>' +
-        '<button class="btn btn-sm btn-success" onclick="window._invOpenMov(\'' + idEsc + '\',\'aporte\')">&#10133; Aporte</button>' +
-        '<button class="btn btn-sm btn-warning" onclick="window._invOpenMov(\'' + idEsc + '\',\'resgate\')">&#10134; Resgate</button>' +
+        '<button class="btn btn-sm btn-info" onclick="window._invOpenMov(\'' + idEsc + '\',\'aporte\')">&#128260; Movimentar</button>' +
         '<button class="btn btn-sm btn-info" onclick="window._invOpenRent(\'' + idEsc + '\')">&#128200; Rentabilidade</button>' +
         '<button class="btn btn-sm btn-danger" onclick="delInvest(\'' + idEsc + '\')">&#128465;</button>' +
       '</div></div>';
@@ -410,7 +412,6 @@ window.renderInvest = function(){
 
   area.innerHTML = html;
 
-  // Inserir após a tabela original (escondendo-a)
   var tbWrap = pgEl.querySelector('.table-wrap');
   if(tbWrap) tbWrap.style.display = 'none';
   pgEl.appendChild(area);
@@ -486,7 +487,6 @@ window._invAddMov = function(){
   if(!valor || valor <= 0) return alert('Informe um valor v\u00e1lido.');
   if(!data) return alert('Informe a data.');
 
-  // Validar resgate: não pode resgatar mais do que o saldo atual
   if(tipo === 'resgate'){
     var saldoAtual = getInvSaldoAtual(inv);
     if(valor > saldoAtual){
@@ -559,7 +559,6 @@ window._invDelMovById = function(invId, movId){
   renderInvest();
 };
 
-// Compatibilidade: remover movimentação por data+tipo+valor (usado no card)
 window._invDelMov = function(invId, data, tipo, valor){
   if(!confirm('Remover esta movimenta\u00e7\u00e3o?')) return;
   var inv = S.investimentos.find(function(x){ return x.id === invId; });
@@ -652,5 +651,5 @@ window._invDelRent = function(invId, mes){
   renderInvest();
 };
 
-console.log('[Financeiro Pro] Investimentos v2 (Aporte/Resgate) carregado.');
+console.log('[Financeiro Pro] Investimentos v3 (layout otimizado) carregado.');
 })();
