@@ -1,4 +1,4 @@
-// auth.js v5.1 — Corrige migração de dados do Gist antigo
+// auth.js v5.2 — Fix: race condition com initCloud do index.html
 (function(){
 'use strict';
 
@@ -7,9 +7,20 @@ var SESSION_KEY    = 'finApp_session';
 var DEVICE_ID_KEY  = 'finApp_device_id';
 var SESSION_SHORT  = 24 * 60 * 60 * 1000;
 var SESSION_LONG   = 90 * 24 * 60 * 60 * 1000;
-
-// ===== GIST ANTIGO (para migração) =====
 var LEGACY_GIST_ID = '667e29c52ee1d62185b5eae8c871faa1';
+
+// ================================================================
+// FIX CRÍTICO: Desativar o cloud que o index.html já iniciou
+// O index.html roda initCloud() ANTES do auth.js carregar,
+// usando o GIST_ID fixo. Precisamos resetar tudo.
+// ================================================================
+cloudOk = false;
+if(typeof syncTimer !== 'undefined') clearTimeout(syncTimer);
+syncUI('off','Aguardando login...');
+
+// Fechar o modal de token se o index.html abriu
+var _mt = document.getElementById('modalToken');
+if(_mt && _mt.classList.contains('show')) _mt.classList.remove('show');
 
 async function sha256(text){
   var enc = new TextEncoder();
@@ -135,7 +146,7 @@ function _getToken(){
 }
 
 // ================================================================
-// GIST DE AUTENTICAÇÃO (auth_users.json)
+// GIST DE AUTENTICAÇÃO
 // ================================================================
 async function readAuthGist(){
   var token = _getToken();
@@ -200,13 +211,7 @@ async function writeAuthGist(data){
 async function createAuthGist(token){
   var h = await sha256('202328');
   var data = {
-    users:[{
-      username:'Anderson',
-      passwordHash:h,
-      createdAt:new Date().toISOString(),
-      role:'admin',
-      sessions:[]
-    }]
+    users:[{username:'Anderson',passwordHash:h,createdAt:new Date().toISOString(),role:'admin',sessions:[]}]
   };
   try{
     var r = await fetch('https://api.github.com/gists',{
@@ -277,7 +282,7 @@ async function unregisterDevice(username, deviceId){
 }
 
 // ================================================================
-// MIGRAÇÃO: Ler dados do Gist antigo (financeiro.json)
+// MIGRAÇÃO: Ler dados do Gist antigo
 // ================================================================
 async function readLegacyGist(){
   var token = _getToken();
@@ -294,7 +299,7 @@ async function readLegacyGist(){
 }
 
 // ================================================================
-// DADOS POR USUÁRIO — Arquivo separado no Gist de Auth
+// DADOS POR USUÁRIO — Arquivo no Gist de Auth
 // ================================================================
 function getUserFileKey(username){
   return username.toLowerCase().replace(/[^a-z0-9]/g,'_') + '.json';
@@ -344,7 +349,7 @@ function switchToUserData(username){
   window._userSK = userKey;
   window._authUsername = username;
 
-  // Migração local: copia finApp_v5 → finApp_v5_anderson (se não existir)
+  // Migração local
   if(!localStorage.getItem(userKey)){
     var existing = localStorage.getItem('finApp_v5');
     if(existing) localStorage.setItem(userKey, existing);
@@ -370,13 +375,17 @@ function switchToUserData(username){
     S = defState();
   }
 
+  // ============================================================
+  // SOBRESCREVER TODAS as funções de cloud do index.html
+  // ============================================================
+
   // Override salvar
   window.salvar = function(){
     localStorage.setItem(window._userSK, JSON.stringify(S));
-    _scheduleUserSync();
+    window.scheduleSync();
   };
 
-  // Override gistRead/gistWrite
+  // Override gistRead/gistWrite para arquivo do usuário
   window.gistRead = async function(){
     return await readUserGistFile(window._authUsername);
   };
@@ -386,21 +395,25 @@ function switchToUserData(username){
 
   // Override scheduleSync
   var _userSyncTimer = null;
-  window._scheduleUserSync = function(){
+  window.scheduleSync = function(){
     if(!cloudOk) return;
     clearTimeout(_userSyncTimer);
     _userSyncTimer = setTimeout(async function(){
       syncUI('loading','Sincronizando...');
       try{
         var ok = await writeUserGistFile(window._authUsername, S);
-        if(ok) syncUI('on','Sync '+new Date().toLocaleTimeString('pt-BR'));
-        else syncUI('on','Erro sync');
+        if(ok){
+          syncUI('on','Sync '+new Date().toLocaleTimeString('pt-BR'));
+        } else {
+          console.error('[SYNC] writeUserGistFile falhou. Token:', _getToken() ? 'presente' : 'VAZIO', 'AuthGist:', localStorage.getItem(AUTH_GIST_KEY) || 'VAZIO');
+          syncUI('on','Erro sync');
+        }
       }catch(e){
+        console.error('[SYNC] Erro:', e);
         syncUI('on','Erro sync (rede)');
       }
     }, 3000);
   };
-  window.scheduleSync = window._scheduleUserSync;
 
   // Override connectCloud
   window.connectCloud = async function(){
@@ -412,6 +425,14 @@ function switchToUserData(username){
     syncUI('loading','Conectando...');
     var tokenModal = document.getElementById('modalToken');
     if(tokenModal && tokenModal.classList.contains('show')) closeM('modalToken');
+
+    // Garantir que o Gist de Auth existe
+    var authData = await readAuthGist();
+    if(!authData){
+      syncUI('on','Erro: Gist Auth não encontrado');
+      return;
+    }
+
     var data = await readUserGistFile(window._authUsername);
     if(data === null){
       // Tenta migrar do Gist antigo
@@ -421,86 +442,87 @@ function switchToUserData(username){
         localStorage.setItem(window._userSK, JSON.stringify(S));
         await writeUserGistFile(window._authUsername, S);
         renderAll();
-        console.log('[Migração] Dados copiados do Gist antigo para', getUserFileKey(window._authUsername));
+        console.log('[Migração] Dados do Gist antigo → ' + getUserFileKey(window._authUsername));
       } else {
         await writeUserGistFile(window._authUsername, S);
       }
-      cloudOk = true;
-      syncUI('on','Cloud conectado');
     } else if(data && typeof data === 'object'){
       if(data.lancamentos || data.cartoes || data.contratos){
         S = mergeState(data);
         localStorage.setItem(window._userSK, JSON.stringify(S));
         renderAll();
       }
-      cloudOk = true;
-      syncUI('on','Cloud conectado');
-    } else {
-      cloudOk = true;
-      syncUI('on','Cloud conectado');
     }
+    cloudOk = true;
+    syncUI('on','Cloud conectado');
     if(typeof renderCloudArea === 'function') renderCloudArea();
   };
 
-  // ============================================================
-  // Override initCloud — COM MIGRAÇÃO AUTOMÁTICA DO GIST ANTIGO
-  // ============================================================
+  // Override initCloud — PRINCIPAL
   window.initCloud = async function(){
     var savedToken = localStorage.getItem('finApp_gist_token') || '';
     if(savedToken) window.gistToken = savedToken;
     if(!window.gistToken){
-      openM('modalToken');
+      // Não tem token — sem cloud, não abre modal (auth controla)
+      cloudOk = false;
+      syncUI('off','Sem token');
       return;
     }
+
     syncUI('loading','Conectando...');
 
-    // 1. Tenta ler arquivo do usuário no Gist de auth
+    // Garantir que Gist de Auth existe e AUTH_GIST_KEY está no localStorage
+    var authData = await readAuthGist();
+    if(!authData){
+      console.warn('[Cloud] Não conseguiu acessar Gist de Auth');
+      cloudOk = false;
+      syncUI('on','Erro cloud (auth)');
+      return;
+    }
+
+    // 1. Tenta ler arquivo do usuário
     var data = await readUserGistFile(window._authUsername);
 
     if(data && typeof data === 'object' && (data.lancamentos || data.cartoes || data.contratos)){
-      // Arquivo do usuário já existe — usa normalmente
       S = mergeState(data);
       localStorage.setItem(window._userSK, JSON.stringify(S));
       renderAll();
       cloudOk = true;
       syncUI('on','Cloud conectado');
-      console.log('[Cloud] Dados carregados de', getUserFileKey(window._authUsername));
+      console.log('[Cloud] Dados de', getUserFileKey(window._authUsername));
       return;
     }
 
-    // 2. Arquivo do usuário NÃO existe — tenta migrar do Gist antigo
-    console.log('[Migração] Arquivo', getUserFileKey(window._authUsername), 'não encontrado. Buscando Gist antigo...');
+    // 2. Não existe — migrar do Gist antigo
+    console.log('[Migração] Buscando Gist antigo...');
     var legacyData = await readLegacyGist();
 
     if(legacyData && typeof legacyData === 'object' && (legacyData.lancamentos || legacyData.cartoes || legacyData.contratos)){
-      // Encontrou dados no Gist antigo — migra!
       S = mergeState(legacyData);
       localStorage.setItem(window._userSK, JSON.stringify(S));
       renderAll();
-
-      // Grava no novo formato (anderson.json no Gist de auth)
       var ok = await writeUserGistFile(window._authUsername, S);
+      cloudOk = true;
       if(ok){
-        console.log('[Migração] Dados migrados com sucesso para', getUserFileKey(window._authUsername));
+        console.log('[Migração] Sucesso → ' + getUserFileKey(window._authUsername));
         syncUI('on','Dados migrados!');
       } else {
-        console.warn('[Migração] Falha ao gravar no novo Gist');
+        console.warn('[Migração] Falha ao gravar');
         syncUI('on','Migração parcial');
       }
-      cloudOk = true;
       return;
     }
 
-    // 3. Nem no Gist antigo tem dados — usa os dados locais e grava
-    if(S && (S.lancamentos && S.lancamentos.length > 0)){
+    // 3. Nem no antigo — usa dados locais
+    if(S && S.lancamentos && S.lancamentos.length > 0){
       await writeUserGistFile(window._authUsername, S);
-      console.log('[Cloud] Dados locais enviados para', getUserFileKey(window._authUsername));
+      console.log('[Cloud] Dados locais enviados');
     }
     cloudOk = true;
     syncUI('on','Cloud conectado');
   };
 
-  // Override doPullGist — também com fallback do Gist antigo
+  // Override doPullGist
   window.doPullGist = async function(){
     syncUI('loading','Baixando...');
     var data = await readUserGistFile(window._authUsername);
@@ -510,14 +532,13 @@ function switchToUserData(username){
       renderAll();
       syncUI('on','Dados carregados');
     } else {
-      // Fallback: tenta Gist antigo
       var legacy = await readLegacyGist();
       if(legacy && (legacy.lancamentos || legacy.cartoes || legacy.contratos)){
         S = mergeState(legacy);
         localStorage.setItem(window._userSK, JSON.stringify(S));
         await writeUserGistFile(window._authUsername, S);
         renderAll();
-        syncUI('on','Dados migrados do backup antigo');
+        syncUI('on','Dados migrados do backup');
       } else {
         syncUI('on','Nenhum dado no Gist');
       }
@@ -531,13 +552,14 @@ function switchToUserData(username){
     t = t.trim();
     _setGistToken(t);
     syncUI('loading','Conectando...');
+    // Garantir Auth Gist
+    await readAuthGist();
     var data = await readUserGistFile(window._authUsername);
     if(data && (data.lancamentos || data.cartoes || data.contratos)){
       S = mergeState(data);
       localStorage.setItem(window._userSK, JSON.stringify(S));
       renderAll();
     } else {
-      // Tenta migração
       var legacy = await readLegacyGist();
       if(legacy && (legacy.lancamentos || legacy.cartoes || legacy.contratos)){
         S = mergeState(legacy);
@@ -559,6 +581,24 @@ function switchToUserData(username){
     var ok = await writeUserGistFile(window._authUsername, S);
     if(ok) syncUI('on','Sync '+new Date().toLocaleTimeString('pt-BR'));
     else syncUI('on','Erro sync');
+  };
+
+  // Override doDisconnect
+  window.doDisconnect = function(){
+    window.gistToken = '';
+    cloudOk = false;
+    localStorage.removeItem('finApp_gist_token');
+    syncUI('off','Offline');
+    if(typeof renderCloudArea === 'function') renderCloudArea();
+  };
+
+  // Override skipCloud
+  window.skipCloud = function(){
+    var tokenModal = document.getElementById('modalToken');
+    if(tokenModal && tokenModal.classList.contains('show')) closeM('modalToken');
+    cloudOk = false;
+    syncUI('off','Offline');
+    if(typeof renderCloudArea === 'function') renderCloudArea();
   };
 
   if(S.config && S.config.theme && typeof setTheme === 'function') setTheme(S.config.theme);
@@ -624,7 +664,7 @@ window._authDoLogin = async function(){
     registerDevice(username, keepConnected);
     setTimeout(function(){
       if(typeof initCloud === 'function') initCloud();
-    }, 500);
+    }, 300);
   } else {
     errEl.textContent = 'Usu\u00e1rio ou senha incorretos.';
     passEl.value = '';
@@ -752,13 +792,8 @@ window._authRefreshDevices = async function(){
   if(!cur) return;
   var myDeviceId = getDeviceId();
   var h = '';
-  var usersToShow = [];
-  if(cur.role === 'admin'){
-    usersToShow = data.users;
-  } else {
-    var me = data.users.find(function(u){ return u.username.toLowerCase() === cur.username.toLowerCase(); });
-    if(me) usersToShow = [me];
-  }
+  var usersToShow = cur.role === 'admin' ? data.users : data.users.filter(function(u){ return u.username.toLowerCase() === cur.username.toLowerCase(); });
+
   usersToShow.forEach(function(user){
     var sessions = (user.sessions || []).filter(function(s){ return new Date(s.expiresAt).getTime() > Date.now(); });
     if(sessions.length === 0 && usersToShow.length > 1) return;
@@ -778,8 +813,7 @@ window._authRefreshDevices = async function(){
         var tipoSess = sess.keep ? '<span class="badge badge-success">Permanente</span>' : '<span class="badge badge-warning">24h</span>';
         h += '<tr class="'+cls+'"><td>'+(sess.device||'Desconhecido')+(isCurrent?' <span class="badge badge-info">Este</span>':'')+'</td>'+
           '<td>'+loginStr+'</td><td>'+expStr+'</td><td>'+tipoSess+'</td>'+
-          '<td>'+(isCurrent ?
-            '<span style="color:var(--tx3);font-size:.8em">Sess\u00e3o atual</span>' :
+          '<td>'+(isCurrent ? '<span style="color:var(--tx3);font-size:.8em">Atual</span>' :
             '<button class="btn btn-sm btn-danger" onclick="window._authKickDevice(\''+user.username.replace(/'/g,"\\'")+'\',\''+sess.deviceId+'\')">Encerrar</button>'
           )+'</td></tr>';
       });
@@ -835,11 +869,11 @@ window._authAddUser = async function(){
   var msg = document.getElementById('authMsg');
   if(!name||!pass){msg.innerHTML='<span style="color:var(--dn2)">Preencha nome e senha.</span>';return;}
   var data = await readAuthGist();
-  if(!data){msg.innerHTML='<span style="color:var(--dn2)">Erro ao conectar ao cloud.</span>';return;}
+  if(!data){msg.innerHTML='<span style="color:var(--dn2)">Erro ao conectar.</span>';return;}
   if(data.users.some(function(u){return u.username.toLowerCase()===name.toLowerCase();})){
     msg.innerHTML='<span style="color:var(--dn2)">Usu\u00e1rio j\u00e1 existe.</span>';return;
   }
-  data.users.push({username:name, passwordHash:await sha256(pass), createdAt:new Date().toISOString(), role:role, sessions:[]});
+  data.users.push({username:name,passwordHash:await sha256(pass),createdAt:new Date().toISOString(),role:role,sessions:[]});
   if(await writeAuthGist(data)){
     msg.innerHTML='<span style="color:var(--ok)">Usu\u00e1rio "'+name+'" criado!</span>';
     document.getElementById('newAuthUser').value='';
@@ -865,8 +899,8 @@ window._authChangePass = async function(username){
 window._authDelUser = async function(username){
   var cur = window._authCurrentUser;
   if(cur && cur.username.toLowerCase()===username.toLowerCase())
-    return alert('Voc\u00ea n\u00e3o pode excluir seu pr\u00f3prio usu\u00e1rio.');
-  if(!confirm('Excluir "'+username+'"? Os dados financeiros ser\u00e3o mantidos no Gist.')) return;
+    return alert('N\u00e3o pode excluir a si mesmo.');
+  if(!confirm('Excluir "'+username+'"?')) return;
   var data = await readAuthGist();
   if(!data) return alert('Erro.');
   data.users = data.users.filter(function(u){return u.username!==username;});
@@ -890,10 +924,14 @@ window._authDelUser = async function(username){
     window._authCurrentUser = {username:session.user, role:session.role||'user'};
     switchToUserData(session.user);
     showApp(session.user, session.role||'user');
+    // Iniciar cloud APÓS switchToUserData (que sobrescreve as funções)
+    setTimeout(function(){
+      if(typeof initCloud === 'function') initCloud();
+    }, 300);
   } else {
     setTimeout(function(){ document.getElementById('authUser').focus(); }, 200);
   }
 })();
 
-console.log('[Financeiro Pro] Auth v5.1 — Migração automática do Gist antigo.');
+console.log('[Financeiro Pro] Auth v5.2 — Fix race condition + migração.');
 })();
