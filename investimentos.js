@@ -1,4 +1,5 @@
-// investimentos.js v3 — Investimentos com Aporte, Resgate, Rentabilidade e layout otimizado
+// investimentos.js v4 — Investimentos com visual profissional
+// Donut chart SVG, valores sem centavos, layout limpo
 (function(){
 'use strict';
 
@@ -7,49 +8,64 @@
 // ================================================================
 var sty = document.createElement('style');
 sty.textContent = `
-/* Resumo Investimentos */
-.inv-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:20px;}
-.inv-summary .card .card-value{font-size:1.2em;}
+/* ── INVESTIMENTOS v4 ── */
 
-/* Alocação */
-.inv-alloc{display:grid;grid-template-columns:5fr 3fr;gap:20px;margin-bottom:24px;}
+/* Resumo */
+.inv-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-bottom:24px;}
+.inv-summary .card{padding:16px 14px;}
+.inv-summary .card .card-value{font-size:1.15em;}
+
+/* Alocação — 2 colunas */
+.inv-alloc{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;}
 .inv-alloc-box{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);padding:20px;box-shadow:var(--sh);}
 .inv-alloc-box h3{font-size:.88em;margin-bottom:16px;color:var(--tx2);font-weight:600;}
-.inv-alloc-item{margin-bottom:12px;}
-.inv-alloc-hdr{display:flex;justify-content:space-between;font-size:.84em;margin-bottom:4px;}
-.inv-alloc-hdr .inv-alloc-pct{font-weight:700;color:var(--pri2);}
-.inv-alloc-bar{background:var(--bg3);border-radius:5px;height:10px;overflow:hidden;}
-.inv-alloc-fill{height:100%;border-radius:5px;transition:width .5s;}
 
-/* Cores para categorias */
-.inv-color-0{background:linear-gradient(135deg,#6c5ce7,#a29bfe);}
-.inv-color-1{background:linear-gradient(135deg,#00b894,#55efc4);}
-.inv-color-2{background:linear-gradient(135deg,#0984e3,#74b9ff);}
-.inv-color-3{background:linear-gradient(135deg,#fdcb6e,#ffeaa7);}
-.inv-color-4{background:linear-gradient(135deg,#e17055,#fab1a0);}
-.inv-color-5{background:linear-gradient(135deg,#d63031,#ff7675);}
-.inv-color-6{background:linear-gradient(135deg,#00cec9,#81ecec);}
-.inv-color-7{background:linear-gradient(135deg,#e84393,#fd79a8);}
+/* SVG Donut */
+.inv-donut-container{display:flex;flex-direction:column;align-items:center;gap:16px;}
+.inv-donut-svg-wrap{position:relative;width:220px;height:220px;}
+.inv-donut-svg-wrap svg{width:100%;height:100%;transform:rotate(-90deg);}
+.inv-donut-center-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;}
+.inv-donut-center-label .inv-dc-val{font-size:1.2em;font-weight:800;color:var(--ok);display:block;line-height:1.2;}
+.inv-donut-center-label .inv-dc-sub{font-size:.65em;color:var(--tx3);display:block;margin-top:2px;}
 
-/* Donut simples com CSS */
-.inv-donut-wrap{display:flex;justify-content:center;align-items:center;min-height:200px;}
-.inv-donut{position:relative;width:180px;height:180px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
-.inv-donut-center{position:absolute;width:100px;height:100px;border-radius:50%;background:var(--bg2);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2;}
-.inv-donut-center .inv-dc-val{font-size:1em;font-weight:700;color:var(--ok);}
-.inv-donut-center .inv-dc-label{font-size:.65em;color:var(--tx3);}
-.inv-donut-legend{margin-top:12px;}
-.inv-legend-item{display:flex;align-items:center;gap:8px;font-size:.8em;margin-bottom:6px;}
-.inv-legend-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0;}
+/* Legenda */
+.inv-legend{width:100%;}
+.inv-legend-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bg3);}
+.inv-legend-row:last-child{border:none;}
+.inv-legend-dot{width:14px;height:14px;border-radius:4px;flex-shrink:0;}
+.inv-legend-info{flex:1;min-width:0;}
+.inv-legend-name{font-size:.82em;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.inv-legend-meta{font-size:.7em;color:var(--tx3);}
+.inv-legend-vals{text-align:right;flex-shrink:0;}
+.inv-legend-pct{font-size:.85em;font-weight:700;color:var(--pri2);}
+.inv-legend-amt{font-size:.72em;color:var(--tx2);display:block;}
 
-/* Rentabilidade mensal - tabela compacta */
-.inv-rent-table-box{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);padding:16px 20px;box-shadow:var(--sh);margin-bottom:24px;}
-.inv-rent-table-box h3{font-size:.88em;margin-bottom:12px;color:var(--tx2);font-weight:600;}
-.inv-rent-table{width:100%;border-collapse:collapse;}
-.inv-rent-table th{font-size:.72em;color:var(--tx3);text-transform:uppercase;letter-spacing:1px;padding:6px 10px;text-align:center;border-bottom:1px solid var(--bg4);}
-.inv-rent-table td{font-size:.92em;font-weight:700;text-align:center;padding:10px;border-bottom:1px solid var(--bg3);}
+/* Barras de alocação */
+.inv-bar-item{margin-bottom:14px;}
+.inv-bar-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;}
+.inv-bar-name{font-size:.84em;font-weight:600;}
+.inv-bar-right{display:flex;align-items:baseline;gap:8px;}
+.inv-bar-pct{font-size:.82em;font-weight:700;color:var(--pri2);}
+.inv-bar-amt{font-size:.78em;color:var(--tx2);}
+.inv-bar-track{background:var(--bg3);border-radius:6px;height:12px;overflow:hidden;}
+.inv-bar-fill{height:100%;border-radius:6px;transition:width .6s ease;}
 
-/* Tabela investimentos */
-.inv-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-bottom:24px;}
+/* Rentabilidade mensal */
+.inv-rent-box{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);padding:18px 20px;box-shadow:var(--sh);margin-bottom:24px;}
+.inv-rent-box h3{font-size:.88em;margin-bottom:14px;color:var(--tx2);font-weight:600;}
+.inv-rent-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;}
+.inv-rent-cell{text-align:center;padding:12px 8px;background:var(--bg3);border-radius:10px;transition:transform .15s;}
+.inv-rent-cell:hover{transform:translateY(-2px);}
+.inv-rent-cell .irc-mes{font-size:.68em;color:var(--tx3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
+.inv-rent-cell .irc-val{font-size:1em;font-weight:700;}
+.inv-rent-cell .irc-val.pos{color:var(--ok);}
+.inv-rent-cell .irc-val.neg{color:var(--dn2);}
+.inv-rent-cell .irc-val.zero{color:var(--tx3);}
+.inv-rent-cell.acum{background:var(--bg4);}
+.inv-rent-cell.acum .irc-mes{color:var(--pri2);}
+
+/* Cards de investimentos */
+.inv-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;margin-bottom:24px;}
 .inv-card{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);box-shadow:var(--sh);overflow:hidden;transition:transform .2s;}
 .inv-card:hover{transform:translateY(-2px);}
 .inv-card-header{padding:14px 18px;background:var(--bg3);display:flex;justify-content:space-between;align-items:center;}
@@ -59,40 +75,29 @@ sty.textContent = `
 .inv-card-body .inv-row .inv-label{color:var(--tx2);}
 .inv-card-body .inv-row .inv-val{font-weight:700;}
 .inv-card-actions{padding:10px 18px 14px;display:flex;gap:6px;flex-wrap:wrap;}
-.inv-rent-section{border-top:1px solid var(--bg4);padding:10px 18px;margin-top:0;}
-.inv-rent-title{font-size:.72em;color:var(--tx3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
-.inv-rent-list{max-height:120px;overflow-y:auto;}
-.inv-rent-item{display:flex;justify-content:space-between;font-size:.78em;padding:3px 0;border-bottom:1px solid var(--bg3);}
-.inv-rent-item:last-child{border:none;}
-.inv-rent-item .inv-rent-mes{color:var(--tx2);}
-.inv-rent-item .inv-rent-val{font-weight:700;}
-.inv-rent-item .inv-rent-val.pos{color:var(--ok);}
-.inv-rent-item .inv-rent-val.neg{color:var(--dn2);}
 
-/* Movimentações (Aporte/Resgate) */
-.inv-mov-section{border-top:1px solid var(--bg4);padding:10px 18px;}
-.inv-mov-title{font-size:.72em;color:var(--tx3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
-.inv-mov-list{max-height:120px;overflow-y:auto;}
-.inv-mov-item{display:flex;justify-content:space-between;align-items:center;font-size:.78em;padding:3px 0;border-bottom:1px solid var(--bg3);}
-.inv-mov-item:last-child{border:none;}
-.inv-mov-item .inv-mov-data{color:var(--tx2);min-width:75px;}
-.inv-mov-item .inv-mov-tipo{font-weight:600;min-width:60px;}
-.inv-mov-item .inv-mov-tipo.aporte{color:var(--ok);}
-.inv-mov-item .inv-mov-tipo.resgate{color:var(--dn2);}
-.inv-mov-item .inv-mov-val{font-weight:700;}
+/* Seções dentro do card */
+.inv-card-section{border-top:1px solid var(--bg4);padding:10px 18px;}
+.inv-card-section-title{font-size:.72em;color:var(--tx3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.inv-card-section-list{max-height:120px;overflow-y:auto;}
+.inv-hist-item{display:flex;justify-content:space-between;align-items:center;font-size:.78em;padding:3px 0;border-bottom:1px solid var(--bg3);}
+.inv-hist-item:last-child{border:none;}
 
 /* Botões extras */
-.btn-warning{background:linear-gradient(135deg,#fdcb6e,#e17055);color:#fff;border:none;cursor:pointer;border-radius:var(--rad);padding:6px 12px;font-size:.78em;}
-.btn-warning:hover{opacity:.85;}
-.btn-info{background:linear-gradient(135deg,#0984e3,#74b9ff);color:#fff;border:none;cursor:pointer;border-radius:var(--rad);padding:6px 12px;font-size:.78em;}
-.btn-info:hover{opacity:.85;}
+.btn-info{background:linear-gradient(135deg,#0984e3,#74b9ff);color:#fff;border:none;cursor:pointer;border-radius:8px;padding:6px 12px;font-size:.78em;font-weight:600;transition:all .2s;}
+.btn-info:hover{opacity:.85;transform:translateY(-1px);}
 
 @media(max-width:768px){
   .inv-alloc{grid-template-columns:1fr;}
   .inv-cards-grid{grid-template-columns:1fr;}
   .inv-summary{grid-template-columns:1fr 1fr;}
-  .inv-rent-table{font-size:.8em;}
-  .inv-rent-table th,.inv-rent-table td{padding:6px 4px;}
+  .inv-donut-svg-wrap{width:180px;height:180px;}
+  .inv-donut-center-label .inv-dc-val{font-size:1em;}
+  .inv-rent-grid{grid-template-columns:repeat(3,1fr);}
+}
+@media(max-width:380px){
+  .inv-rent-grid{grid-template-columns:repeat(2,1fr);}
+  .inv-summary{grid-template-columns:1fr;}
 }
 `;
 document.head.appendChild(sty);
@@ -101,7 +106,7 @@ document.head.appendChild(sty);
 // MODAIS
 // ================================================================
 
-// Modal Editar Investimento
+// Modal Editar
 var modalEdit = document.createElement('div');
 modalEdit.className = 'modal';
 modalEdit.id = 'modalEditInvest';
@@ -117,32 +122,32 @@ modalEdit.innerHTML = '<div class="modal-content"><div class="modal-header"><h3>
   '</div></div>';
 document.body.appendChild(modalEdit);
 
-// Modal Lançar Rentabilidade
+// Modal Rentabilidade
 var modalRent = document.createElement('div');
 modalRent.className = 'modal';
 modalRent.id = 'modalRentInvest';
 modalRent.innerHTML = '<div class="modal-content"><div class="modal-header"><h3 id="rentTitle">Lan\u00e7ar Rentabilidade</h3>'+
   '<span class="modal-close" onclick="closeM(\'modalRentInvest\')">&times;</span></div><div class="modal-body">'+
-  '<div class="form-group" style="margin-bottom:12px"><label>M\u00eas de Refer\u00eancia</label><input type="month" id="riMes" class="form-control"></div>'+
-  '<div class="form-group" style="margin-bottom:12px"><label>Valor da Rentabilidade (R$)</label><input id="riValor" class="form-control" placeholder="Ex: 150,00 ou -50,00"></div>'+
-  '<p style="font-size:.75em;color:var(--tx3);margin-bottom:12px">Use valor positivo para ganho e negativo para perda.</p>'+
+  '<div class="form-group" style="margin-bottom:12px"><label>M\u00eas</label><input type="month" id="riMes" class="form-control"></div>'+
+  '<div class="form-group" style="margin-bottom:12px"><label>Valor (R$)</label><input id="riValor" class="form-control" placeholder="150,00 ou -50,00"></div>'+
+  '<p style="font-size:.75em;color:var(--tx3);margin-bottom:12px">Positivo = ganho, negativo = perda.</p>'+
   '<input type="hidden" id="riId">'+
   '<button class="btn btn-primary" onclick="window._invAddRent()" style="width:100%;margin-top:8px">Lan\u00e7ar</button>'+
   '<div id="riRentList" style="margin-top:16px"></div>'+
   '</div></div>';
 document.body.appendChild(modalRent);
 
-// Modal Aporte / Resgate
+// Modal Movimentação
 var modalMov = document.createElement('div');
 modalMov.className = 'modal';
 modalMov.id = 'modalMovInvest';
 modalMov.innerHTML = '<div class="modal-content"><div class="modal-header"><h3 id="movTitle">Aporte / Resgate</h3>'+
   '<span class="modal-close" onclick="closeM(\'modalMovInvest\')">&times;</span></div><div class="modal-body">'+
   '<div class="form-group" style="margin-bottom:12px"><label>Tipo</label>'+
-    '<select id="miTipo" class="form-control"><option value="aporte">Aporte (adicionar)</option><option value="resgate">Resgate (retirar)</option></select></div>'+
-  '<div class="form-group" style="margin-bottom:12px"><label>Valor (R$)</label><input id="miValor" class="form-control" placeholder="Ex: 500,00"></div>'+
+    '<select id="miTipo" class="form-control"><option value="aporte">Aporte</option><option value="resgate">Resgate</option></select></div>'+
+  '<div class="form-group" style="margin-bottom:12px"><label>Valor (R$)</label><input id="miValor" class="form-control" placeholder="500,00"></div>'+
   '<div class="form-group" style="margin-bottom:12px"><label>Data</label><input type="date" id="miData" class="form-control"></div>'+
-  '<div class="form-group" style="margin-bottom:12px"><label>Observa\u00e7\u00e3o (opcional)</label><input id="miObs" class="form-control" placeholder="Ex: Aporte mensal"></div>'+
+  '<div class="form-group" style="margin-bottom:12px"><label>Obs (opcional)</label><input id="miObs" class="form-control"></div>'+
   '<input type="hidden" id="miId">'+
   '<button class="btn btn-primary" onclick="window._invAddMov()" style="width:100%;margin-top:8px">Confirmar</button>'+
   '<div id="miMovList" style="margin-top:16px"></div>'+
@@ -150,48 +155,103 @@ modalMov.innerHTML = '<div class="modal-content"><div class="modal-header"><h3 i
 document.body.appendChild(modalMov);
 
 // ================================================================
-// CORES PARA GRÁFICO
+// CORES
 // ================================================================
 var COLORS = ['#6c5ce7','#00b894','#0984e3','#fdcb6e','#e17055','#d63031','#00cec9','#e84393','#636e72','#2d3436'];
-
 function getColor(i){ return COLORS[i % COLORS.length]; }
 
 // ================================================================
-// HELPERS
+// FORMATAÇÃO SEM CENTAVOS
+// ================================================================
+function fmtInt(v){
+  return 'R$ ' + Math.round(v || 0).toLocaleString('pt-BR');
+}
+
+// ================================================================
+// HELPERS DE CÁLCULO
 // ================================================================
 function getInvRentTotal(inv){
   return (inv.rentabilidade || []).reduce(function(s, r){ return s + (Number(r.valor) || 0); }, 0);
 }
-
 function getInvMovTotal(inv){
   return (inv.movimentacoes || []).reduce(function(s, m){
     var v = Number(m.valor) || 0;
     return s + (m.tipo === 'resgate' ? -v : v);
   }, 0);
 }
-
 function getInvCapitalAtual(inv){
   return (Number(inv.valor) || 0) + getInvMovTotal(inv);
 }
-
 function getInvSaldoAtual(inv){
   return getInvCapitalAtual(inv) + getInvRentTotal(inv);
 }
-
 function getInvRentMes(inv, mes){
   var found = (inv.rentabilidade || []).find(function(r){ return r.mes === mes; });
   return found ? (Number(found.valor) || 0) : 0;
 }
 
-function hojeISO(){
-  var d = new Date();
-  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+// ================================================================
+// SVG DONUT CHART
+// ================================================================
+function buildDonutSVG(segments, totalValue, size){
+  // segments = [{label, value, color}, ...]
+  // Retorna HTML string de SVG
+  size = size || 220;
+  var cx = size / 2, cy = size / 2;
+  var outerR = size / 2 - 4;
+  var innerR = outerR * 0.62; // espessura do donut
+  var gap = 0.008; // gap em radianos entre segmentos
+  
+  if(!segments.length || totalValue <= 0){
+    return '<svg viewBox="0 0 '+size+' '+size+'" xmlns="http://www.w3.org/2000/svg">'+
+      '<circle cx="'+cx+'" cy="'+cy+'" r="'+outerR+'" fill="none" stroke="var(--bg4)" stroke-width="'+(outerR-innerR)+'"/>'+
+      '</svg>';
+  }
+
+  var paths = '';
+  var startAngle = 0;
+  var totalGap = gap * segments.length;
+  var availableAngle = Math.PI * 2 - totalGap;
+
+  for(var i = 0; i < segments.length; i++){
+    var seg = segments[i];
+    var fraction = seg.value / totalValue;
+    var angle = fraction * availableAngle;
+    
+    if(angle < 0.01) continue; // muito pequeno
+    
+    var endAngle = startAngle + angle;
+    
+    var x1 = cx + outerR * Math.cos(startAngle);
+    var y1 = cy + outerR * Math.sin(startAngle);
+    var x2 = cx + outerR * Math.cos(endAngle);
+    var y2 = cy + outerR * Math.sin(endAngle);
+    var x3 = cx + innerR * Math.cos(endAngle);
+    var y3 = cy + innerR * Math.sin(endAngle);
+    var x4 = cx + innerR * Math.cos(startAngle);
+    var y4 = cy + innerR * Math.sin(startAngle);
+    
+    var largeArc = angle > Math.PI ? 1 : 0;
+    
+    var d = 'M '+x1.toFixed(2)+' '+y1.toFixed(2)+
+            ' A '+outerR+' '+outerR+' 0 '+largeArc+' 1 '+x2.toFixed(2)+' '+y2.toFixed(2)+
+            ' L '+x3.toFixed(2)+' '+y3.toFixed(2)+
+            ' A '+innerR+' '+innerR+' 0 '+largeArc+' 0 '+x4.toFixed(2)+' '+y4.toFixed(2)+
+            ' Z';
+    
+    paths += '<path d="'+d+'" fill="'+seg.color+'" opacity=".9"><title>'+seg.label+': '+fmtInt(seg.value)+'</title></path>';
+    
+    startAngle = endAngle + gap;
+  }
+
+  return '<svg viewBox="0 0 '+size+' '+size+'" xmlns="http://www.w3.org/2000/svg">'+paths+'</svg>';
 }
 
 // ================================================================
 // OVERRIDE renderInvest
 // ================================================================
 window.renderInvest = function(){
+  // Atualizar select de tipos
   var st = g('invTipo');
   if(st){
     st.innerHTML = '';
@@ -204,6 +264,7 @@ window.renderInvest = function(){
   var pgEl = document.getElementById('pg-investimentos');
   if(!pgEl) return;
 
+  // Remover área dinâmica anterior
   var existing = document.getElementById('invDynamicArea');
   if(existing) existing.remove();
 
@@ -241,29 +302,70 @@ window.renderInvest = function(){
   });
 
   var rentPct = totalCapital > 0 ? ((totalRent / totalCapital) * 100) : 0;
-
   var ma = mesAtual();
   var rentMesAtual = 0;
   invs.forEach(function(inv){ rentMesAtual += getInvRentMes(inv, ma); });
 
-  // ===== RESUMO =====
-  var html = '<div class="inv-summary">' +
-    '<div class="card"><div class="card-label">Capital Investido</div><div class="card-value blue">' + fmtV(totalCapital) + '</div></div>' +
-    '<div class="card"><div class="card-label">Rentabilidade Total</div><div class="card-value ' + (totalRent >= 0 ? 'green' : 'red') + '">' + fmtV(totalRent) + '</div></div>' +
-    '<div class="card"><div class="card-label">Saldo Atual</div><div class="card-value ' + (totalSaldo >= 0 ? 'green' : 'red') + '">' + fmtV(totalSaldo) + '</div></div>' +
-    '<div class="card"><div class="card-label">Rentabilidade %</div><div class="card-value ' + (rentPct >= 0 ? 'green' : 'red') + '">' + rentPct.toFixed(2) + '%</div></div>' +
-    '<div class="card"><div class="card-label">Rent. M\u00eas Atual</div><div class="card-value ' + (rentMesAtual >= 0 ? 'green' : 'red') + '">' + fmtV(rentMesAtual) + '</div></div>' +
-    '<div class="card"><div class="card-label">Ativos</div><div class="card-value purple">' + invs.length + '</div></div>' +
-    '<div class="card"><div class="card-label">Total Aportes</div><div class="card-value green">+ ' + fmtV(totalAportes) + '</div></div>' +
-    '<div class="card"><div class="card-label">Total Resgates</div><div class="card-value red">- ' + fmtV(totalResgates) + '</div></div>' +
-  '</div>';
+  var html = '';
 
-  // ===== ALOCAÇÃO POR TIPO =====
+  // ===== RESUMO =====
+  html += '<div class="inv-summary">';
+  html += '<div class="card"><div class="card-label">Capital Investido</div><div class="card-value blue">' + fmtInt(totalCapital) + '</div></div>';
+  html += '<div class="card"><div class="card-label">Rentabilidade</div><div class="card-value ' + (totalRent >= 0 ? 'green' : 'red') + '">' + (totalRent > 0 ? '+ ' : '') + fmtInt(totalRent) + '</div></div>';
+  html += '<div class="card"><div class="card-label">Saldo Total</div><div class="card-value ' + (totalSaldo >= 0 ? 'green' : 'red') + '">' + fmtInt(totalSaldo) + '</div></div>';
+  html += '<div class="card"><div class="card-label">Rent. %</div><div class="card-value ' + (rentPct >= 0 ? 'green' : 'red') + '">' + (rentPct > 0 ? '+' : '') + rentPct.toFixed(1) + '%</div></div>';
+  html += '<div class="card"><div class="card-label">Rent. M\u00eas</div><div class="card-value ' + (rentMesAtual >= 0 ? 'green' : 'red') + '">' + (rentMesAtual > 0 ? '+ ' : '') + fmtInt(rentMesAtual) + '</div></div>';
+  html += '<div class="card"><div class="card-label">Ativos</div><div class="card-value purple">' + invs.length + '</div></div>';
+  html += '</div>';
+
+  // ===== ALOCAÇÃO: DONUT + BARRAS =====
   var tipos = Object.keys(porTipo).sort(function(a, b){ return porTipo[b].saldo - porTipo[a].saldo; });
 
   html += '<div class="inv-alloc">';
 
-  // Barras
+  // Coluna 1: Donut SVG
+  html += '<div class="inv-alloc-box"><h3>&#128176; Distribui\u00e7\u00e3o</h3>';
+  if(!tipos.length){
+    html += '<p style="color:var(--tx3);text-align:center;padding:40px">Nenhum investimento</p>';
+  } else {
+    var segments = [];
+    tipos.forEach(function(tipo, idx){
+      segments.push({
+        label: tipo,
+        value: Math.max(porTipo[tipo].saldo, 0),
+        color: getColor(idx)
+      });
+    });
+
+    html += '<div class="inv-donut-container">';
+    html += '<div class="inv-donut-svg-wrap">';
+    html += buildDonutSVG(segments, Math.max(totalSaldo, 1));
+    html += '<div class="inv-donut-center-label">';
+    html += '<span class="inv-dc-val">' + fmtInt(totalSaldo) + '</span>';
+    html += '<span class="inv-dc-sub">Saldo Total</span>';
+    html += '</div></div>';
+
+    // Legenda
+    html += '<div class="inv-legend">';
+    tipos.forEach(function(tipo, idx){
+      var data = porTipo[tipo];
+      var pct = totalSaldo > 0 ? ((data.saldo / totalSaldo) * 100) : 0;
+      html += '<div class="inv-legend-row">';
+      html += '<div class="inv-legend-dot" style="background:' + getColor(idx) + '"></div>';
+      html += '<div class="inv-legend-info">';
+      html += '<div class="inv-legend-name">' + tipo + '</div>';
+      html += '<div class="inv-legend-meta">' + data.count + ' ativo' + (data.count !== 1 ? 's' : '') + '</div>';
+      html += '</div>';
+      html += '<div class="inv-legend-vals">';
+      html += '<div class="inv-legend-pct">' + pct.toFixed(1) + '%</div>';
+      html += '<span class="inv-legend-amt">' + fmtInt(data.saldo) + '</span>';
+      html += '</div></div>';
+    });
+    html += '</div></div>';
+  }
+  html += '</div>';
+
+  // Coluna 2: Barras de alocação
   html += '<div class="inv-alloc-box"><h3>&#128202; Aloca\u00e7\u00e3o por Tipo</h3>';
   if(!tipos.length){
     html += '<p style="color:var(--tx3)">Nenhum investimento</p>';
@@ -271,67 +373,48 @@ window.renderInvest = function(){
     tipos.forEach(function(tipo, idx){
       var data = porTipo[tipo];
       var pct = totalSaldo > 0 ? ((data.saldo / totalSaldo) * 100) : 0;
-      html += '<div class="inv-alloc-item">' +
-        '<div class="inv-alloc-hdr"><span>' + tipo + ' (' + data.count + ')</span>' +
-        '<span><span class="inv-alloc-pct">' + pct.toFixed(1) + '%</span> \u2022 ' + fmtV(data.saldo) + '</span></div>' +
-        '<div class="inv-alloc-bar"><div class="inv-alloc-fill inv-color-' + (idx % 8) + '" style="width:' + Math.max(pct, 2) + '%"></div></div>' +
-      '</div>';
+      var rentT = data.rent;
+      var rentLabel = rentT >= 0 ? '<span style="color:var(--ok)">+' + fmtInt(rentT) + '</span>' : '<span style="color:var(--dn2)">' + fmtInt(rentT) + '</span>';
+
+      html += '<div class="inv-bar-item">';
+      html += '<div class="inv-bar-header">';
+      html += '<span class="inv-bar-name">' + tipo + ' <small style="color:var(--tx3)">(' + data.count + ')</small></span>';
+      html += '<div class="inv-bar-right"><span class="inv-bar-pct">' + pct.toFixed(1) + '%</span><span class="inv-bar-amt">' + fmtInt(data.saldo) + '</span></div>';
+      html += '</div>';
+      html += '<div class="inv-bar-track"><div class="inv-bar-fill" style="width:' + Math.max(pct, 2) + '%;background:' + getColor(idx) + '"></div></div>';
+      html += '<div style="font-size:.72em;color:var(--tx3);margin-top:3px">Capital: ' + fmtInt(data.capital) + ' &bull; Rent: ' + rentLabel + '</div>';
+      html += '</div>';
     });
   }
-  html += '</div>';
+  html += '</div></div>';
 
-  // Donut
-  html += '<div class="inv-alloc-box"><h3>&#128176; Distribui\u00e7\u00e3o</h3>';
-  if(!tipos.length){
-    html += '<p style="color:var(--tx3);text-align:center;padding:40px">Nenhum dado</p>';
-  } else {
-    var gradParts = [];
-    var cumPct = 0;
-    tipos.forEach(function(tipo, idx){
-      var pct = totalSaldo > 0 ? ((porTipo[tipo].saldo / totalSaldo) * 100) : 0;
-      gradParts.push(getColor(idx) + ' ' + cumPct + '% ' + (cumPct + pct) + '%');
-      cumPct += pct;
-    });
-    var gradStr = 'conic-gradient(' + gradParts.join(', ') + ')';
-
-    html += '<div class="inv-donut-wrap"><div>' +
-      '<div class="inv-donut" style="background:' + gradStr + '">' +
-        '<div class="inv-donut-center"><span class="inv-dc-val">' + fmtV(totalSaldo) + '</span><span class="inv-dc-label">Saldo Total</span></div>' +
-      '</div>' +
-      '<div class="inv-donut-legend">';
-    tipos.forEach(function(tipo, idx){
-      var pct = totalSaldo > 0 ? ((porTipo[tipo].saldo / totalSaldo) * 100) : 0;
-      html += '<div class="inv-legend-item"><div class="inv-legend-dot" style="background:' + getColor(idx) + '"></div>' +
-        '<span>' + tipo + ' \u2022 ' + pct.toFixed(1) + '%</span></div>';
-    });
-    html += '</div></div></div>';
-  }
-  html += '</div>';
-
-  // ===== RENTABILIDADE POR MÊS — TABELA COMPACTA =====
-  html += '<div class="inv-rent-table-box"><h3>&#128200; Rentabilidade Mensal (últimos 6 meses)</h3>';
-  html += '<table class="inv-rent-table"><thead><tr>';
+  // ===== RENTABILIDADE MENSAL =====
+  html += '<div class="inv-rent-box"><h3>&#128200; Rentabilidade Mensal</h3>';
+  html += '<div class="inv-rent-grid">';
   var meses6 = [];
+  var acum6 = 0;
   for(var mi = -5; mi <= 0; mi++){
     var mes = addMes(ma, mi);
     meses6.push(mes);
-    html += '<th>' + mesNome(mes) + '</th>';
-  }
-  html += '<th style="color:var(--pri2)">Acumulado</th>';
-  html += '</tr></thead><tbody><tr>';
-  var acum6 = 0;
-  meses6.forEach(function(mes){
     var rentMes = 0;
     invs.forEach(function(inv){ rentMes += getInvRentMes(inv, mes); });
     acum6 += rentMes;
-    var cor = rentMes > 0 ? 'var(--ok)' : (rentMes < 0 ? 'var(--dn2)' : 'var(--tx3)');
-    html += '<td style="color:' + cor + '">' + (rentMes > 0 ? '+' : '') + fmtV(rentMes) + '</td>';
-  });
-  var corAcum = acum6 > 0 ? 'var(--ok)' : (acum6 < 0 ? 'var(--dn2)' : 'var(--tx3)');
-  html += '<td style="color:' + corAcum + ';font-size:1em">' + (acum6 > 0 ? '+' : '') + fmtV(acum6) + '</td>';
-  html += '</tr></tbody></table></div>';
+    var cls = rentMes > 0 ? 'pos' : (rentMes < 0 ? 'neg' : 'zero');
+    var prefix = rentMes > 0 ? '+ ' : '';
+    html += '<div class="inv-rent-cell">';
+    html += '<div class="irc-mes">' + mesNome(mes) + '</div>';
+    html += '<div class="irc-val ' + cls + '">' + prefix + fmtInt(rentMes) + '</div>';
+    html += '</div>';
+  }
+  // Acumulado
+  var clsAcum = acum6 > 0 ? 'pos' : (acum6 < 0 ? 'neg' : 'zero');
+  html += '<div class="inv-rent-cell acum">';
+  html += '<div class="irc-mes">Acumulado</div>';
+  html += '<div class="irc-val ' + clsAcum + '">' + (acum6 > 0 ? '+ ' : '') + fmtInt(acum6) + '</div>';
+  html += '</div>';
+  html += '</div></div>';
 
-  // ===== CARDS DE INVESTIMENTOS =====
+  // ===== CARDS DOS INVESTIMENTOS =====
   html += '<div class="inv-cards-grid">';
   if(!invs.length){
     html += '<p style="color:var(--tx3);grid-column:1/-1;text-align:center;padding:30px">Nenhum investimento cadastrado.</p>';
@@ -344,92 +427,85 @@ window.renderInvest = function(){
       var saldo = capital + rent;
       var rentPctI = capital > 0 ? ((rent / capital) * 100) : 0;
       var pctAlloc = totalSaldo > 0 ? ((saldo / totalSaldo) * 100) : 0;
-
       var movs = (inv.movimentacoes || []).slice().sort(function(a, b){ return (b.data || '').localeCompare(a.data || ''); });
       var rents = (inv.rentabilidade || []).slice().sort(function(a, b){ return (b.mes || '').localeCompare(a.mes || ''); });
 
       var totalAportesI = 0, totalResgatesI = 0;
       movs.forEach(function(m){
         var v = Number(m.valor) || 0;
-        if(m.tipo === 'aporte') totalAportesI += v;
-        else totalResgatesI += v;
+        if(m.tipo === 'aporte') totalAportesI += v; else totalResgatesI += v;
       });
 
       var idEsc = inv.id.replace(/'/g, "\\'");
 
-      html += '<div class="inv-card">' +
-        '<div class="inv-card-header"><strong>' + (inv.nome || '-') + '</strong><span class="badge badge-info">' + (inv.tipo || 'Outro') + '</span></div>' +
-        '<div class="inv-card-body">' +
-          '<div class="inv-row"><span class="inv-label">Investido (inicial)</span><span class="inv-val" style="color:var(--inf2)">' + fmtV(vOriginal) + '</span></div>' +
-          (totalAportesI > 0 ? '<div class="inv-row"><span class="inv-label">+ Aportes</span><span class="inv-val" style="color:var(--ok)">+ ' + fmtV(totalAportesI) + '</span></div>' : '') +
-          (totalResgatesI > 0 ? '<div class="inv-row"><span class="inv-label">- Resgates</span><span class="inv-val" style="color:var(--dn2)">- ' + fmtV(totalResgatesI) + '</span></div>' : '') +
-          '<div class="inv-row"><span class="inv-label">Capital Atual</span><span class="inv-val" style="color:var(--inf2)">' + fmtV(capital) + '</span></div>' +
-          '<div class="inv-row"><span class="inv-label">Rentabilidade</span><span class="inv-val" style="color:' + (rent >= 0 ? 'var(--ok)' : 'var(--dn2)') + '">' + (rent > 0 ? '+' : '') + fmtV(rent) + '</span></div>' +
-          '<div class="inv-row"><span class="inv-label">Saldo Atual</span><span class="inv-val" style="color:' + (saldo >= 0 ? 'var(--ok)' : 'var(--dn2)') + '">' + fmtV(saldo) + '</span></div>' +
-          '<div class="inv-row"><span class="inv-label">Rent. %</span><span class="inv-val" style="color:' + (rentPctI >= 0 ? 'var(--ok)' : 'var(--dn2)') + '">' + rentPctI.toFixed(2) + '%</span></div>' +
-          '<div class="inv-row"><span class="inv-label">Aloca\u00e7\u00e3o</span><span class="inv-val" style="color:var(--pri2)">' + pctAlloc.toFixed(1) + '%</span></div>' +
-          '<div class="inv-row"><span class="inv-label">Data</span><span class="inv-val" style="color:var(--tx2)">' + fmtD(inv.data) + '</span></div>' +
-          (inv.obs ? '<div class="inv-row"><span class="inv-label">Obs</span><span class="inv-val" style="color:var(--tx3);font-weight:400;font-size:.82em">' + inv.obs + '</span></div>' : '') +
-        '</div>';
+      html += '<div class="inv-card">';
+      html += '<div class="inv-card-header"><strong>' + (inv.nome || '-') + '</strong><span class="badge badge-info">' + (inv.tipo || 'Outro') + '</span></div>';
+      html += '<div class="inv-card-body">';
+      html += '<div class="inv-row"><span class="inv-label">Investido</span><span class="inv-val" style="color:var(--inf2)">' + fmtInt(vOriginal) + '</span></div>';
+      if(totalAportesI > 0) html += '<div class="inv-row"><span class="inv-label">+ Aportes</span><span class="inv-val" style="color:var(--ok)">+ ' + fmtInt(totalAportesI) + '</span></div>';
+      if(totalResgatesI > 0) html += '<div class="inv-row"><span class="inv-label">- Resgates</span><span class="inv-val" style="color:var(--dn2)">- ' + fmtInt(totalResgatesI) + '</span></div>';
+      html += '<div class="inv-row"><span class="inv-label">Capital</span><span class="inv-val" style="color:var(--inf2)">' + fmtInt(capital) + '</span></div>';
+      html += '<div class="inv-row"><span class="inv-label">Rentabilidade</span><span class="inv-val" style="color:' + (rent >= 0 ? 'var(--ok)' : 'var(--dn2)') + '">' + (rent > 0 ? '+ ' : '') + fmtInt(rent) + ' <small>(' + (rentPctI > 0 ? '+' : '') + rentPctI.toFixed(1) + '%)</small></span></div>';
+      html += '<div class="inv-row" style="padding-top:6px;border-top:1px solid var(--bg4);margin-top:4px"><span class="inv-label" style="font-weight:700">Saldo</span><span class="inv-val" style="font-size:1.1em;color:' + (saldo >= 0 ? 'var(--ok)' : 'var(--dn2)') + '">' + fmtInt(saldo) + '</span></div>';
+      html += '<div class="inv-row"><span class="inv-label">Aloca\u00e7\u00e3o</span><span class="inv-val" style="color:var(--pri2)">' + pctAlloc.toFixed(1) + '%</span></div>';
+      if(inv.obs) html += '<div class="inv-row"><span class="inv-label">Obs</span><span class="inv-val" style="color:var(--tx3);font-weight:400;font-size:.82em">' + inv.obs + '</span></div>';
+      html += '</div>';
 
-      // Histórico de rentabilidade
+      // Histórico rentabilidade (compact)
       if(rents.length){
-        html += '<div class="inv-rent-section"><div class="inv-rent-title">Hist\u00f3rico de Rentabilidade</div><div class="inv-rent-list">';
-        rents.forEach(function(r){
+        html += '<div class="inv-card-section"><div class="inv-card-section-title">Rentabilidade</div><div class="inv-card-section-list">';
+        rents.slice(0, 6).forEach(function(r){
           var rv = Number(r.valor) || 0;
-          html += '<div class="inv-rent-item"><span class="inv-rent-mes">' + mesNome(r.mes) + '</span>' +
-            '<span class="inv-rent-val ' + (rv >= 0 ? 'pos' : 'neg') + '">' + (rv > 0 ? '+' : '') + fmtV(rv) + '</span></div>';
+          html += '<div class="inv-hist-item"><span style="color:var(--tx2)">' + mesNome(r.mes) + '</span>' +
+            '<span style="font-weight:700;color:' + (rv >= 0 ? 'var(--ok)' : 'var(--dn2)') + '">' + (rv > 0 ? '+ ' : '') + fmtInt(rv) + '</span></div>';
         });
+        if(rents.length > 6) html += '<div style="font-size:.72em;color:var(--tx3);text-align:center;padding:4px">+ ' + (rents.length - 6) + ' anterior(es)</div>';
         html += '</div></div>';
       }
 
-      // Histórico de movimentações
+      // Histórico movimentações (compact)
       if(movs.length){
-        html += '<div class="inv-mov-section"><div class="inv-mov-title">Movimenta\u00e7\u00f5es (Aportes / Resgates)</div><div class="inv-mov-list">';
-        movs.forEach(function(m){
+        html += '<div class="inv-card-section"><div class="inv-card-section-title">Movimenta\u00e7\u00f5es</div><div class="inv-card-section-list">';
+        movs.slice(0, 5).forEach(function(m){
           var mv = Number(m.valor) || 0;
           var movIdEsc = (m.id || '').replace(/'/g, "\\'");
-          html += '<div class="inv-mov-item">' +
-            '<span class="inv-mov-data">' + fmtD(m.data) + '</span>' +
-            '<span class="inv-mov-tipo ' + m.tipo + '">' + (m.tipo === 'aporte' ? 'Aporte' : 'Resgate') + '</span>' +
-            '<span class="inv-mov-val" style="color:' + (m.tipo === 'aporte' ? 'var(--ok)' : 'var(--dn2)') + '">' +
-              (m.tipo === 'aporte' ? '+ ' : '- ') + fmtV(mv) + '</span>' +
-            '<button class="btn btn-sm btn-danger" style="padding:2px 6px;font-size:.65em" onclick="window._invDelMovById(\'' + idEsc + '\',\'' + movIdEsc + '\')">&#128465;</button>' +
+          html += '<div class="inv-hist-item">' +
+            '<span style="color:var(--tx2)">' + fmtD(m.data) + '</span>' +
+            '<span style="font-weight:600;color:' + (m.tipo === 'aporte' ? 'var(--ok)' : 'var(--dn2)') + '">' + (m.tipo === 'aporte' ? '+ ' : '- ') + fmtInt(mv) + '</span>' +
+            '<button class="btn btn-sm btn-danger" style="padding:1px 5px;font-size:.6em" onclick="window._invDelMovById(\'' + idEsc + '\',\'' + movIdEsc + '\')">&#128465;</button>' +
           '</div>';
         });
+        if(movs.length > 5) html += '<div style="font-size:.72em;color:var(--tx3);text-align:center;padding:4px">+ ' + (movs.length - 5) + ' anterior(es)</div>';
         html += '</div></div>';
       }
 
-      html += '<div class="inv-card-actions">' +
-        '<button class="btn btn-sm btn-outline" onclick="window._invEdit(\'' + idEsc + '\')">&#9998; Editar</button>' +
-        '<button class="btn btn-sm btn-info" onclick="window._invOpenMov(\'' + idEsc + '\',\'aporte\')">&#128260; Movimentar</button>' +
-        '<button class="btn btn-sm btn-info" onclick="window._invOpenRent(\'' + idEsc + '\')">&#128200; Rentabilidade</button>' +
-        '<button class="btn btn-sm btn-danger" onclick="delInvest(\'' + idEsc + '\')">&#128465;</button>' +
-      '</div></div>';
+      html += '<div class="inv-card-actions">';
+      html += '<button class="btn btn-sm btn-outline" onclick="window._invEdit(\'' + idEsc + '\')">&#9998; Editar</button>';
+      html += '<button class="btn btn-sm btn-info" onclick="window._invOpenMov(\'' + idEsc + '\',\'aporte\')">&#128260; Movimentar</button>';
+      html += '<button class="btn btn-sm btn-info" onclick="window._invOpenRent(\'' + idEsc + '\')">&#128200; Rent.</button>';
+      html += '<button class="btn btn-sm btn-danger" onclick="delInvest(\'' + idEsc + '\')">&#128465;</button>';
+      html += '</div></div>';
     });
   }
   html += '</div>';
 
   area.innerHTML = html;
 
+  // Esconder tabela original
   var tbWrap = pgEl.querySelector('.table-wrap');
   if(tbWrap) tbWrap.style.display = 'none';
   pgEl.appendChild(area);
 };
 
 // ================================================================
-// EDITAR INVESTIMENTO
+// EDITAR
 // ================================================================
 window._invEdit = function(id){
   var inv = S.investimentos.find(function(x){ return x.id === id; });
   if(!inv) return;
-
   var st = document.getElementById('eiTipo');
   st.innerHTML = '';
-  (S.cats.investimento || ['Outro']).forEach(function(c){
-    st.innerHTML += '<option>' + c + '</option>';
-  });
-
+  (S.cats.investimento || ['Outro']).forEach(function(c){ st.innerHTML += '<option>' + c + '</option>'; });
   document.getElementById('eiId').value = id;
   document.getElementById('eiNome').value = inv.nome || '';
   document.getElementById('eiTipo').value = inv.tipo || '';
@@ -438,137 +514,77 @@ window._invEdit = function(id){
   document.getElementById('eiObs').value = inv.obs || '';
   openM('modalEditInvest');
 };
-
 window._invUpdate = function(){
   var id = document.getElementById('eiId').value;
   var inv = S.investimentos.find(function(x){ return x.id === id; });
   if(!inv) return;
-
   inv.nome = document.getElementById('eiNome').value.trim();
   inv.tipo = document.getElementById('eiTipo').value;
   inv.valor = parseN(document.getElementById('eiValor').value);
   inv.data = document.getElementById('eiData').value;
   inv.obs = document.getElementById('eiObs').value.trim();
-
-  salvar();
-  closeM('modalEditInvest');
-  renderInvest();
+  salvar(); closeM('modalEditInvest'); renderInvest();
 };
 
 // ================================================================
-// APORTE / RESGATE
+// MOVIMENTAÇÕES
 // ================================================================
 window._invOpenMov = function(id, tipo){
   var inv = S.investimentos.find(function(x){ return x.id === id; });
   if(!inv) return;
-
-  var label = tipo === 'aporte' ? 'Aporte' : 'Resgate';
-  document.getElementById('movTitle').textContent = label + ' \u2014 ' + (inv.nome || '-');
+  document.getElementById('movTitle').textContent = (tipo === 'aporte' ? 'Aporte' : 'Resgate') + ' \u2014 ' + (inv.nome || '-');
   document.getElementById('miId').value = id;
-  document.getElementById('miTipo').value = tipo;
+  document.getElementById('miTipo').value = tipo || 'aporte';
   document.getElementById('miValor').value = '';
-  document.getElementById('miData').value = hojeISO();
+  document.getElementById('miData').value = hojeStr();
   document.getElementById('miObs').value = '';
-
   _invRenderMovList(inv);
   openM('modalMovInvest');
 };
-
 window._invAddMov = function(){
   var id = document.getElementById('miId').value;
   var inv = S.investimentos.find(function(x){ return x.id === id; });
   if(!inv) return;
-
   var tipo = document.getElementById('miTipo').value;
   var valor = parseN(document.getElementById('miValor').value);
   var data = document.getElementById('miData').value;
   var obs = document.getElementById('miObs').value.trim();
-
-  if(!valor || valor <= 0) return alert('Informe um valor v\u00e1lido.');
+  if(!valor || valor <= 0) return alert('Valor inv\u00e1lido.');
   if(!data) return alert('Informe a data.');
-
   if(tipo === 'resgate'){
     var saldoAtual = getInvSaldoAtual(inv);
-    if(valor > saldoAtual){
-      return alert('Valor do resgate (R$ ' + valor.toFixed(2).replace('.', ',') + ') excede o saldo atual (R$ ' + saldoAtual.toFixed(2).replace('.', ',') + ').');
-    }
+    if(valor > saldoAtual) return alert('Valor excede o saldo (' + fmtV(saldoAtual) + ').');
   }
-
   if(!Array.isArray(inv.movimentacoes)) inv.movimentacoes = [];
-
-  inv.movimentacoes.push({
-    tipo: tipo,
-    valor: valor,
-    data: data,
-    obs: obs,
-    id: uid()
-  });
-
+  inv.movimentacoes.push({ tipo: tipo, valor: valor, data: data, obs: obs, id: uid() });
   salvar();
   document.getElementById('miValor').value = '';
   document.getElementById('miObs').value = '';
-  _invRenderMovList(inv);
-  renderInvest();
+  _invRenderMovList(inv); renderInvest();
 };
-
 function _invRenderMovList(inv){
-  var el = document.getElementById('miMovList');
-  if(!el) return;
+  var el = document.getElementById('miMovList'); if(!el) return;
   var movs = (inv.movimentacoes || []).slice().sort(function(a, b){ return (b.data || '').localeCompare(a.data || ''); });
-
-  if(!movs.length){
-    el.innerHTML = '<p style="color:var(--tx3);text-align:center;font-size:.85em">Nenhuma movimenta\u00e7\u00e3o registrada.</p>';
-    return;
-  }
-
-  var totalA = 0, totalR = 0;
-  movs.forEach(function(m){
-    var v = Number(m.valor) || 0;
-    if(m.tipo === 'aporte') totalA += v; else totalR += v;
-  });
-
-  var h = '<div style="font-size:.82em;font-weight:700;margin-bottom:8px;color:var(--tx2)">Hist\u00f3rico de Movimenta\u00e7\u00f5es</div>';
-  h += '<div style="max-height:200px;overflow-y:auto">';
+  if(!movs.length){ el.innerHTML = '<p style="color:var(--tx3);text-align:center;font-size:.85em">Nenhuma movimenta\u00e7\u00e3o.</p>'; return; }
+  var h = '<div style="font-size:.82em;font-weight:700;margin-bottom:8px;color:var(--tx2)">Hist\u00f3rico</div><div style="max-height:200px;overflow-y:auto">';
   movs.forEach(function(m){
     var mv = Number(m.valor) || 0;
     var invIdEsc = inv.id.replace(/'/g, "\\'");
     var movIdEsc = (m.id || '').replace(/'/g, "\\'");
     h += '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--bg3);font-size:.82em">' +
-      '<span style="min-width:75px">' + fmtD(m.data) + '</span>' +
-      '<span style="font-weight:600;color:' + (m.tipo === 'aporte' ? 'var(--ok)' : 'var(--dn2)') + ';min-width:60px">' + (m.tipo === 'aporte' ? 'Aporte' : 'Resgate') + '</span>' +
-      '<span style="font-weight:700;color:' + (m.tipo === 'aporte' ? 'var(--ok)' : 'var(--dn2)') + '">' + (m.tipo === 'aporte' ? '+ ' : '- ') + fmtV(mv) + '</span>' +
-      (m.obs ? '<span style="color:var(--tx3);font-size:.8em;max-width:80px;overflow:hidden;text-overflow:ellipsis" title="' + m.obs + '">' + m.obs + '</span>' : '') +
-      '<button class="btn btn-sm btn-danger" style="padding:2px 8px;font-size:.7em" onclick="window._invDelMovById(\'' + invIdEsc + '\',\'' + movIdEsc + '\')">&#128465;</button>' +
-    '</div>';
+      '<span>' + fmtD(m.data) + '</span>' +
+      '<span style="font-weight:600;color:' + (m.tipo === 'aporte' ? 'var(--ok)' : 'var(--dn2)') + '">' + (m.tipo === 'aporte' ? '+ ' : '- ') + fmtInt(mv) + '</span>' +
+      '<button class="btn btn-sm btn-danger" style="padding:2px 8px;font-size:.7em" onclick="window._invDelMovById(\'' + invIdEsc + '\',\'' + movIdEsc + '\')">&#128465;</button></div>';
   });
   h += '</div>';
-  h += '<div style="display:flex;justify-content:space-between;margin-top:8px;font-weight:700;font-size:.85em">' +
-    '<span style="color:var(--ok)">Aportes: + ' + fmtV(totalA) + '</span>' +
-    '<span style="color:var(--dn2)">Resgates: - ' + fmtV(totalR) + '</span>' +
-  '</div>';
   el.innerHTML = h;
 }
-
 window._invDelMovById = function(invId, movId){
-  if(!confirm('Remover esta movimenta\u00e7\u00e3o?')) return;
+  if(!confirm('Remover movimenta\u00e7\u00e3o?')) return;
   var inv = S.investimentos.find(function(x){ return x.id === invId; });
   if(!inv) return;
   inv.movimentacoes = (inv.movimentacoes || []).filter(function(m){ return m.id !== movId; });
-  salvar();
-  _invRenderMovList(inv);
-  renderInvest();
-};
-
-window._invDelMov = function(invId, data, tipo, valor){
-  if(!confirm('Remover esta movimenta\u00e7\u00e3o?')) return;
-  var inv = S.investimentos.find(function(x){ return x.id === invId; });
-  if(!inv) return;
-  var idx = (inv.movimentacoes || []).findIndex(function(m){
-    return m.data === data && m.tipo === tipo && (Number(m.valor) || 0) === valor;
-  });
-  if(idx >= 0) inv.movimentacoes.splice(idx, 1);
-  salvar();
-  renderInvest();
+  salvar(); _invRenderMovList(inv); renderInvest();
 };
 
 // ================================================================
@@ -577,79 +593,59 @@ window._invDelMov = function(invId, data, tipo, valor){
 window._invOpenRent = function(id){
   var inv = S.investimentos.find(function(x){ return x.id === id; });
   if(!inv) return;
-
   document.getElementById('rentTitle').textContent = 'Rentabilidade \u2014 ' + (inv.nome || '-');
   document.getElementById('riId').value = id;
   document.getElementById('riMes').value = mesAtual();
   document.getElementById('riValor').value = '';
-
   _invRenderRentList(inv);
   openM('modalRentInvest');
 };
-
 window._invAddRent = function(){
   var id = document.getElementById('riId').value;
   var inv = S.investimentos.find(function(x){ return x.id === id; });
   if(!inv) return;
-
   var mes = document.getElementById('riMes').value;
   var valor = parseN(document.getElementById('riValor').value);
   if(!mes) return alert('Selecione o m\u00eas.');
-  if(valor === 0) return alert('Informe o valor da rentabilidade.');
-
+  if(valor === 0) return alert('Informe o valor.');
   if(!Array.isArray(inv.rentabilidade)) inv.rentabilidade = [];
-
   var existing = inv.rentabilidade.find(function(r){ return r.mes === mes; });
   if(existing){
-    if(!confirm('J\u00e1 existe rentabilidade em ' + mesNome(mes) + ' (' + fmtV(existing.valor) + '). Substituir?')) return;
+    if(!confirm('Substituir valor de ' + mesNome(mes) + '?')) return;
     existing.valor = valor;
   } else {
     inv.rentabilidade.push({ mes: mes, valor: valor });
   }
-
   salvar();
   document.getElementById('riValor').value = '';
-  _invRenderRentList(inv);
-  renderInvest();
+  _invRenderRentList(inv); renderInvest();
 };
-
 function _invRenderRentList(inv){
-  var el = document.getElementById('riRentList');
-  if(!el) return;
+  var el = document.getElementById('riRentList'); if(!el) return;
   var rents = (inv.rentabilidade || []).slice().sort(function(a, b){ return (b.mes || '').localeCompare(a.mes || ''); });
-
-  if(!rents.length){
-    el.innerHTML = '<p style="color:var(--tx3);text-align:center;font-size:.85em">Nenhuma rentabilidade lan\u00e7ada.</p>';
-    return;
-  }
-
+  if(!rents.length){ el.innerHTML = '<p style="color:var(--tx3);text-align:center;font-size:.85em">Nenhuma rentabilidade.</p>'; return; }
   var totalR = rents.reduce(function(s, r){ return s + (Number(r.valor) || 0); }, 0);
-  var h = '<div style="font-size:.82em;font-weight:700;margin-bottom:8px;color:var(--tx2)">Hist\u00f3rico</div>';
-  h += '<div style="max-height:200px;overflow-y:auto">';
+  var h = '<div style="font-size:.82em;font-weight:700;margin-bottom:8px;color:var(--tx2)">Hist\u00f3rico</div><div style="max-height:200px;overflow-y:auto">';
   rents.forEach(function(r){
     var rv = Number(r.valor) || 0;
     var idEsc = inv.id.replace(/'/g, "\\'");
     var mesEsc = r.mes.replace(/'/g, "\\'");
     h += '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--bg3);font-size:.82em">' +
       '<span>' + mesNome(r.mes) + '</span>' +
-      '<span style="font-weight:700;color:' + (rv >= 0 ? 'var(--ok)' : 'var(--dn2)') + '">' + (rv > 0 ? '+' : '') + fmtV(rv) + '</span>' +
-      '<button class="btn btn-sm btn-danger" style="padding:2px 8px;font-size:.7em" onclick="window._invDelRent(\'' + idEsc + '\',\'' + mesEsc + '\')">&#128465;</button>' +
-    '</div>';
+      '<span style="font-weight:700;color:' + (rv >= 0 ? 'var(--ok)' : 'var(--dn2)') + '">' + (rv > 0 ? '+ ' : '') + fmtInt(rv) + '</span>' +
+      '<button class="btn btn-sm btn-danger" style="padding:2px 8px;font-size:.7em" onclick="window._invDelRent(\'' + idEsc + '\',\'' + mesEsc + '\')">&#128465;</button></div>';
   });
   h += '</div>';
-  h += '<div style="text-align:right;font-weight:700;margin-top:8px;color:' + (totalR >= 0 ? 'var(--ok)' : 'var(--dn2)') + '">Total: ' + (totalR > 0 ? '+' : '') + fmtV(totalR) + '</div>';
+  h += '<div style="text-align:right;font-weight:700;margin-top:8px;color:' + (totalR >= 0 ? 'var(--ok)' : 'var(--dn2)') + '">Total: ' + (totalR > 0 ? '+ ' : '') + fmtInt(totalR) + '</div>';
   el.innerHTML = h;
 }
-
 window._invDelRent = function(invId, mes){
   if(!confirm('Remover rentabilidade de ' + mesNome(mes) + '?')) return;
   var inv = S.investimentos.find(function(x){ return x.id === invId; });
   if(!inv) return;
   inv.rentabilidade = (inv.rentabilidade || []).filter(function(r){ return r.mes !== mes; });
-  salvar();
-  _invRenderRentList(inv);
-  renderInvest();
+  salvar(); _invRenderRentList(inv); renderInvest();
 };
 
-console.log('[Financeiro Pro] Investimentos v3 (layout otimizado) carregado.');
+console.log('[Financeiro Pro] Investimentos v4 — SVG donut, valores inteiros, layout profissional.');
 })();
