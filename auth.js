@@ -1,9 +1,9 @@
-// auth.js v5.5 — Correção definitiva: arquivo completo + merge real
+// auth.js v6 — Fonte única: dados do usuário gravados no Gist legado
 (function(){
 'use strict';
 
 // ================================================================
-// FIX IMEDIATO: Cancelar TUDO do index.html antes que setTimeout rode
+// BLOQUEAR index.html imediatamente
 // ================================================================
 window.cloudOk = false;
 if(typeof syncTimer !== 'undefined'){ clearTimeout(syncTimer); syncTimer = null; }
@@ -15,14 +15,20 @@ syncUI('off','Aguardando login...');
 var _mt = document.getElementById('modalToken');
 if(_mt && _mt.classList.contains('show')) _mt.classList.remove('show');
 
+// ================================================================
+// CONSTANTES
+// ================================================================
 var AUTH_GIST_KEY  = 'finApp_auth_gist_id';
 var SESSION_KEY    = 'finApp_session';
 var DEVICE_ID_KEY  = 'finApp_device_id';
 var SESSION_SHORT  = 24*60*60*1000;
 var SESSION_LONG   = 90*24*60*60*1000;
-var LEGACY_GIST_ID = '667e29c52ee1d62185b5eae8c871faa1';
+// FONTE ÚNICA — tudo neste Gist
+var DATA_GIST_ID   = '667e29c52ee1d62185b5eae8c871faa1';
 
-/* ---------- HELPERS ---------- */
+// ================================================================
+// HELPERS
+// ================================================================
 async function sha256(t){
   var b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));
   return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,'0');}).join('');
@@ -46,7 +52,9 @@ function detectDevice(){
   return br+' / '+os;
 }
 
-/* ---------- DEEP MERGE ---------- */
+// ================================================================
+// DEEP MERGE — combina local + remoto por ID
+// ================================================================
 function deepMergeState(local,remote){
   if(!remote||(!remote.lancamentos&&!remote.contratos&&!remote.cartoes))
     return ensureArrays(JSON.parse(JSON.stringify(local||defState())));
@@ -61,7 +69,11 @@ function deepMergeState(local,remote){
   });
   if(!r.planejamento||Array.isArray(r.planejamento))r.planejamento={};
   if(l.planejamento&&typeof l.planejamento==='object'&&!Array.isArray(l.planejamento))
-    Object.keys(l.planejamento).forEach(function(k){if(!r.planejamento[k])r.planejamento[k]=l.planejamento[k];});
+    Object.keys(l.planejamento).forEach(function(k){
+      if(!r.planejamento[k])r.planejamento[k]=l.planejamento[k];
+      else if(typeof r.planejamento[k]==='object'&&typeof l.planejamento[k]==='object')
+        Object.keys(l.planejamento[k]).forEach(function(c){if(r.planejamento[k][c]===undefined)r.planejamento[k][c]=l.planejamento[k][c];});
+    });
   if(!r.cats)r.cats=JSON.parse(JSON.stringify(defCats));
   if(l.cats)Object.keys(l.cats).forEach(function(t){
     if(Array.isArray(l.cats[t])){if(!Array.isArray(r.cats[t]))r.cats[t]=[];
@@ -88,7 +100,57 @@ function ensureArrays(st){
   return st;
 }
 
-/* ---------- CSS ---------- */
+// ================================================================
+// LEITURA/ESCRITA NO GIST ÚNICO (DATA_GIST_ID)
+// ================================================================
+// Lê QUALQUER arquivo do Gist único
+async function readGistFile(fileName){
+  var tk=_getToken();if(!tk)return null;
+  try{
+    var r=await fetch('https://api.github.com/gists/'+DATA_GIST_ID,{
+      headers:{'Accept':'application/vnd.github+json','Authorization':'Bearer '+tk}});
+    if(!r.ok)return null;
+    var j=await r.json();var f=j.files&&j.files[fileName];
+    return(f&&f.content)?JSON.parse(f.content):null;
+  }catch(e){return null;}
+}
+// Grava QUALQUER arquivo no Gist único (sem apagar os outros)
+async function writeGistFile(fileName,data){
+  var tk=_getToken();if(!tk)return false;
+  var files={};files[fileName]={content:JSON.stringify(data,null,2)};
+  try{
+    var r=await fetch('https://api.github.com/gists/'+DATA_GIST_ID,{
+      method:'PATCH',
+      headers:{'Accept':'application/vnd.github+json','Authorization':'Bearer '+tk,'Content-Type':'application/json'},
+      body:JSON.stringify({files:files})});
+    return r.ok;
+  }catch(e){return false;}
+}
+
+// Atalhos para o arquivo do usuário
+function getUserFileKey(u){return u.toLowerCase().replace(/[^a-z0-9]/g,'_')+'.json';}
+function getUserStorageKey(u){return 'finApp_v5_'+u.toLowerCase().replace(/[^a-z0-9]/g,'_');}
+async function readUserGistFile(user){return await readGistFile(getUserFileKey(user));}
+async function writeUserGistFile(user,data){return await writeGistFile(getUserFileKey(user),data);}
+
+// Atalhos para auth_users.json (também no mesmo Gist)
+async function readAuthGist(){return await readGistFile('auth_users.json');}
+async function writeAuthGist(data){return await writeGistFile('auth_users.json',data);}
+
+// Se auth_users.json não existir ainda, criar no Gist
+async function ensureAuthFile(){
+  var ad=await readAuthGist();
+  if(ad&&ad.users)return ad;
+  // Criar auth_users.json no Gist existente
+  var h=await sha256('202328');
+  var data={users:[{username:'Anderson',passwordHash:h,createdAt:new Date().toISOString(),role:'admin',sessions:[]}]};
+  await writeGistFile('auth_users.json',data);
+  return data;
+}
+
+// ================================================================
+// CSS
+// ================================================================
 var sty=document.createElement('style');
 sty.textContent=
 '.auth-overlay{position:fixed;inset:0;z-index:10000;background:var(--bg);display:flex;align-items:center;justify-content:center;transition:opacity .3s}'+
@@ -129,7 +191,9 @@ sty.textContent=
 '@media(max-width:768px){.auth-box{padding:28px 20px}.auth-ubar{padding:6px 12px;font-size:.72em}.main{padding-bottom:50px!important}}';
 document.head.appendChild(sty);
 
-/* ---------- HTML LOGIN ---------- */
+// ================================================================
+// HTML LOGIN
+// ================================================================
 var _hasToken=!!(localStorage.getItem('finApp_gist_token'));
 var ov=document.createElement('div');ov.className='auth-overlay';ov.id='authOverlay';
 var tkHTML='';
@@ -151,60 +215,25 @@ ov.innerHTML='<div class="auth-box"><div class="auth-logo">&#128176;</div>'+
   '<div class="auth-error" id="authError"></div>'+
   '<div class="auth-footer">&#128274; Acesso protegido</div></div>';
 document.body.appendChild(ov);
-
 var ubar=document.createElement('div');ubar.className='auth-ubar';ubar.id='authUBar';
 ubar.innerHTML='<span>&#128100; <span class="au-name" id="auName"></span><span class="au-role" id="auRole"></span></span>'+
   '<button class="au-logout" onclick="window._authDoLogout()">&#128682; Sair</button>';
 document.body.appendChild(ubar);
-
 document.getElementById('authPass').addEventListener('keydown',function(e){if(e.key==='Enter')window._authDoLogin();});
 document.getElementById('authUser').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('authPass').focus();});
 var _atkEl=document.getElementById('authToken');
 if(_atkEl)_atkEl.addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('authUser').focus();});
 window._authCurrentUser=null;
 
-/* ---------- TOKEN ---------- */
+// ================================================================
+// TOKEN
+// ================================================================
 function _setGistToken(t){window.gistToken=t;localStorage.setItem('finApp_gist_token',t);}
 function _getToken(){return window.gistToken||localStorage.getItem('finApp_gist_token')||'';}
 
-/* ---------- GIST AUTH ---------- */
-async function readAuthGist(){
-  var tk=_getToken();if(!tk)return null;
-  var gid=localStorage.getItem(AUTH_GIST_KEY);
-  if(!gid){gid=await findAuthGist(tk);if(!gid)gid=await createAuthGist(tk);if(!gid)return null;}
-  try{var r=await fetch('https://api.github.com/gists/'+gid,{headers:{'Accept':'application/vnd.github+json','Authorization':'Bearer '+tk}});
-    if(r.status===404){localStorage.removeItem(AUTH_GIST_KEY);gid=await findAuthGist(tk);if(!gid)gid=await createAuthGist(tk);if(!gid)return null;
-      r=await fetch('https://api.github.com/gists/'+gid,{headers:{'Accept':'application/vnd.github+json','Authorization':'Bearer '+tk}});}
-    if(!r.ok)return null;var j=await r.json();var f=j.files&&j.files['auth_users.json'];
-    return(f&&f.content)?JSON.parse(f.content):null;
-  }catch(e){return null;}
-}
-async function findAuthGist(tk){
-  try{var r=await fetch('https://api.github.com/gists?per_page=100',{headers:{'Accept':'application/vnd.github+json','Authorization':'Bearer '+tk}});
-    if(!r.ok)return null;var gs=await r.json();
-    for(var i=0;i<gs.length;i++){if(gs[i].description==='FinanceiroPro-Auth'&&gs[i].files&&gs[i].files['auth_users.json']){
-      localStorage.setItem(AUTH_GIST_KEY,gs[i].id);return gs[i].id;}}return null;
-  }catch(e){return null;}
-}
-async function writeAuthGist(data){
-  var tk=_getToken(),gid=localStorage.getItem(AUTH_GIST_KEY);if(!tk||!gid)return false;
-  try{var r=await fetch('https://api.github.com/gists/'+gid,{method:'PATCH',
-    headers:{'Accept':'application/vnd.github+json','Authorization':'Bearer '+tk,'Content-Type':'application/json'},
-    body:JSON.stringify({files:{'auth_users.json':{content:JSON.stringify(data,null,2)}}})});return r.ok;
-  }catch(e){return false;}
-}
-async function createAuthGist(tk){
-  var h=await sha256('202328');
-  var data={users:[{username:'Anderson',passwordHash:h,createdAt:new Date().toISOString(),role:'admin',sessions:[]}]};
-  try{var r=await fetch('https://api.github.com/gists',{method:'POST',
-    headers:{'Accept':'application/vnd.github+json','Authorization':'Bearer '+tk,'Content-Type':'application/json'},
-    body:JSON.stringify({description:'FinanceiroPro-Auth',public:false,
-      files:{'auth_users.json':{content:JSON.stringify(data,null,2)}}})});
-    if(!r.ok)return null;var j=await r.json();localStorage.setItem(AUTH_GIST_KEY,j.id);return j.id;
-  }catch(e){return null;}
-}
-
-/* ---------- SESSÃO ---------- */
+// ================================================================
+// SESSÃO
+// ================================================================
 function getSession(){
   try{var s=JSON.parse(localStorage.getItem(SESSION_KEY));
     if(s&&s.user&&s.expires&&Date.now()<s.expires)return s;
@@ -216,7 +245,9 @@ function setSession(u,role,keep){
 }
 function clearSession(){localStorage.removeItem(SESSION_KEY);}
 
-/* ---------- DISPOSITIVOS ---------- */
+// ================================================================
+// DISPOSITIVOS
+// ================================================================
 async function registerDevice(user,keep){
   var d=await readAuthGist();if(!d||!d.users)return;
   var u=d.users.find(function(x){return x.username.toLowerCase()===user.toLowerCase();});if(!u)return;
@@ -235,39 +266,18 @@ async function unregisterDevice(user,did){
   await writeAuthGist(d);
 }
 
-/* ---------- GIST LEGADO ---------- */
-async function readLegacyGist(){
-  var tk=_getToken();if(!tk)return null;
-  try{var r=await fetch('https://api.github.com/gists/'+LEGACY_GIST_ID,{headers:{'Accept':'application/vnd.github+json','Authorization':'Bearer '+tk}});
-    if(!r.ok)return null;var j=await r.json();var f=j.files&&j.files['financeiro.json'];
-    return(f&&f.content)?JSON.parse(f.content):null;}catch(e){return null;}
-}
-
-/* ---------- DADOS POR USUÁRIO ---------- */
-function getUserFileKey(u){return u.toLowerCase().replace(/[^a-z0-9]/g,'_')+'.json';}
-function getUserStorageKey(u){return 'finApp_v5_'+u.toLowerCase().replace(/[^a-z0-9]/g,'_');}
-
-async function readUserGistFile(user){
-  var tk=_getToken(),gid=localStorage.getItem(AUTH_GIST_KEY);if(!tk||!gid)return null;
-  var fn=getUserFileKey(user);
-  try{var r=await fetch('https://api.github.com/gists/'+gid,{headers:{'Accept':'application/vnd.github+json','Authorization':'Bearer '+tk}});
-    if(!r.ok)return null;var j=await r.json();var f=j.files&&j.files[fn];
-    return(f&&f.content)?JSON.parse(f.content):null;}catch(e){return null;}
-}
-async function writeUserGistFile(user,data){
-  var tk=_getToken(),gid=localStorage.getItem(AUTH_GIST_KEY);if(!tk||!gid)return false;
-  var fn=getUserFileKey(user),files={};files[fn]={content:JSON.stringify(data,null,2)};
-  try{var r=await fetch('https://api.github.com/gists/'+gid,{method:'PATCH',
-    headers:{'Accept':'application/vnd.github+json','Authorization':'Bearer '+tk,'Content-Type':'application/json'},
-    body:JSON.stringify({files:files})});return r.ok;}catch(e){return false;}
-}
-
-/* ---------- SWITCH TO USER DATA ---------- */
+// ================================================================
+// SWITCH TO USER DATA
+// ================================================================
 function switchToUserData(user){
   var uKey=getUserStorageKey(user);
   window._userSK=uKey;window._authUsername=user;
+
   // Migrar da chave global se a do usuário não existir
-  if(!localStorage.getItem(uKey)){var ex=localStorage.getItem('finApp_v5');if(ex)localStorage.setItem(uKey,ex);}
+  if(!localStorage.getItem(uKey)){
+    var ex=localStorage.getItem('finApp_v5');
+    if(ex)localStorage.setItem(uKey,ex);
+  }
   try{var d=JSON.parse(localStorage.getItem(uKey));
     if(d){S=ensureArrays(d);}else{S=defState();}
   }catch(e){S=defState();}
@@ -278,23 +288,34 @@ function switchToUserData(user){
     localStorage.setItem(window._userSK,JSON.stringify(S));
     window.scheduleSync();
   };
-  window.gistRead=async function(){return await readUserGistFile(window._authUsername);};
-  window.gistWrite=async function(d){return await writeUserGistFile(window._authUsername,d);};
 
-  // scheduleSync com lock
+  // scheduleSync — grava anderson.json + financeiro.json no MESMO Gist
   var _ust=null,_syncing=false;
   window.scheduleSync=function(){
     if(!cloudOk)return;clearTimeout(_ust);
     _ust=setTimeout(async function(){
       if(_syncing)return;_syncing=true;
       syncUI('loading','Sincronizando...');
-      try{var ok=await writeUserGistFile(window._authUsername,S);
-        if(ok)syncUI('on','Sync '+new Date().toLocaleTimeString('pt-BR'));
+      try{
+        // Gravar no arquivo do usuário E no financeiro.json (compatibilidade)
+        var tk=_getToken();if(!tk){_syncing=false;return;}
+        var files={};
+        files[getUserFileKey(window._authUsername)]={content:JSON.stringify(S,null,2)};
+        files['financeiro.json']={content:JSON.stringify(S,null,2)};
+        var r=await fetch('https://api.github.com/gists/'+DATA_GIST_ID,{
+          method:'PATCH',
+          headers:{'Accept':'application/vnd.github+json','Authorization':'Bearer '+tk,'Content-Type':'application/json'},
+          body:JSON.stringify({files:files})});
+        if(r.ok)syncUI('on','Sync '+new Date().toLocaleTimeString('pt-BR'));
         else syncUI('on','Erro sync');
       }catch(e){syncUI('on','Erro sync (rede)');}
       _syncing=false;
     },3000);
   };
+
+  // gistRead/gistWrite para compatibilidade com Backup/Cloud
+  window.gistRead=async function(){return await readUserGistFile(window._authUsername);};
+  window.gistWrite=async function(d){return await writeUserGistFile(window._authUsername,d);};
 
   // connectCloud
   window.connectCloud=async function(){
@@ -303,57 +324,72 @@ function switchToUserData(user){
     if(!t||!t.trim()){alert('Informe o token.');return;}
     _setGistToken(t.trim());syncUI('loading','Conectando...');
     var tm=document.getElementById('modalToken');if(tm&&tm.classList.contains('show'))closeM('modalToken');
-    await readAuthGist();
+    await ensureAuthFile();
     var loc=JSON.parse(JSON.stringify(S));
+    // Tentar ler arquivo do usuário, senão ler financeiro.json
     var rem=await readUserGistFile(window._authUsername);
-    if(!rem)rem=await readLegacyGist();
-    if(rem&&(rem.lancamentos||rem.cartoes||rem.contratos)){S=deepMergeState(loc,rem);}
+    if(!rem||(!rem.lancamentos&&!rem.contratos))rem=await readGistFile('financeiro.json');
+    if(rem&&(rem.lancamentos||rem.cartoes||rem.contratos))S=deepMergeState(loc,rem);
     localStorage.setItem(window._userSK,JSON.stringify(S));
-    await writeUserGistFile(window._authUsername,S);
+    // Gravar nos dois arquivos
+    var tk=_getToken();
+    var files={};
+    files[getUserFileKey(window._authUsername)]={content:JSON.stringify(S,null,2)};
+    files['financeiro.json']={content:JSON.stringify(S,null,2)};
+    await fetch('https://api.github.com/gists/'+DATA_GIST_ID,{method:'PATCH',
+      headers:{'Accept':'application/vnd.github+json','Authorization':'Bearer '+tk,'Content-Type':'application/json'},
+      body:JSON.stringify({files:files})});
     renderAll();cloudOk=true;syncUI('on','Cloud conectado');
     if(typeof renderCloudArea==='function')renderCloudArea();
   };
 
-  // initCloud — MERGE REAL
+  // initCloud — lê anderson.json do Gist, se não existir lê financeiro.json
   window.initCloud=async function(){
     var st=localStorage.getItem('finApp_gist_token')||'';if(st)window.gistToken=st;
     if(!window.gistToken){cloudOk=false;syncUI('off','Sem token');return;}
     syncUI('loading','Conectando...');
-    var ad=await readAuthGist();
-    if(!ad){cloudOk=false;syncUI('on','Erro cloud');return;}
+    await ensureAuthFile();
     var loc=JSON.parse(JSON.stringify(S));
+    // Tentar o arquivo do usuário primeiro
     var rem=await readUserGistFile(window._authUsername);
+    if(!rem||(!rem.lancamentos&&!rem.contratos&&!rem.cartoes)){
+      // Fallback: ler financeiro.json (dados antigos)
+      rem=await readGistFile('financeiro.json');
+    }
     if(rem&&typeof rem==='object'&&(rem.lancamentos||rem.cartoes||rem.contratos)){
       S=deepMergeState(loc,rem);
       localStorage.setItem(window._userSK,JSON.stringify(S));renderAll();
-      await writeUserGistFile(window._authUsername,S);
+      // Gravar merge nos dois arquivos
+      var tk=_getToken();
+      var files={};
+      files[getUserFileKey(window._authUsername)]={content:JSON.stringify(S,null,2)};
+      files['financeiro.json']={content:JSON.stringify(S,null,2)};
+      await fetch('https://api.github.com/gists/'+DATA_GIST_ID,{method:'PATCH',
+        headers:{'Accept':'application/vnd.github+json','Authorization':'Bearer '+tk,'Content-Type':'application/json'},
+        body:JSON.stringify({files:files})});
       cloudOk=true;syncUI('on','Cloud conectado');return;
     }
-    var leg=await readLegacyGist();
-    if(leg&&typeof leg==='object'&&(leg.lancamentos||leg.cartoes||leg.contratos)){
-      S=deepMergeState(loc,leg);
-      localStorage.setItem(window._userSK,JSON.stringify(S));renderAll();
-      await writeUserGistFile(window._authUsername,S);
-      cloudOk=true;syncUI('on','Dados migrados!');return;
+    // Nenhum dado remoto — subir local
+    if(S&&S.lancamentos&&S.lancamentos.length>0){
+      var tk2=_getToken();var f2={};
+      f2[getUserFileKey(window._authUsername)]={content:JSON.stringify(S,null,2)};
+      f2['financeiro.json']={content:JSON.stringify(S,null,2)};
+      await fetch('https://api.github.com/gists/'+DATA_GIST_ID,{method:'PATCH',
+        headers:{'Accept':'application/vnd.github+json','Authorization':'Bearer '+tk2,'Content-Type':'application/json'},
+        body:JSON.stringify({files:f2})});
     }
-    if(S&&S.lancamentos&&S.lancamentos.length>0)await writeUserGistFile(window._authUsername,S);
     cloudOk=true;syncUI('on','Cloud conectado');
   };
 
   // doPullGist
   window.doPullGist=async function(){
     syncUI('loading','Baixando...');var loc=JSON.parse(JSON.stringify(S));
-    var d=await readUserGistFile(window._authUsername);
-    if(d&&(d.lancamentos||d.cartoes||d.contratos)){
-      S=deepMergeState(loc,d);localStorage.setItem(window._userSK,JSON.stringify(S));
+    var rem=await readUserGistFile(window._authUsername);
+    if(!rem||(!rem.lancamentos&&!rem.contratos))rem=await readGistFile('financeiro.json');
+    if(rem&&(rem.lancamentos||rem.cartoes||rem.contratos)){
+      S=deepMergeState(loc,rem);localStorage.setItem(window._userSK,JSON.stringify(S));
       renderAll();syncUI('on','Dados carregados');
-    }else{
-      var leg=await readLegacyGist();
-      if(leg&&(leg.lancamentos||leg.cartoes||leg.contratos)){
-        S=deepMergeState(loc,leg);localStorage.setItem(window._userSK,JSON.stringify(S));
-        await writeUserGistFile(window._authUsername,S);renderAll();syncUI('on','Dados migrados');
-      }else syncUI('on','Nenhum dado');
-    }
+    }else syncUI('on','Nenhum dado');
   };
 
   // doConnectFromBk
@@ -361,12 +397,17 @@ function switchToUserData(user){
     var t=(document.getElementById('bkToken')||{}).value;
     if(!t||!t.trim()){alert('Informe o token.');return;}
     _setGistToken(t.trim());syncUI('loading','Conectando...');
-    await readAuthGist();var loc=JSON.parse(JSON.stringify(S));
-    var d=await readUserGistFile(window._authUsername);
-    if(!d||!(d.lancamentos||d.cartoes||d.contratos)){d=await readLegacyGist();}
-    if(d&&(d.lancamentos||d.cartoes||d.contratos))S=deepMergeState(loc,d);
+    await ensureAuthFile();var loc=JSON.parse(JSON.stringify(S));
+    var rem=await readUserGistFile(window._authUsername);
+    if(!rem||(!rem.lancamentos&&!rem.contratos))rem=await readGistFile('financeiro.json');
+    if(rem&&(rem.lancamentos||rem.cartoes||rem.contratos))S=deepMergeState(loc,rem);
     localStorage.setItem(window._userSK,JSON.stringify(S));
-    await writeUserGistFile(window._authUsername,S);
+    var tk=_getToken();var files={};
+    files[getUserFileKey(window._authUsername)]={content:JSON.stringify(S,null,2)};
+    files['financeiro.json']={content:JSON.stringify(S,null,2)};
+    await fetch('https://api.github.com/gists/'+DATA_GIST_ID,{method:'PATCH',
+      headers:{'Accept':'application/vnd.github+json','Authorization':'Bearer '+tk,'Content-Type':'application/json'},
+      body:JSON.stringify({files:files})});
     renderAll();cloudOk=true;syncUI('on','Cloud conectado');
     if(typeof renderCloudArea==='function')renderCloudArea();
   };
@@ -375,10 +416,16 @@ function switchToUserData(user){
   window.doSyncNow=async function(){
     var st=localStorage.getItem('finApp_gist_token')||'';if(st)window.gistToken=st;
     syncUI('loading','Sincronizando...');
-    var ok=await writeUserGistFile(window._authUsername,S);
-    if(ok)syncUI('on','Sync '+new Date().toLocaleTimeString('pt-BR'));
+    var tk=_getToken();var files={};
+    files[getUserFileKey(window._authUsername)]={content:JSON.stringify(S,null,2)};
+    files['financeiro.json']={content:JSON.stringify(S,null,2)};
+    var r=await fetch('https://api.github.com/gists/'+DATA_GIST_ID,{method:'PATCH',
+      headers:{'Accept':'application/vnd.github+json','Authorization':'Bearer '+tk,'Content-Type':'application/json'},
+      body:JSON.stringify({files:files})});
+    if(r.ok)syncUI('on','Sync '+new Date().toLocaleTimeString('pt-BR'));
     else syncUI('on','Erro sync');
   };
+
   window.doDisconnect=function(){window.gistToken='';cloudOk=false;localStorage.removeItem('finApp_gist_token');syncUI('off','Offline');if(typeof renderCloudArea==='function')renderCloudArea();};
   window.skipCloud=function(){var m=document.getElementById('modalToken');if(m&&m.classList.contains('show'))closeM('modalToken');cloudOk=false;syncUI('off','Offline');if(typeof renderCloudArea==='function')renderCloudArea();};
 
@@ -386,7 +433,9 @@ function switchToUserData(user){
   if(typeof renderAll==='function')renderAll();
 }
 
-/* ---------- LOGIN ---------- */
+// ================================================================
+// LOGIN
+// ================================================================
 window._authDoLogin=async function(){
   var ue=document.getElementById('authUser'),pe=document.getElementById('authPass'),
       te=document.getElementById('authToken'),ke=document.getElementById('authKeep'),
@@ -397,7 +446,7 @@ window._authDoLogin=async function(){
   var tk=_getToken();if(!tk){ee.textContent='Informe o Token GitHub.';return;}
   btn.disabled=true;btn.textContent='Verificando...';ee.textContent='';
   var ih=await sha256(pass),role='user',ok=false;
-  var ad=await readAuthGist();
+  var ad=await ensureAuthFile();
   if(ad&&ad.users){var f=ad.users.find(function(u){return u.username.toLowerCase()===user.toLowerCase()&&u.passwordHash===ih;});
     if(f){ok=true;user=f.username;role=f.role||'user';}}
   if(!ok){var fb=await sha256('202328');if(user.toLowerCase()==='anderson'&&ih===fb){ok=true;user='Anderson';role='admin';}}
@@ -410,14 +459,18 @@ window._authDoLogin=async function(){
   btn.disabled=false;btn.textContent='Entrar';
 };
 
-/* ---------- LOGOUT ---------- */
+// ================================================================
+// LOGOUT
+// ================================================================
 window._authDoLogout=function(){
   if(!confirm('Deseja sair?'))return;
   var s=getSession();if(s)unregisterDevice(s.user,getDeviceId());
   clearSession();window._authCurrentUser=null;location.reload();
 };
 
-/* ---------- SHOW/HIDE APP ---------- */
+// ================================================================
+// SHOW/HIDE
+// ================================================================
 function showApp(u,r){
   var o=document.getElementById('authOverlay');o.classList.add('hiding');
   setTimeout(function(){o.style.display='none';},300);
@@ -426,30 +479,28 @@ function showApp(u,r){
   var mh=document.getElementById('mobHeader');if(mh)mh.style.visibility='visible';
   document.getElementById('auName').textContent=u;
   var re=document.getElementById('auRole');re.textContent=r==='admin'?'Administrador':'Usu\u00e1rio';re.className='au-role '+r;
-  document.getElementById('authUBar').style.display='flex';
-  applyRoleRestrictions(r);
+  document.getElementById('authUBar').style.display='flex';applyRoleRestrictions(r);
 }
 function hideApp(){
-  document.getElementById('sidebar').style.visibility='hidden';
-  document.querySelector('.main').style.visibility='hidden';
+  document.getElementById('sidebar').style.visibility='hidden';document.querySelector('.main').style.visibility='hidden';
   var mh=document.getElementById('mobHeader');if(mh)mh.style.visibility='hidden';
   document.getElementById('authUBar').style.display='none';
   var o=document.getElementById('authOverlay');o.style.display='flex';
   setTimeout(function(){o.classList.remove('hiding');},10);
-  document.getElementById('authUser').value='';document.getElementById('authPass').value='';
-  document.getElementById('authError').textContent='';
+  document.getElementById('authUser').value='';document.getElementById('authPass').value='';document.getElementById('authError').textContent='';
 }
 function applyRoleRestrictions(r){
   if(r==='admin')return;
   setTimeout(function(){
-    var cc=document.getElementById('configCatsArea');
-    if(cc)cc.innerHTML='<div class="no-admin-msg">&#128274; Somente administradores podem gerenciar categorias.</div>';
+    var cc=document.getElementById('configCatsArea');if(cc)cc.innerHTML='<div class="no-admin-msg">&#128274; Somente administradores podem gerenciar categorias.</div>';
     var aa=document.getElementById('authAdminSection');if(aa)aa.style.display='none';
     var ld=document.querySelector('#pg-config .btn-danger');if(ld){var p=ld.closest('.form-section');if(p)p.style.display='none';}
   },600);
 }
 
-/* ---------- ADMIN UI ---------- */
+// ================================================================
+// ADMIN UI
+// ================================================================
 setTimeout(function(){
   var cp=document.getElementById('pg-config');if(!cp)return;
   var sec=document.createElement('div');sec.className='form-section';sec.id='authAdminSection';
@@ -465,7 +516,7 @@ setTimeout(function(){
   cp.appendChild(sec);
   var ds=document.createElement('div');ds.className='form-section';ds.id='authDevicesSection';
   ds.innerHTML='<h3 style="margin-bottom:14px">&#128241; Dispositivos Conectados</h3>'+
-    '<p style="font-size:.82em;color:var(--tx3);margin-bottom:14px">Veja dispositivos logados e encerre sess\u00f5es.</p>'+
+    '<p style="font-size:.82em;color:var(--tx3);margin-bottom:14px">Dispositivos logados na sua conta.</p>'+
     '<div id="authDevicesList"><p style="color:var(--tx3);font-size:.85em">Carregando...</p></div>'+
     '<button class="btn btn-sm btn-outline" onclick="window._authRefreshDevices()" style="margin-top:10px">&#128259; Atualizar</button>';
   cp.appendChild(ds);
@@ -475,13 +526,11 @@ setTimeout(function(){
   }
 },500);
 
-/* ---------- DISPOSITIVOS UI ---------- */
 window._authRefreshDevices=async function(){
   var el=document.getElementById('authDevicesList');if(!el)return;
   el.innerHTML='<p style="color:var(--tx3);font-size:.85em">Carregando...</p>';
-  var d=await readAuthGist();if(!d||!d.users){el.innerHTML='<p style="color:var(--tx3);font-size:.85em">Conecte ao cloud.</p>';return;}
-  var cur=window._authCurrentUser;if(!cur)return;
-  var myDid=getDeviceId(),h='';
+  var d=await readAuthGist();if(!d||!d.users){el.innerHTML='<p style="color:var(--tx3)">Conecte ao cloud.</p>';return;}
+  var cur=window._authCurrentUser;if(!cur)return;var myDid=getDeviceId(),h='';
   var show=cur.role==='admin'?d.users:d.users.filter(function(u){return u.username.toLowerCase()===cur.username.toLowerCase();});
   show.forEach(function(user){
     var ss=(user.sessions||[]).filter(function(s){return new Date(s.expiresAt).getTime()>Date.now();});
@@ -503,12 +552,9 @@ window._authRefreshDevices=async function(){
       });h+='</tbody></table></div>';}
     h+='</div>';
   });
-  if(!h)h='<p style="color:var(--tx3);font-size:.85em">Nenhum dispositivo ativo.</p>';
-  el.innerHTML=h;
+  if(!h)h='<p style="color:var(--tx3)">Nenhum dispositivo ativo.</p>';el.innerHTML=h;
 };
 window._authKickDevice=async function(u,did){if(!confirm('Encerrar sess\u00e3o?'))return;await unregisterDevice(u,did);if(typeof toast==='function')toast('Encerrada!');else alert('Encerrada!');window._authRefreshDevices();};
-
-/* ---------- USUÁRIOS UI ---------- */
 window._authRenderUsers=async function(){
   var el=document.getElementById('authUsersList');if(!el)return;
   var d=await readAuthGist();if(!d||!d.users){el.innerHTML='<p style="color:var(--tx3)">Conecte ao cloud.</p>';return;}
@@ -527,7 +573,8 @@ window._authAddUser=async function(){
   var n=(document.getElementById('newAuthUser').value||'').trim(),p=document.getElementById('newAuthPass').value,
       r=document.getElementById('newAuthRole').value,m=document.getElementById('authMsg');
   if(!n||!p){m.innerHTML='<span style="color:var(--dn2)">Preencha tudo.</span>';return;}
-  var d=await readAuthGist();if(!d){m.innerHTML='<span style="color:var(--dn2)">Erro cloud.</span>';return;}
+  var d=await readAuthGist();if(!d){d=await ensureAuthFile();}
+  if(!d){m.innerHTML='<span style="color:var(--dn2)">Erro cloud.</span>';return;}
   if(d.users.some(function(u){return u.username.toLowerCase()===n.toLowerCase();})){m.innerHTML='<span style="color:var(--dn2)">J\u00e1 existe.</span>';return;}
   d.users.push({username:n,passwordHash:await sha256(p),createdAt:new Date().toISOString(),role:r,sessions:[]});
   if(await writeAuthGist(d)){m.innerHTML='<span style="color:var(--ok)">"'+n+'" criado!</span>';document.getElementById('newAuthUser').value='';document.getElementById('newAuthPass').value='';window._authRenderUsers();}
@@ -539,7 +586,9 @@ window._authDelUser=async function(u){var c=window._authCurrentUser;if(c&&c.user
   if(!confirm('Excluir "'+u+'"?'))return;var d=await readAuthGist();if(!d)return alert('Erro.');
   d.users=d.users.filter(function(x){return x.username!==u;});if(await writeAuthGist(d)){alert('Removido.');window._authRenderUsers();}else alert('Erro.');};
 
-/* ---------- INIT ---------- */
+// ================================================================
+// INIT
+// ================================================================
 (function(){
   var sb=document.getElementById('sidebar'),mn=document.querySelector('.main'),mh=document.getElementById('mobHeader');
   if(sb)sb.style.visibility='hidden';if(mn)mn.style.visibility='hidden';if(mh)mh.style.visibility='hidden';
@@ -553,5 +602,5 @@ window._authDelUser=async function(u){var c=window._authCurrentUser;if(c&&c.user
   }
 })();
 
-console.log('[Financeiro Pro] Auth v5.5 — Arquivo completo + merge real + protecao race condition.');
+console.log('[Financeiro Pro] Auth v6 — Gist unico, dupla gravacao, merge real.');
 })();
