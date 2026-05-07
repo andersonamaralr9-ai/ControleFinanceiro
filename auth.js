@@ -1,6 +1,23 @@
-// auth.js v5.3 — Pede token na tela de login se necessário
+// auth.js v5.4 — Correção: merge real + proteção contra condição de corrida
 (function(){
 'use strict';
+
+// ================================================================
+// FIX IMEDIATO: Cancelar TUDO do index.html antes que setTimeout rode
+// ================================================================
+// O initCloud original pode ter sido chamado e um scheduleSync pode
+// estar agendado. Precisamos cancelar ANTES de qualquer coisa.
+window.cloudOk = false;
+if(typeof syncTimer !== 'undefined'){ clearTimeout(syncTimer); syncTimer = null; }
+// Sobrescrever IMEDIATAMENTE para que nenhum setTimeout pendente grave no Gist errado
+window.initCloud = function(){ /* bloqueado até login */ };
+window.scheduleSync = function(){ /* bloqueado até login */ };
+window.gistRead = function(){ return Promise.resolve(null); };
+window.gistWrite = function(){ return Promise.resolve(false); };
+syncUI('off','Aguardando login...');
+
+var _mt = document.getElementById('modalToken');
+if(_mt && _mt.classList.contains('show')) _mt.classList.remove('show');
 
 var AUTH_GIST_KEY  = 'finApp_auth_gist_id';
 var SESSION_KEY    = 'finApp_session';
@@ -8,15 +25,6 @@ var DEVICE_ID_KEY  = 'finApp_device_id';
 var SESSION_SHORT  = 24 * 60 * 60 * 1000;
 var SESSION_LONG   = 90 * 24 * 60 * 60 * 1000;
 var LEGACY_GIST_ID = '667e29c52ee1d62185b5eae8c871faa1';
-
-// ================================================================
-// FIX: Desativar cloud do index.html
-// ================================================================
-cloudOk = false;
-if(typeof syncTimer !== 'undefined') clearTimeout(syncTimer);
-syncUI('off','Aguardando login...');
-var _mt = document.getElementById('modalToken');
-if(_mt && _mt.classList.contains('show')) _mt.classList.remove('show');
 
 // ================================================================
 // HELPERS
@@ -53,7 +61,84 @@ function detectDevice(){
 }
 
 // ================================================================
-// CSS
+// MERGE REAL — combina local e remoto por ID, mantém ambos
+// ================================================================
+function deepMergeState(local, remote){
+  // Se um dos dois é vazio, retornar o outro
+  if(!remote || (!remote.lancamentos && !remote.contratos && !remote.cartoes)){
+    return ensureArrays(JSON.parse(JSON.stringify(local)));
+  }
+  if(!local || (!local.lancamentos && !local.contratos && !local.cartoes)){
+    return ensureArrays(JSON.parse(JSON.stringify(remote)));
+  }
+
+  var result = JSON.parse(JSON.stringify(remote));
+  var localCopy = JSON.parse(JSON.stringify(local));
+
+  // Para cada array, merge por id: itens remotos + itens locais que não existem no remoto
+  var arrayKeys = ['lancamentos','cartoes','comprasCartao','assinaturas','contratos','investimentos','caixa'];
+  arrayKeys.forEach(function(key){
+    var remoteArr = Array.isArray(result[key]) ? result[key] : [];
+    var localArr = Array.isArray(localCopy[key]) ? localCopy[key] : [];
+
+    // Mapa de IDs remotos
+    var remoteIds = {};
+    remoteArr.forEach(function(item){ if(item.id) remoteIds[item.id] = true; });
+
+    // Adicionar itens locais que NÃO existem no remoto
+    localArr.forEach(function(item){
+      if(item.id && !remoteIds[item.id]){
+        remoteArr.push(item);
+      }
+    });
+
+    result[key] = remoteArr;
+  });
+
+  // Planejamento: merge por chave
+  if(!result.planejamento || Array.isArray(result.planejamento)) result.planejamento = {};
+  if(localCopy.planejamento && typeof localCopy.planejamento === 'object' && !Array.isArray(localCopy.planejamento)){
+    Object.keys(localCopy.planejamento).forEach(function(k){
+      if(!result.planejamento[k]) result.planejamento[k] = localCopy.planejamento[k];
+    });
+  }
+
+  // Categorias: unir
+  if(!result.cats) result.cats = JSON.parse(JSON.stringify(defCats));
+  if(localCopy.cats){
+    Object.keys(localCopy.cats).forEach(function(t){
+      if(Array.isArray(localCopy.cats[t])){
+        if(!Array.isArray(result.cats[t])) result.cats[t] = [];
+        localCopy.cats[t].forEach(function(c){
+          if(result.cats[t].indexOf(c) === -1) result.cats[t].push(c);
+        });
+      }
+    });
+  }
+
+  // Config: preferir local (é onde o usuário mudou tema etc)
+  if(localCopy.config && typeof localCopy.config === 'object'){
+    result.config = Object.assign({}, result.config || {}, localCopy.config);
+  }
+
+  return ensureArrays(result);
+}
+
+function ensureArrays(st){
+  ['lancamentos','cartoes','comprasCartao','assinaturas','contratos','investimentos','caixa'].forEach(function(k){
+    if(!Array.isArray(st[k])) st[k] = [];
+  });
+  if(!st.planejamento || Array.isArray(st.planejamento)) st.planejamento = {};
+  if(!st.cats) st.cats = JSON.parse(JSON.stringify(defCats));
+  Object.keys(defCats).forEach(function(k){
+    if(!Array.isArray(st.cats[k])) st.cats[k] = defCats[k].slice();
+  });
+  if(!st.config) st.config = {theme:'dark'};
+  return st;
+}
+
+// ================================================================
+// CSS (mesmo do v5.3)
 // ================================================================
 var sty = document.createElement('style');
 sty.textContent = [
@@ -101,7 +186,7 @@ sty.textContent = [
 document.head.appendChild(sty);
 
 // ================================================================
-// HTML LOGIN — Token aparece se não tem no localStorage
+// HTML LOGIN
 // ================================================================
 var _hasToken = !!(localStorage.getItem('finApp_gist_token'));
 
@@ -156,7 +241,6 @@ document.body.appendChild(ubar);
 
 document.getElementById('authPass').addEventListener('keydown',function(e){if(e.key==='Enter')window._authDoLogin();});
 document.getElementById('authUser').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('authPass').focus();});
-// Se tem campo de token, tab dele vai pro user
 var _authTokenEl = document.getElementById('authToken');
 if(_authTokenEl){
   _authTokenEl.addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('authUser').focus();});
@@ -379,24 +463,17 @@ function switchToUserData(username){
   window._userSK = userKey;
   window._authUsername = username;
 
+  // Migrar dados da chave global se a chave do usuário não existir
   if(!localStorage.getItem(userKey)){
     var existing = localStorage.getItem('finApp_v5');
     if(existing) localStorage.setItem(userKey, existing);
   }
 
+  // Carregar dados do localStorage do usuário
   try{
     var d = JSON.parse(localStorage.getItem(userKey));
     if(d){
-      S = d;
-      ['lancamentos','cartoes','comprasCartao','assinaturas','contratos','investimentos','caixa'].forEach(function(k){
-        if(!Array.isArray(S[k])) S[k] = [];
-      });
-      if(!S.planejamento || Array.isArray(S.planejamento)) S.planejamento = {};
-      if(!S.cats) S.cats = JSON.parse(JSON.stringify(defCats));
-      Object.keys(defCats).forEach(function(k){
-        if(!Array.isArray(S.cats[k])) S.cats[k] = defCats[k].slice();
-      });
-      if(!S.config) S.config = {theme:'dark'};
+      S = ensureArrays(d);
     } else {
       S = defState();
     }
@@ -404,30 +481,37 @@ function switchToUserData(username){
     S = defState();
   }
 
-  // Override salvar
+  // Override salvar — PROTEGIDO: só grava se _authUsername está definido
   window.salvar = function(){
+    if(!window._userSK) return;
     localStorage.setItem(window._userSK, JSON.stringify(S));
     window.scheduleSync();
   };
 
+  // Override gistRead/gistWrite
   window.gistRead = async function(){ return await readUserGistFile(window._authUsername); };
   window.gistWrite = async function(data){ return await writeUserGistFile(window._authUsername, data); };
 
+  // scheduleSync — com lock para evitar gravações sobrepostas
   var _userSyncTimer = null;
+  var _syncInProgress = false;
   window.scheduleSync = function(){
     if(!cloudOk) return;
     clearTimeout(_userSyncTimer);
     _userSyncTimer = setTimeout(async function(){
+      if(_syncInProgress) return; // evita gravações sobrepostas
+      _syncInProgress = true;
       syncUI('loading','Sincronizando...');
       try{
         var ok = await writeUserGistFile(window._authUsername, S);
         if(ok) syncUI('on','Sync '+new Date().toLocaleTimeString('pt-BR'));
         else syncUI('on','Erro sync');
       }catch(e){ syncUI('on','Erro sync (rede)'); }
+      _syncInProgress = false;
     }, 3000);
   };
 
-  // Override connectCloud
+  // connectCloud
   window.connectCloud = async function(){
     var t = (document.getElementById('inputToken') || {}).value;
     if(!t) t = (document.getElementById('bkToken') || {}).value;
@@ -438,30 +522,25 @@ function switchToUserData(username){
     var tokenModal = document.getElementById('modalToken');
     if(tokenModal && tokenModal.classList.contains('show')) closeM('modalToken');
     await readAuthGist();
-    var data = await readUserGistFile(window._authUsername);
-    if(data === null){
-      data = await readLegacyGist();
-      if(data && (data.lancamentos || data.cartoes || data.contratos)){
-        S = mergeState(data);
-        localStorage.setItem(window._userSK, JSON.stringify(S));
-        await writeUserGistFile(window._authUsername, S);
-        renderAll();
-      } else {
-        await writeUserGistFile(window._authUsername, S);
-      }
-    } else if(data && typeof data === 'object'){
-      if(data.lancamentos || data.cartoes || data.contratos){
-        S = mergeState(data);
-        localStorage.setItem(window._userSK, JSON.stringify(S));
-        renderAll();
-      }
+
+    // Ler remoto e fazer MERGE REAL com local
+    var remoteData = await readUserGistFile(window._authUsername);
+    if(remoteData === null){
+      // Tentar Gist legado
+      remoteData = await readLegacyGist();
     }
+    if(remoteData && (remoteData.lancamentos || remoteData.cartoes || remoteData.contratos)){
+      S = deepMergeState(S, remoteData);
+    }
+    localStorage.setItem(window._userSK, JSON.stringify(S));
+    await writeUserGistFile(window._authUsername, S);
+    renderAll();
     cloudOk = true;
     syncUI('on','Cloud conectado');
     if(typeof renderCloudArea === 'function') renderCloudArea();
   };
 
-  // Override initCloud
+  // initCloud — MERGE REAL em vez de substituição
   window.initCloud = async function(){
     var savedToken = localStorage.getItem('finApp_gist_token') || '';
     if(savedToken) window.gistToken = savedToken;
@@ -477,18 +556,27 @@ function switchToUserData(username){
       syncUI('on','Erro cloud');
       return;
     }
-    var data = await readUserGistFile(window._authUsername);
-    if(data && typeof data === 'object' && (data.lancamentos || data.cartoes || data.contratos)){
-      S = mergeState(data);
+
+    // Guardar estado local ANTES de puxar do remoto
+    var localState = JSON.parse(JSON.stringify(S));
+
+    var remoteData = await readUserGistFile(window._authUsername);
+    if(remoteData && typeof remoteData === 'object' && (remoteData.lancamentos || remoteData.cartoes || remoteData.contratos)){
+      // MERGE REAL: local + remoto
+      S = deepMergeState(localState, remoteData);
       localStorage.setItem(window._userSK, JSON.stringify(S));
       renderAll();
+      // Gravar o merge de volta no Gist para que outros dispositivos tenham tudo
+      await writeUserGistFile(window._authUsername, S);
       cloudOk = true;
       syncUI('on','Cloud conectado');
       return;
     }
+
+    // Sem dados no Gist do usuário — tentar migração do Gist legado
     var legacyData = await readLegacyGist();
     if(legacyData && typeof legacyData === 'object' && (legacyData.lancamentos || legacyData.cartoes || legacyData.contratos)){
-      S = mergeState(legacyData);
+      S = deepMergeState(localState, legacyData);
       localStorage.setItem(window._userSK, JSON.stringify(S));
       renderAll();
       await writeUserGistFile(window._authUsername, S);
@@ -496,6 +584,8 @@ function switchToUserData(username){
       syncUI('on','Dados migrados!');
       return;
     }
+
+    // Nenhum dado remoto — subir o local
     if(S && S.lancamentos && S.lancamentos.length > 0){
       await writeUserGistFile(window._authUsername, S);
     }
@@ -503,19 +593,20 @@ function switchToUserData(username){
     syncUI('on','Cloud conectado');
   };
 
-  // Override doPullGist
+  // doPullGist — também com merge
   window.doPullGist = async function(){
     syncUI('loading','Baixando...');
+    var localState = JSON.parse(JSON.stringify(S));
     var data = await readUserGistFile(window._authUsername);
     if(data && (data.lancamentos || data.cartoes || data.contratos)){
-      S = mergeState(data);
+      S = deepMergeState(localState, data);
       localStorage.setItem(window._userSK, JSON.stringify(S));
       renderAll();
       syncUI('on','Dados carregados');
     } else {
       var legacy = await readLegacyGist();
       if(legacy && (legacy.lancamentos || legacy.cartoes || legacy.contratos)){
-        S = mergeState(legacy);
+        S = deepMergeState(localState, legacy);
         localStorage.setItem(window._userSK, JSON.stringify(S));
         await writeUserGistFile(window._authUsername, S);
         renderAll();
@@ -526,7 +617,7 @@ function switchToUserData(username){
     }
   };
 
-  // Override doConnectFromBk
+  // doConnectFromBk
   window.doConnectFromBk = async function(){
     var t = (document.getElementById('bkToken') || {}).value;
     if(!t || !t.trim()){alert('Informe o token.');return;}
@@ -534,26 +625,25 @@ function switchToUserData(username){
     _setGistToken(t);
     syncUI('loading','Conectando...');
     await readAuthGist();
+    var localState = JSON.parse(JSON.stringify(S));
     var data = await readUserGistFile(window._authUsername);
     if(data && (data.lancamentos || data.cartoes || data.contratos)){
-      S = mergeState(data);
-      localStorage.setItem(window._userSK, JSON.stringify(S));
-      renderAll();
+      S = deepMergeState(localState, data);
     } else {
       var legacy = await readLegacyGist();
       if(legacy && (legacy.lancamentos || legacy.cartoes || legacy.contratos)){
-        S = mergeState(legacy);
-        localStorage.setItem(window._userSK, JSON.stringify(S));
-        renderAll();
+        S = deepMergeState(localState, legacy);
       }
-      await writeUserGistFile(window._authUsername, S);
     }
+    localStorage.setItem(window._userSK, JSON.stringify(S));
+    await writeUserGistFile(window._authUsername, S);
+    renderAll();
     cloudOk = true;
     syncUI('on','Cloud conectado');
     if(typeof renderCloudArea === 'function') renderCloudArea();
   };
 
-  // Override doSyncNow
+  // doSyncNow
   window.doSyncNow = async function(){
     var savedToken = localStorage.getItem('finApp_gist_token') || '';
     if(savedToken) window.gistToken = savedToken;
@@ -589,7 +679,7 @@ function switchToUserData(username){
 window._authDoLogin = async function(){
   var userEl   = document.getElementById('authUser');
   var passEl   = document.getElementById('authPass');
-  var tokenEl  = document.getElementById('authToken');  // pode não existir
+  var tokenEl  = document.getElementById('authToken');
   var keepEl   = document.getElementById('authKeep');
   var errEl    = document.getElementById('authError');
   var btn      = document.getElementById('authLoginBtn');
@@ -598,12 +688,9 @@ window._authDoLogin = async function(){
   var password = passEl.value;
   var keepConnected = keepEl.checked;
 
-  // Se o campo token existe e está preenchido, salvar antes de tudo
   if(tokenEl){
     var tokenVal = (tokenEl.value||'').trim();
-    if(tokenVal){
-      _setGistToken(tokenVal);
-    }
+    if(tokenVal) _setGistToken(tokenVal);
   }
 
   if(!username || !password){
@@ -611,7 +698,6 @@ window._authDoLogin = async function(){
     return;
   }
 
-  // Verificar se tem token disponível
   var token = _getToken();
   if(!token){
     errEl.textContent = 'Informe o Token GitHub para conectar.';
@@ -626,7 +712,6 @@ window._authDoLogin = async function(){
   var role = 'user';
   var validado = false;
 
-  // Validar contra o Gist de Auth
   var authData = await readAuthGist();
   if(authData && authData.users){
     var found = authData.users.find(function(u){
@@ -639,7 +724,6 @@ window._authDoLogin = async function(){
     }
   }
 
-  // Fallback local
   if(!validado){
     var fallback = await sha256('202328');
     if(username.toLowerCase() === 'anderson' && inputHash === fallback){
@@ -650,7 +734,6 @@ window._authDoLogin = async function(){
   }
 
   if(validado){
-    // Esconder seção de token após sucesso (não precisa mais)
     var tokenSection = document.getElementById('authTokenSection');
     if(tokenSection) tokenSection.style.display = 'none';
 
@@ -923,7 +1006,6 @@ window._authDelUser = async function(username){
       if(typeof initCloud === 'function') initCloud();
     }, 300);
   } else {
-    // Focar no campo correto
     setTimeout(function(){
       var tokenEl = document.getElementById('authToken');
       if(tokenEl) tokenEl.focus();
@@ -932,5 +1014,5 @@ window._authDelUser = async function(username){
   }
 })();
 
-console.log('[Financeiro Pro] Auth v5.3 — Token na tela de login.');
+console.log('[Financeiro Pro] Auth v5.4 — Merge real + proteção contra race condition.');
 })();
