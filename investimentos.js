@@ -1,5 +1,5 @@
-// investimentos.js v5 — Investimentos visual profissional
-// Unificado: donut + detalhes em coluna única (sem gráficos redundantes)
+// investimentos.js v6 — Rent. clicável + seções colapsáveis + centavos (exceto centro donut)
+// Substitua o arquivo inteiro
 (function(){
 'use strict';
 
@@ -8,27 +8,23 @@
 // ================================================================
 var sty = document.createElement('style');
 sty.textContent = `
-/* ── INVESTIMENTOS v5 ── */
+/* ── INVESTIMENTOS v6 ── */
 
-/* Resumo */
 .inv-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-bottom:24px;}
 .inv-summary .card{padding:16px 14px;}
 .inv-summary .card .card-value{font-size:1.15em;}
 
-/* Alocação — layout unificado (donut à esquerda, detalhes à direita) */
 .inv-alloc-unified{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);padding:24px;box-shadow:var(--sh);margin-bottom:24px;}
 .inv-alloc-unified h3{font-size:.92em;margin-bottom:20px;color:var(--tx2);font-weight:600;}
 .inv-alloc-content{display:flex;gap:32px;align-items:flex-start;}
 .inv-alloc-chart{flex-shrink:0;}
 
-/* SVG Donut */
 .inv-donut-svg-wrap{position:relative;width:220px;height:220px;}
 .inv-donut-svg-wrap svg{width:100%;height:100%;transform:rotate(-90deg);}
 .inv-donut-center-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;}
 .inv-donut-center-label .inv-dc-val{font-size:1.2em;font-weight:800;color:var(--ok);display:block;line-height:1.2;}
 .inv-donut-center-label .inv-dc-sub{font-size:.65em;color:var(--tx3);display:block;margin-top:2px;}
 
-/* Detalhes ao lado do donut */
 .inv-alloc-details{flex:1;min-width:0;}
 .inv-detail-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--bg3);transition:background .15s;}
 .inv-detail-row:hover{background:var(--bg3);border-radius:6px;padding-left:8px;padding-right:8px;margin:0 -8px;}
@@ -41,26 +37,35 @@ sty.textContent = `
 .inv-detail-pct{font-size:.95em;font-weight:800;color:var(--pri2);}
 .inv-detail-amt{font-size:.78em;color:var(--tx2);display:block;margin-top:1px;}
 .inv-detail-rent{font-size:.7em;display:block;margin-top:1px;}
-
-/* Barra mini dentro do detalhe */
 .inv-detail-bar{height:6px;background:var(--bg3);border-radius:4px;margin-top:6px;overflow:hidden;}
 .inv-detail-bar-fill{height:100%;border-radius:4px;transition:width .6s ease;}
 
-/* Rentabilidade mensal */
 .inv-rent-box{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);padding:18px 20px;box-shadow:var(--sh);margin-bottom:24px;}
 .inv-rent-box h3{font-size:.88em;margin-bottom:14px;color:var(--tx2);font-weight:600;}
 .inv-rent-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;}
-.inv-rent-cell{text-align:center;padding:12px 8px;background:var(--bg3);border-radius:10px;transition:transform .15s;}
-.inv-rent-cell:hover{transform:translateY(-2px);}
+.inv-rent-cell{text-align:center;padding:12px 8px;background:var(--bg3);border-radius:10px;transition:transform .15s,box-shadow .15s;cursor:pointer;user-select:none;}
+.inv-rent-cell:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.25);}
+.inv-rent-cell:active{transform:translateY(0);}
 .inv-rent-cell .irc-mes{font-size:.68em;color:var(--tx3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
 .inv-rent-cell .irc-val{font-size:1em;font-weight:700;}
 .inv-rent-cell .irc-val.pos{color:var(--ok);}
 .inv-rent-cell .irc-val.neg{color:var(--dn2);}
 .inv-rent-cell .irc-val.zero{color:var(--tx3);}
-.inv-rent-cell.acum{background:var(--bg4);}
+.inv-rent-cell.acum{background:var(--bg4);cursor:default;}
+.inv-rent-cell.acum:hover{transform:none;box-shadow:none;}
+.inv-rent-cell .irc-hint{font-size:.58em;color:var(--tx3);margin-top:4px;opacity:.6;}
 .inv-rent-cell.acum .irc-mes{color:var(--pri2);}
 
-/* Cards de investimentos */
+.inv-rent-detail-list{max-height:400px;overflow-y:auto;}
+.inv-rent-detail-item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid var(--bg3);font-size:.88em;transition:background .1s;}
+.inv-rent-detail-item:hover{background:var(--bg3);}
+.inv-rent-detail-item:last-child{border:none;}
+.inv-rent-detail-item .ird-name{font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.inv-rent-detail-item .ird-tipo{font-size:.72em;color:var(--tx3);margin-left:8px;flex-shrink:0;}
+.inv-rent-detail-item .ird-val{font-weight:700;flex-shrink:0;margin-left:12px;}
+.inv-rent-detail-total{display:flex;justify-content:space-between;padding:12px;font-weight:700;font-size:.95em;border-top:2px solid var(--bg4);margin-top:4px;}
+.inv-rent-detail-empty{text-align:center;padding:30px;color:var(--tx3);font-size:.88em;}
+
 .inv-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;margin-bottom:24px;}
 .inv-card{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);box-shadow:var(--sh);overflow:hidden;transition:transform .2s;}
 .inv-card:hover{transform:translateY(-2px);}
@@ -72,14 +77,20 @@ sty.textContent = `
 .inv-card-body .inv-row .inv-val{font-weight:700;}
 .inv-card-actions{padding:10px 18px 14px;display:flex;gap:6px;flex-wrap:wrap;}
 
-/* Seções dentro do card */
-.inv-card-section{border-top:1px solid var(--bg4);padding:10px 18px;}
-.inv-card-section-title{font-size:.72em;color:var(--tx3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
-.inv-card-section-list{max-height:120px;overflow-y:auto;}
-.inv-hist-item{display:flex;justify-content:space-between;align-items:center;font-size:.78em;padding:3px 0;border-bottom:1px solid var(--bg3);}
+.inv-card-section{border-top:1px solid var(--bg4);}
+.inv-section-toggle{display:flex;justify-content:space-between;align-items:center;padding:10px 18px;cursor:pointer;user-select:none;transition:background .15s;}
+.inv-section-toggle:hover{background:var(--bg3);}
+.inv-section-toggle-title{font-size:.72em;color:var(--tx3);text-transform:uppercase;letter-spacing:1px;font-weight:600;}
+.inv-section-toggle-icon{font-size:.72em;color:var(--tx3);transition:transform .25s;}
+.inv-section-toggle-icon.open{transform:rotate(180deg);}
+.inv-section-toggle-badge{font-size:.65em;background:var(--pri2);color:#fff;border-radius:10px;padding:1px 7px;margin-left:8px;font-weight:700;}
+.inv-section-body{max-height:0;overflow:hidden;transition:max-height .3s ease;padding:0 18px;}
+.inv-section-body.expanded{max-height:500px;padding:0 18px 12px;}
+.inv-section-body .inv-hist-list{max-height:160px;overflow-y:auto;}
+
+.inv-hist-item{display:flex;justify-content:space-between;align-items:center;font-size:.78em;padding:4px 0;border-bottom:1px solid var(--bg3);}
 .inv-hist-item:last-child{border:none;}
 
-/* Botões extras */
 .btn-info{background:linear-gradient(135deg,#0984e3,#74b9ff);color:#fff;border:none;cursor:pointer;border-radius:8px;padding:6px 12px;font-size:.78em;font-weight:600;transition:all .2s;}
 .btn-info:hover{opacity:.85;transform:translateY(-1px);}
 
@@ -104,8 +115,15 @@ document.head.appendChild(sty);
 // ================================================================
 // MODAIS
 // ================================================================
+var modalRentDetail = document.createElement('div');
+modalRentDetail.className = 'modal';
+modalRentDetail.id = 'modalRentDetail';
+modalRentDetail.innerHTML = '<div class="modal-content"><div class="modal-header">' +
+  '<h3 id="rentDetailTitle">Rentabilidade do M\u00eas</h3>' +
+  '<span class="modal-close" onclick="closeM(\'modalRentDetail\')">&times;</span>' +
+  '</div><div class="modal-body" id="rentDetailBody"></div></div>';
+document.body.appendChild(modalRentDetail);
 
-// Modal Editar
 var modalEdit = document.createElement('div');
 modalEdit.className = 'modal';
 modalEdit.id = 'modalEditInvest';
@@ -121,7 +139,6 @@ modalEdit.innerHTML = '<div class="modal-content"><div class="modal-header"><h3>
   '</div></div>';
 document.body.appendChild(modalEdit);
 
-// Modal Rentabilidade
 var modalRent = document.createElement('div');
 modalRent.className = 'modal';
 modalRent.id = 'modalRentInvest';
@@ -136,7 +153,6 @@ modalRent.innerHTML = '<div class="modal-content"><div class="modal-header"><h3 
   '</div></div>';
 document.body.appendChild(modalRent);
 
-// Modal Movimentação
 var modalMov = document.createElement('div');
 modalMov.className = 'modal';
 modalMov.id = 'modalMovInvest';
@@ -160,14 +176,19 @@ var COLORS = ['#6c5ce7','#00b894','#0984e3','#fdcb6e','#e17055','#d63031','#00ce
 function getColor(i){ return COLORS[i % COLORS.length]; }
 
 // ================================================================
-// FORMATAÇÃO SEM CENTAVOS
+// FORMATAÇÃO
 // ================================================================
+// COM centavos — usado em tudo
+function fmt(v){
+  return 'R$ ' + (v || 0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+// SEM centavos — SOMENTE centro do donut
 function fmtInt(v){
   return 'R$ ' + Math.round(v || 0).toLocaleString('pt-BR');
 }
 
 // ================================================================
-// HELPERS DE CÁLCULO
+// HELPERS
 // ================================================================
 function getInvRentTotal(inv){
   return (inv.rentabilidade || []).reduce(function(s, r){ return s + (Number(r.valor) || 0); }, 0);
@@ -190,7 +211,7 @@ function getInvRentMes(inv, mes){
 }
 
 // ================================================================
-// SVG DONUT CHART
+// SVG DONUT
 // ================================================================
 function buildDonutSVG(segments, totalValue, size){
   size = size || 220;
@@ -214,11 +235,8 @@ function buildDonutSVG(segments, totalValue, size){
     var seg = segments[i];
     var fraction = seg.value / totalValue;
     var angle = fraction * availableAngle;
-
     if(angle < 0.01) continue;
-
     var endAngle = startAngle + angle;
-
     var x1 = cx + outerR * Math.cos(startAngle);
     var y1 = cy + outerR * Math.sin(startAngle);
     var x2 = cx + outerR * Math.cos(endAngle);
@@ -227,22 +245,96 @@ function buildDonutSVG(segments, totalValue, size){
     var y3 = cy + innerR * Math.sin(endAngle);
     var x4 = cx + innerR * Math.cos(startAngle);
     var y4 = cy + innerR * Math.sin(startAngle);
-
     var largeArc = angle > Math.PI ? 1 : 0;
-
     var d = 'M '+x1.toFixed(2)+' '+y1.toFixed(2)+
             ' A '+outerR+' '+outerR+' 0 '+largeArc+' 1 '+x2.toFixed(2)+' '+y2.toFixed(2)+
             ' L '+x3.toFixed(2)+' '+y3.toFixed(2)+
             ' A '+innerR+' '+innerR+' 0 '+largeArc+' 0 '+x4.toFixed(2)+' '+y4.toFixed(2)+
             ' Z';
-
-    paths += '<path d="'+d+'" fill="'+seg.color+'" opacity=".9"><title>'+seg.label+': '+fmtInt(seg.value)+'</title></path>';
-
+    paths += '<path d="'+d+'" fill="'+seg.color+'" opacity=".9"><title>'+seg.label+': '+fmt(seg.value)+'</title></path>';
     startAngle = endAngle + gap;
   }
 
   return '<svg viewBox="0 0 '+size+' '+size+'" xmlns="http://www.w3.org/2000/svg">'+paths+'</svg>';
 }
+
+// ================================================================
+// ABRIR DETALHAMENTO RENT. MENSAL
+// ================================================================
+window._invOpenRentDetail = function(mes){
+  var invs = S.investimentos || [];
+  var mesLabel = typeof mesNomeFull === 'function' ? mesNomeFull(mes) : mesNome(mes);
+
+  document.getElementById('rentDetailTitle').textContent = 'Rentabilidade \u2014 ' + mesLabel;
+
+  var items = [];
+  var total = 0;
+
+  invs.forEach(function(inv){
+    var rentVal = getInvRentMes(inv, mes);
+    if(rentVal !== 0){
+      items.push({ nome: inv.nome || '-', tipo: inv.tipo || 'Outro', valor: rentVal });
+      total += rentVal;
+    }
+  });
+
+  items.sort(function(a, b){ return Math.abs(b.valor) - Math.abs(a.valor); });
+
+  var h = '';
+
+  if(!items.length){
+    h += '<div class="inv-rent-detail-empty">Nenhum investimento teve rentabilidade em ' + mesLabel + '.</div>';
+  } else {
+    h += '<div class="inv-rent-detail-list">';
+    items.forEach(function(item){
+      var color = item.valor >= 0 ? 'var(--ok)' : 'var(--dn2)';
+      var prefix = item.valor > 0 ? '+ ' : '';
+      h += '<div class="inv-rent-detail-item">';
+      h += '<span class="ird-name">' + item.nome + '</span>';
+      h += '<span class="ird-tipo">' + item.tipo + '</span>';
+      h += '<span class="ird-val" style="color:' + color + '">' + prefix + fmt(item.valor) + '</span>';
+      h += '</div>';
+    });
+    h += '</div>';
+
+    var semRent = invs.filter(function(inv){ return getInvRentMes(inv, mes) === 0; });
+    if(semRent.length){
+      h += '<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--bg4)">';
+      h += '<div style="font-size:.72em;color:var(--tx3);margin-bottom:6px">' + semRent.length + ' ativo(s) sem rentabilidade no m\u00eas:</div>';
+      h += '<div style="font-size:.78em;color:var(--tx3)">';
+      h += semRent.map(function(inv){ return inv.nome || '-'; }).join(', ');
+      h += '</div></div>';
+    }
+
+    var totalColor = total >= 0 ? 'var(--ok)' : 'var(--dn2)';
+    var totalPrefix = total > 0 ? '+ ' : '';
+    h += '<div class="inv-rent-detail-total">';
+    h += '<span>Total do m\u00eas</span>';
+    h += '<span style="color:' + totalColor + '">' + totalPrefix + fmt(total) + '</span>';
+    h += '</div>';
+  }
+
+  document.getElementById('rentDetailBody').innerHTML = h;
+  openM('modalRentDetail');
+};
+
+// ================================================================
+// TOGGLE SEÇÕES COLAPSÁVEIS
+// ================================================================
+window._invToggleSection = function(btn){
+  var section = btn.closest('.inv-card-section');
+  if(!section) return;
+  var body = section.querySelector('.inv-section-body');
+  var icon = btn.querySelector('.inv-section-toggle-icon');
+  if(!body) return;
+  if(body.classList.contains('expanded')){
+    body.classList.remove('expanded');
+    if(icon) icon.classList.remove('open');
+  } else {
+    body.classList.add('expanded');
+    if(icon) icon.classList.add('open');
+  }
+};
 
 // ================================================================
 // OVERRIDE renderInvest
@@ -298,15 +390,15 @@ window.renderInvest = function(){
 
   // ===== RESUMO =====
   html += '<div class="inv-summary">';
-  html += '<div class="card"><div class="card-label">Capital Investido</div><div class="card-value blue">' + fmtInt(totalCapital) + '</div></div>';
-  html += '<div class="card"><div class="card-label">Rentabilidade</div><div class="card-value ' + (totalRent >= 0 ? 'green' : 'red') + '">' + (totalRent > 0 ? '+ ' : '') + fmtInt(totalRent) + '</div></div>';
-  html += '<div class="card"><div class="card-label">Saldo Total</div><div class="card-value ' + (totalSaldo >= 0 ? 'green' : 'red') + '">' + fmtInt(totalSaldo) + '</div></div>';
+  html += '<div class="card"><div class="card-label">Capital Investido</div><div class="card-value blue">' + fmt(totalCapital) + '</div></div>';
+  html += '<div class="card"><div class="card-label">Rentabilidade</div><div class="card-value ' + (totalRent >= 0 ? 'green' : 'red') + '">' + (totalRent > 0 ? '+ ' : '') + fmt(totalRent) + '</div></div>';
+  html += '<div class="card"><div class="card-label">Saldo Total</div><div class="card-value ' + (totalSaldo >= 0 ? 'green' : 'red') + '">' + fmt(totalSaldo) + '</div></div>';
   html += '<div class="card"><div class="card-label">Rent. %</div><div class="card-value ' + (rentPct >= 0 ? 'green' : 'red') + '">' + (rentPct > 0 ? '+' : '') + rentPct.toFixed(1) + '%</div></div>';
-  html += '<div class="card"><div class="card-label">Rent. M\u00eas</div><div class="card-value ' + (rentMesAtual >= 0 ? 'green' : 'red') + '">' + (rentMesAtual > 0 ? '+ ' : '') + fmtInt(rentMesAtual) + '</div></div>';
+  html += '<div class="card"><div class="card-label">Rent. M\u00eas</div><div class="card-value ' + (rentMesAtual >= 0 ? 'green' : 'red') + '">' + (rentMesAtual > 0 ? '+ ' : '') + fmt(rentMesAtual) + '</div></div>';
   html += '<div class="card"><div class="card-label">Ativos</div><div class="card-value purple">' + invs.length + '</div></div>';
   html += '</div>';
 
-  // ===== ALOCAÇÃO UNIFICADA: DONUT + DETALHES LADO A LADO =====
+  // ===== ALOCAÇÃO UNIFICADA =====
   var tipos = Object.keys(porTipo).sort(function(a, b){ return porTipo[b].saldo - porTipo[a].saldo; });
 
   html += '<div class="inv-alloc-unified"><h3>\uD83D\uDCCA Distribui\u00e7\u00e3o da Carteira</h3>';
@@ -316,25 +408,20 @@ window.renderInvest = function(){
   } else {
     var segments = [];
     tipos.forEach(function(tipo, idx){
-      segments.push({
-        label: tipo,
-        value: Math.max(porTipo[tipo].saldo, 0),
-        color: getColor(idx)
-      });
+      segments.push({ label: tipo, value: Math.max(porTipo[tipo].saldo, 0), color: getColor(idx) });
     });
 
     html += '<div class="inv-alloc-content">';
 
-    // Coluna esquerda: Donut
-    html += '<div class="inv-alloc-chart">';
-    html += '<div class="inv-donut-svg-wrap">';
+    // Donut — centro SEM centavos (fmtInt)
+    html += '<div class="inv-alloc-chart"><div class="inv-donut-svg-wrap">';
     html += buildDonutSVG(segments, Math.max(totalSaldo, 1));
     html += '<div class="inv-donut-center-label">';
     html += '<span class="inv-dc-val">' + fmtInt(totalSaldo) + '</span>';
     html += '<span class="inv-dc-sub">Saldo Total</span>';
     html += '</div></div></div>';
 
-    // Coluna direita: Detalhes por tipo
+    // Detalhes — COM centavos (fmt)
     html += '<div class="inv-alloc-details">';
     tipos.forEach(function(tipo, idx){
       var data = porTipo[tipo];
@@ -346,23 +433,21 @@ window.renderInvest = function(){
       html += '<div class="inv-detail-dot" style="background:' + getColor(idx) + '"></div>';
       html += '<div class="inv-detail-info">';
       html += '<div class="inv-detail-name">' + tipo + '</div>';
-      html += '<div class="inv-detail-sub">' + data.count + ' ativo' + (data.count !== 1 ? 's' : '') + ' &middot; Capital: ' + fmtInt(data.capital) + '</div>';
+      html += '<div class="inv-detail-sub">' + data.count + ' ativo' + (data.count !== 1 ? 's' : '') + ' \u00b7 Capital: ' + fmt(data.capital) + '</div>';
       html += '<div class="inv-detail-bar"><div class="inv-detail-bar-fill" style="width:' + Math.max(pct, 3) + '%;background:' + getColor(idx) + '"></div></div>';
       html += '</div>';
       html += '<div class="inv-detail-vals">';
       html += '<div class="inv-detail-pct">' + pct.toFixed(1) + '%</div>';
-      html += '<div class="inv-detail-amt">' + fmtInt(data.saldo) + '</div>';
-      html += '<div class="inv-detail-rent" style="color:' + rentColor + '">' + rentSign + fmtInt(data.rent) + '</div>';
+      html += '<div class="inv-detail-amt">' + fmt(data.saldo) + '</div>';
+      html += '<div class="inv-detail-rent" style="color:' + rentColor + '">' + rentSign + fmt(data.rent) + '</div>';
       html += '</div></div>';
     });
-    html += '</div>';
-
-    html += '</div>'; // .inv-alloc-content
+    html += '</div></div>';
   }
 
-  html += '</div>'; // .inv-alloc-unified
+  html += '</div>';
 
-  // ===== RENTABILIDADE MENSAL =====
+  // ===== RENTABILIDADE MENSAL (clicável) =====
   html += '<div class="inv-rent-box"><h3>\uD83D\uDCC8 Rentabilidade Mensal</h3>';
   html += '<div class="inv-rent-grid">';
   var acum6 = 0;
@@ -373,15 +458,17 @@ window.renderInvest = function(){
     acum6 += rentMes;
     var cls = rentMes > 0 ? 'pos' : (rentMes < 0 ? 'neg' : 'zero');
     var prefix = rentMes > 0 ? '+ ' : '';
-    html += '<div class="inv-rent-cell">';
+    var mesEsc = mes.replace(/'/g, "\\'");
+    html += '<div class="inv-rent-cell" onclick="window._invOpenRentDetail(\'' + mesEsc + '\')">';
     html += '<div class="irc-mes">' + mesNome(mes) + '</div>';
-    html += '<div class="irc-val ' + cls + '">' + prefix + fmtInt(rentMes) + '</div>';
+    html += '<div class="irc-val ' + cls + '">' + prefix + fmt(rentMes) + '</div>';
+    html += '<div class="irc-hint">clique para detalhar</div>';
     html += '</div>';
   }
   var clsAcum = acum6 > 0 ? 'pos' : (acum6 < 0 ? 'neg' : 'zero');
   html += '<div class="inv-rent-cell acum">';
   html += '<div class="irc-mes">Acumulado</div>';
-  html += '<div class="irc-val ' + clsAcum + '">' + (acum6 > 0 ? '+ ' : '') + fmtInt(acum6) + '</div>';
+  html += '<div class="irc-val ' + clsAcum + '">' + (acum6 > 0 ? '+ ' : '') + fmt(acum6) + '</div>';
   html += '</div>';
   html += '</div></div>';
 
@@ -412,42 +499,58 @@ window.renderInvest = function(){
       html += '<div class="inv-card">';
       html += '<div class="inv-card-header"><strong>' + (inv.nome || '-') + '</strong><span class="badge badge-info">' + (inv.tipo || 'Outro') + '</span></div>';
       html += '<div class="inv-card-body">';
-      html += '<div class="inv-row"><span class="inv-label">Investido</span><span class="inv-val" style="color:var(--inf2)">' + fmtInt(vOriginal) + '</span></div>';
-      if(totalAportesI > 0) html += '<div class="inv-row"><span class="inv-label">+ Aportes</span><span class="inv-val" style="color:var(--ok)">+ ' + fmtInt(totalAportesI) + '</span></div>';
-      if(totalResgatesI > 0) html += '<div class="inv-row"><span class="inv-label">- Resgates</span><span class="inv-val" style="color:var(--dn2)">- ' + fmtInt(totalResgatesI) + '</span></div>';
-      html += '<div class="inv-row"><span class="inv-label">Capital</span><span class="inv-val" style="color:var(--inf2)">' + fmtInt(capital) + '</span></div>';
-      html += '<div class="inv-row"><span class="inv-label">Rentabilidade</span><span class="inv-val" style="color:' + (rent >= 0 ? 'var(--ok)' : 'var(--dn2)') + '">' + (rent > 0 ? '+ ' : '') + fmtInt(rent) + ' <small>(' + (rentPctI > 0 ? '+' : '') + rentPctI.toFixed(1) + '%)</small></span></div>';
-      html += '<div class="inv-row" style="padding-top:6px;border-top:1px solid var(--bg4);margin-top:4px"><span class="inv-label" style="font-weight:700">Saldo</span><span class="inv-val" style="font-size:1.1em;color:' + (saldo >= 0 ? 'var(--ok)' : 'var(--dn2)') + '">' + fmtInt(saldo) + '</span></div>';
+      html += '<div class="inv-row"><span class="inv-label">Investido</span><span class="inv-val" style="color:var(--inf2)">' + fmt(vOriginal) + '</span></div>';
+      if(totalAportesI > 0) html += '<div class="inv-row"><span class="inv-label">+ Aportes</span><span class="inv-val" style="color:var(--ok)">+ ' + fmt(totalAportesI) + '</span></div>';
+      if(totalResgatesI > 0) html += '<div class="inv-row"><span class="inv-label">- Resgates</span><span class="inv-val" style="color:var(--dn2)">- ' + fmt(totalResgatesI) + '</span></div>';
+      html += '<div class="inv-row"><span class="inv-label">Capital</span><span class="inv-val" style="color:var(--inf2)">' + fmt(capital) + '</span></div>';
+      html += '<div class="inv-row"><span class="inv-label">Rentabilidade</span><span class="inv-val" style="color:' + (rent >= 0 ? 'var(--ok)' : 'var(--dn2)') + '">' + (rent > 0 ? '+ ' : '') + fmt(rent) + ' <small>(' + (rentPctI > 0 ? '+' : '') + rentPctI.toFixed(1) + '%)</small></span></div>';
+      html += '<div class="inv-row" style="padding-top:6px;border-top:1px solid var(--bg4);margin-top:4px"><span class="inv-label" style="font-weight:700">Saldo</span><span class="inv-val" style="font-size:1.1em;color:' + (saldo >= 0 ? 'var(--ok)' : 'var(--dn2)') + '">' + fmt(saldo) + '</span></div>';
       html += '<div class="inv-row"><span class="inv-label">Aloca\u00e7\u00e3o</span><span class="inv-val" style="color:var(--pri2)">' + pctAlloc.toFixed(1) + '%</span></div>';
       if(inv.obs) html += '<div class="inv-row"><span class="inv-label">Obs</span><span class="inv-val" style="color:var(--tx3);font-weight:400;font-size:.82em">' + inv.obs + '</span></div>';
       html += '</div>';
 
-      // Histórico rentabilidade
+      // ===== SEÇÃO RENTABILIDADE — colapsável =====
       if(rents.length){
-        html += '<div class="inv-card-section"><div class="inv-card-section-title">Rentabilidade</div><div class="inv-card-section-list">';
-        rents.slice(0, 6).forEach(function(r){
+        var rentTotal = rents.reduce(function(s,r){ return s + (Number(r.valor)||0); }, 0);
+        html += '<div class="inv-card-section">';
+        html += '<div class="inv-section-toggle" onclick="window._invToggleSection(this)">';
+        html += '<span class="inv-section-toggle-title">Rentabilidade <span class="inv-section-toggle-badge">' + rents.length + '</span></span>';
+        html += '<span class="inv-section-toggle-icon">\u25BC</span>';
+        html += '</div>';
+        html += '<div class="inv-section-body"><div class="inv-hist-list">';
+        rents.forEach(function(r){
           var rv = Number(r.valor) || 0;
-          html += '<div class="inv-hist-item"><span style="color:var(--tx2)">' + mesNome(r.mes) + '</span>' +
-            '<span style="font-weight:700;color:' + (rv >= 0 ? 'var(--ok)' : 'var(--dn2)') + '">' + (rv > 0 ? '+ ' : '') + fmtInt(rv) + '</span></div>';
+          var mesEscR = r.mes.replace(/'/g, "\\'");
+          html += '<div class="inv-hist-item">';
+          html += '<span style="color:var(--tx2)">' + mesNome(r.mes) + '</span>';
+          html += '<span style="font-weight:700;color:' + (rv >= 0 ? 'var(--ok)' : 'var(--dn2)') + '">' + (rv > 0 ? '+ ' : '') + fmt(rv) + '</span>';
+          html += '<button class="btn btn-sm btn-danger" style="padding:1px 5px;font-size:.6em" onclick="window._invDelRent(\'' + idEsc + '\',\'' + mesEscR + '\')">&#128465;</button>';
+          html += '</div>';
         });
-        if(rents.length > 6) html += '<div style="font-size:.72em;color:var(--tx3);text-align:center;padding:4px">+ ' + (rents.length - 6) + ' anterior(es)</div>';
+        html += '</div>';
+        html += '<div style="text-align:right;font-weight:700;margin-top:6px;padding-top:6px;border-top:1px solid var(--bg3);font-size:.82em;color:' + (rentTotal >= 0 ? 'var(--ok)' : 'var(--dn2)') + '">Total: ' + (rentTotal > 0 ? '+ ' : '') + fmt(rentTotal) + '</div>';
         html += '</div></div>';
       }
 
-      // Histórico movimentações
+      // ===== SEÇÃO MOVIMENTAÇÕES — colapsável =====
       if(movs.length){
-        html += '<div class="inv-card-section"><div class="inv-card-section-title">Movimenta\u00e7\u00f5es</div><div class="inv-card-section-list">';
-        movs.slice(0, 5).forEach(function(m){
+        html += '<div class="inv-card-section">';
+        html += '<div class="inv-section-toggle" onclick="window._invToggleSection(this)">';
+        html += '<span class="inv-section-toggle-title">Movimenta\u00e7\u00f5es <span class="inv-section-toggle-badge">' + movs.length + '</span></span>';
+        html += '<span class="inv-section-toggle-icon">\u25BC</span>';
+        html += '</div>';
+        html += '<div class="inv-section-body"><div class="inv-hist-list">';
+        movs.forEach(function(m){
           var mv = Number(m.valor) || 0;
           var movIdEsc = (m.id || '').replace(/'/g, "\\'");
-          html += '<div class="inv-hist-item">' +
-            '<span style="color:var(--tx2)">' + fmtD(m.data) + '</span>' +
-            '<span style="font-weight:600;color:' + (m.tipo === 'aporte' ? 'var(--ok)' : 'var(--dn2)') + '">' + (m.tipo === 'aporte' ? '+ ' : '- ') + fmtInt(mv) + '</span>' +
-            '<button class="btn btn-sm btn-danger" style="padding:1px 5px;font-size:.6em" onclick="window._invDelMovById(\'' + idEsc + '\',\'' + movIdEsc + '\')">&#128465;</button>' +
-          '</div>';
+          html += '<div class="inv-hist-item">';
+          html += '<span style="color:var(--tx2)">' + fmtD(m.data) + '</span>';
+          html += '<span style="font-size:.7em;color:var(--tx3)">' + (m.tipo === 'aporte' ? 'Aporte' : 'Resgate') + '</span>';
+          html += '<span style="font-weight:600;color:' + (m.tipo === 'aporte' ? 'var(--ok)' : 'var(--dn2)') + '">' + (m.tipo === 'aporte' ? '+ ' : '- ') + fmt(mv) + '</span>';
+          html += '<button class="btn btn-sm btn-danger" style="padding:1px 5px;font-size:.6em" onclick="window._invDelMovById(\'' + idEsc + '\',\'' + movIdEsc + '\')">&#128465;</button>';
+          html += '</div>';
         });
-        if(movs.length > 5) html += '<div style="font-size:.72em;color:var(--tx3);text-align:center;padding:4px">+ ' + (movs.length - 5) + ' anterior(es)</div>';
-        html += '</div></div>';
+        html += '</div></div></div>';
       }
 
       html += '<div class="inv-card-actions">';
@@ -543,7 +646,7 @@ function _invRenderMovList(inv){
     var movIdEsc = (m.id || '').replace(/'/g, "\\'");
     h += '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--bg3);font-size:.82em">' +
       '<span>' + fmtD(m.data) + '</span>' +
-      '<span style="font-weight:600;color:' + (m.tipo === 'aporte' ? 'var(--ok)' : 'var(--dn2)') + '">' + (m.tipo === 'aporte' ? '+ ' : '- ') + fmtInt(mv) + '</span>' +
+      '<span style="font-weight:600;color:' + (m.tipo === 'aporte' ? 'var(--ok)' : 'var(--dn2)') + '">' + (m.tipo === 'aporte' ? '+ ' : '- ') + fmt(mv) + '</span>' +
       '<button class="btn btn-sm btn-danger" style="padding:2px 8px;font-size:.7em" onclick="window._invDelMovById(\'' + invIdEsc + '\',\'' + movIdEsc + '\')">&#128465;</button></div>';
   });
   h += '</div>';
@@ -602,11 +705,11 @@ function _invRenderRentList(inv){
     var mesEsc = r.mes.replace(/'/g, "\\'");
     h += '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--bg3);font-size:.82em">' +
       '<span>' + mesNome(r.mes) + '</span>' +
-      '<span style="font-weight:700;color:' + (rv >= 0 ? 'var(--ok)' : 'var(--dn2)') + '">' + (rv > 0 ? '+ ' : '') + fmtInt(rv) + '</span>' +
+      '<span style="font-weight:700;color:' + (rv >= 0 ? 'var(--ok)' : 'var(--dn2)') + '">' + (rv > 0 ? '+ ' : '') + fmt(rv) + '</span>' +
       '<button class="btn btn-sm btn-danger" style="padding:2px 8px;font-size:.7em" onclick="window._invDelRent(\'' + idEsc + '\',\'' + mesEsc + '\')">&#128465;</button></div>';
   });
   h += '</div>';
-  h += '<div style="text-align:right;font-weight:700;margin-top:8px;color:' + (totalR >= 0 ? 'var(--ok)' : 'var(--dn2)') + '">Total: ' + (totalR > 0 ? '+ ' : '') + fmtInt(totalR) + '</div>';
+  h += '<div style="text-align:right;font-weight:700;margin-top:8px;color:' + (totalR >= 0 ? 'var(--ok)' : 'var(--dn2)') + '">Total: ' + (totalR > 0 ? '+ ' : '') + fmt(totalR) + '</div>';
   el.innerHTML = h;
 }
 window._invDelRent = function(invId, mes){
@@ -617,5 +720,5 @@ window._invDelRent = function(invId, mes){
   salvar(); _invRenderRentList(inv); renderInvest();
 };
 
-console.log('[Financeiro Pro] Investimentos v5 — Donut + detalhes unificados, sem redundância.');
+console.log('[Financeiro Pro] Investimentos v6 \u2014 Centavos em tudo, donut center sem centavos, rent. clic\u00e1vel, se\u00e7\u00f5es colaps\u00e1veis.');
 })();
