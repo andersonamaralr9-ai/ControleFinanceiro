@@ -1,4 +1,4 @@
-// auth.js v5.2 — Fix: race condition com initCloud do index.html
+// auth.js v5.3 — Pede token na tela de login se necessário
 (function(){
 'use strict';
 
@@ -10,18 +10,17 @@ var SESSION_LONG   = 90 * 24 * 60 * 60 * 1000;
 var LEGACY_GIST_ID = '667e29c52ee1d62185b5eae8c871faa1';
 
 // ================================================================
-// FIX CRÍTICO: Desativar o cloud que o index.html já iniciou
-// O index.html roda initCloud() ANTES do auth.js carregar,
-// usando o GIST_ID fixo. Precisamos resetar tudo.
+// FIX: Desativar cloud do index.html
 // ================================================================
 cloudOk = false;
 if(typeof syncTimer !== 'undefined') clearTimeout(syncTimer);
 syncUI('off','Aguardando login...');
-
-// Fechar o modal de token se o index.html abriu
 var _mt = document.getElementById('modalToken');
 if(_mt && _mt.classList.contains('show')) _mt.classList.remove('show');
 
+// ================================================================
+// HELPERS
+// ================================================================
 async function sha256(text){
   var enc = new TextEncoder();
   var buf = await crypto.subtle.digest('SHA-256', enc.encode(text));
@@ -75,6 +74,11 @@ sty.textContent = [
 '.auth-keep{display:flex;align-items:center;gap:8px;margin-top:12px;margin-bottom:4px;justify-content:center;}',
 '.auth-keep input[type=checkbox]{width:18px;height:18px;accent-color:var(--pri);cursor:pointer;}',
 '.auth-keep label{font-size:.82em;color:var(--tx2);cursor:pointer;user-select:none;}',
+'.auth-token-section{text-align:left;margin-bottom:16px;padding:14px;background:var(--bg3);border-radius:10px;border:1px solid var(--bg4);}',
+'.auth-token-section .ats-title{font-size:.78em;color:var(--wn);font-weight:700;margin-bottom:8px;}',
+'.auth-token-section .ats-help{font-size:.72em;color:var(--tx3);margin-top:6px;line-height:1.4;}',
+'.auth-token-section .ats-help a{color:var(--pri2);text-decoration:none;}',
+'.auth-token-section .ats-help a:hover{text-decoration:underline;}',
 '.auth-ubar{position:fixed;bottom:0;left:0;right:0;z-index:90;background:var(--bg2);border-top:1px solid var(--bg4);padding:8px 16px;display:none;align-items:center;justify-content:space-between;font-size:.78em;gap:8px;}',
 '.auth-ubar .au-name{color:var(--ok);font-weight:600;}',
 '.auth-ubar .au-role{font-size:.72em;padding:2px 8px;border-radius:8px;margin-left:4px;}',
@@ -97,16 +101,37 @@ sty.textContent = [
 document.head.appendChild(sty);
 
 // ================================================================
-// HTML LOGIN
+// HTML LOGIN — Token aparece se não tem no localStorage
 // ================================================================
+var _hasToken = !!(localStorage.getItem('finApp_gist_token'));
+
 var overlay = document.createElement('div');
 overlay.className = 'auth-overlay';
 overlay.id = 'authOverlay';
+
+var tokenSectionHTML = '';
+if(!_hasToken){
+  tokenSectionHTML =
+    '<div class="auth-token-section" id="authTokenSection">'+
+      '<div class="ats-title">\u26a0 Primeira conex\u00e3o neste dispositivo</div>'+
+      '<div class="form-group" style="margin-bottom:8px">'+
+        '<label>Token GitHub (com permiss\u00e3o gist)</label>'+
+        '<input type="password" id="authToken" class="form-control" placeholder="ghp_xxxxxxxxxxxx" autocomplete="off">'+
+      '</div>'+
+      '<div class="ats-help">'+
+        'Pe\u00e7a o token ao administrador ou crie em '+
+        '<a href="https://github.com/settings/tokens/new?scopes=gist&description=FinanceiroPro" target="_blank">github.com/settings/tokens</a> '+
+        'com permiss\u00e3o <strong>gist</strong>.'+
+      '</div>'+
+    '</div>';
+}
+
 overlay.innerHTML =
   '<div class="auth-box">'+
     '<div class="auth-logo">&#128176;</div>'+
     '<div class="auth-title">Financeiro Pro</div>'+
     '<div class="auth-sub">Fa\u00e7a login para acessar seus dados financeiros</div>'+
+    tokenSectionHTML+
     '<div class="form-group"><label>Usu\u00e1rio</label>'+
       '<input type="text" id="authUser" class="form-control" placeholder="Digite seu usu\u00e1rio" autocomplete="username"></div>'+
     '<div class="form-group"><label>Senha</label>'+
@@ -131,6 +156,11 @@ document.body.appendChild(ubar);
 
 document.getElementById('authPass').addEventListener('keydown',function(e){if(e.key==='Enter')window._authDoLogin();});
 document.getElementById('authUser').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('authPass').focus();});
+// Se tem campo de token, tab dele vai pro user
+var _authTokenEl = document.getElementById('authToken');
+if(_authTokenEl){
+  _authTokenEl.addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('authUser').focus();});
+}
 
 window._authCurrentUser = null;
 
@@ -282,7 +312,7 @@ async function unregisterDevice(username, deviceId){
 }
 
 // ================================================================
-// MIGRAÇÃO: Ler dados do Gist antigo
+// MIGRAÇÃO: Gist antigo
 // ================================================================
 async function readLegacyGist(){
   var token = _getToken();
@@ -299,7 +329,7 @@ async function readLegacyGist(){
 }
 
 // ================================================================
-// DADOS POR USUÁRIO — Arquivo no Gist de Auth
+// DADOS POR USUÁRIO
 // ================================================================
 function getUserFileKey(username){
   return username.toLowerCase().replace(/[^a-z0-9]/g,'_') + '.json';
@@ -349,7 +379,6 @@ function switchToUserData(username){
   window._userSK = userKey;
   window._authUsername = username;
 
-  // Migração local
   if(!localStorage.getItem(userKey)){
     var existing = localStorage.getItem('finApp_v5');
     if(existing) localStorage.setItem(userKey, existing);
@@ -375,25 +404,15 @@ function switchToUserData(username){
     S = defState();
   }
 
-  // ============================================================
-  // SOBRESCREVER TODAS as funções de cloud do index.html
-  // ============================================================
-
   // Override salvar
   window.salvar = function(){
     localStorage.setItem(window._userSK, JSON.stringify(S));
     window.scheduleSync();
   };
 
-  // Override gistRead/gistWrite para arquivo do usuário
-  window.gistRead = async function(){
-    return await readUserGistFile(window._authUsername);
-  };
-  window.gistWrite = async function(data){
-    return await writeUserGistFile(window._authUsername, data);
-  };
+  window.gistRead = async function(){ return await readUserGistFile(window._authUsername); };
+  window.gistWrite = async function(data){ return await writeUserGistFile(window._authUsername, data); };
 
-  // Override scheduleSync
   var _userSyncTimer = null;
   window.scheduleSync = function(){
     if(!cloudOk) return;
@@ -402,16 +421,9 @@ function switchToUserData(username){
       syncUI('loading','Sincronizando...');
       try{
         var ok = await writeUserGistFile(window._authUsername, S);
-        if(ok){
-          syncUI('on','Sync '+new Date().toLocaleTimeString('pt-BR'));
-        } else {
-          console.error('[SYNC] writeUserGistFile falhou. Token:', _getToken() ? 'presente' : 'VAZIO', 'AuthGist:', localStorage.getItem(AUTH_GIST_KEY) || 'VAZIO');
-          syncUI('on','Erro sync');
-        }
-      }catch(e){
-        console.error('[SYNC] Erro:', e);
-        syncUI('on','Erro sync (rede)');
-      }
+        if(ok) syncUI('on','Sync '+new Date().toLocaleTimeString('pt-BR'));
+        else syncUI('on','Erro sync');
+      }catch(e){ syncUI('on','Erro sync (rede)'); }
     }, 3000);
   };
 
@@ -425,24 +437,15 @@ function switchToUserData(username){
     syncUI('loading','Conectando...');
     var tokenModal = document.getElementById('modalToken');
     if(tokenModal && tokenModal.classList.contains('show')) closeM('modalToken');
-
-    // Garantir que o Gist de Auth existe
-    var authData = await readAuthGist();
-    if(!authData){
-      syncUI('on','Erro: Gist Auth não encontrado');
-      return;
-    }
-
+    await readAuthGist();
     var data = await readUserGistFile(window._authUsername);
     if(data === null){
-      // Tenta migrar do Gist antigo
       data = await readLegacyGist();
       if(data && (data.lancamentos || data.cartoes || data.contratos)){
         S = mergeState(data);
         localStorage.setItem(window._userSK, JSON.stringify(S));
         await writeUserGistFile(window._authUsername, S);
         renderAll();
-        console.log('[Migração] Dados do Gist antigo → ' + getUserFileKey(window._authUsername));
       } else {
         await writeUserGistFile(window._authUsername, S);
       }
@@ -458,65 +461,43 @@ function switchToUserData(username){
     if(typeof renderCloudArea === 'function') renderCloudArea();
   };
 
-  // Override initCloud — PRINCIPAL
+  // Override initCloud
   window.initCloud = async function(){
     var savedToken = localStorage.getItem('finApp_gist_token') || '';
     if(savedToken) window.gistToken = savedToken;
     if(!window.gistToken){
-      // Não tem token — sem cloud, não abre modal (auth controla)
       cloudOk = false;
       syncUI('off','Sem token');
       return;
     }
-
     syncUI('loading','Conectando...');
-
-    // Garantir que Gist de Auth existe e AUTH_GIST_KEY está no localStorage
     var authData = await readAuthGist();
     if(!authData){
-      console.warn('[Cloud] Não conseguiu acessar Gist de Auth');
       cloudOk = false;
-      syncUI('on','Erro cloud (auth)');
+      syncUI('on','Erro cloud');
       return;
     }
-
-    // 1. Tenta ler arquivo do usuário
     var data = await readUserGistFile(window._authUsername);
-
     if(data && typeof data === 'object' && (data.lancamentos || data.cartoes || data.contratos)){
       S = mergeState(data);
       localStorage.setItem(window._userSK, JSON.stringify(S));
       renderAll();
       cloudOk = true;
       syncUI('on','Cloud conectado');
-      console.log('[Cloud] Dados de', getUserFileKey(window._authUsername));
       return;
     }
-
-    // 2. Não existe — migrar do Gist antigo
-    console.log('[Migração] Buscando Gist antigo...');
     var legacyData = await readLegacyGist();
-
     if(legacyData && typeof legacyData === 'object' && (legacyData.lancamentos || legacyData.cartoes || legacyData.contratos)){
       S = mergeState(legacyData);
       localStorage.setItem(window._userSK, JSON.stringify(S));
       renderAll();
-      var ok = await writeUserGistFile(window._authUsername, S);
+      await writeUserGistFile(window._authUsername, S);
       cloudOk = true;
-      if(ok){
-        console.log('[Migração] Sucesso → ' + getUserFileKey(window._authUsername));
-        syncUI('on','Dados migrados!');
-      } else {
-        console.warn('[Migração] Falha ao gravar');
-        syncUI('on','Migração parcial');
-      }
+      syncUI('on','Dados migrados!');
       return;
     }
-
-    // 3. Nem no antigo — usa dados locais
     if(S && S.lancamentos && S.lancamentos.length > 0){
       await writeUserGistFile(window._authUsername, S);
-      console.log('[Cloud] Dados locais enviados');
     }
     cloudOk = true;
     syncUI('on','Cloud conectado');
@@ -538,9 +519,9 @@ function switchToUserData(username){
         localStorage.setItem(window._userSK, JSON.stringify(S));
         await writeUserGistFile(window._authUsername, S);
         renderAll();
-        syncUI('on','Dados migrados do backup');
+        syncUI('on','Dados migrados');
       } else {
-        syncUI('on','Nenhum dado no Gist');
+        syncUI('on','Nenhum dado');
       }
     }
   };
@@ -552,7 +533,6 @@ function switchToUserData(username){
     t = t.trim();
     _setGistToken(t);
     syncUI('loading','Conectando...');
-    // Garantir Auth Gist
     await readAuthGist();
     var data = await readUserGistFile(window._authUsername);
     if(data && (data.lancamentos || data.cartoes || data.contratos)){
@@ -583,7 +563,6 @@ function switchToUserData(username){
     else syncUI('on','Erro sync');
   };
 
-  // Override doDisconnect
   window.doDisconnect = function(){
     window.gistToken = '';
     cloudOk = false;
@@ -592,7 +571,6 @@ function switchToUserData(username){
     if(typeof renderCloudArea === 'function') renderCloudArea();
   };
 
-  // Override skipCloud
   window.skipCloud = function(){
     var tokenModal = document.getElementById('modalToken');
     if(tokenModal && tokenModal.classList.contains('show')) closeM('modalToken');
@@ -609,18 +587,34 @@ function switchToUserData(username){
 // LOGIN
 // ================================================================
 window._authDoLogin = async function(){
-  var userEl  = document.getElementById('authUser');
-  var passEl  = document.getElementById('authPass');
-  var keepEl  = document.getElementById('authKeep');
-  var errEl   = document.getElementById('authError');
-  var btn     = document.getElementById('authLoginBtn');
+  var userEl   = document.getElementById('authUser');
+  var passEl   = document.getElementById('authPass');
+  var tokenEl  = document.getElementById('authToken');  // pode não existir
+  var keepEl   = document.getElementById('authKeep');
+  var errEl    = document.getElementById('authError');
+  var btn      = document.getElementById('authLoginBtn');
 
   var username = (userEl.value||'').trim();
   var password = passEl.value;
   var keepConnected = keepEl.checked;
 
+  // Se o campo token existe e está preenchido, salvar antes de tudo
+  if(tokenEl){
+    var tokenVal = (tokenEl.value||'').trim();
+    if(tokenVal){
+      _setGistToken(tokenVal);
+    }
+  }
+
   if(!username || !password){
     errEl.textContent = 'Preencha usu\u00e1rio e senha.';
+    return;
+  }
+
+  // Verificar se tem token disponível
+  var token = _getToken();
+  if(!token){
+    errEl.textContent = 'Informe o Token GitHub para conectar.';
     return;
   }
 
@@ -632,21 +626,20 @@ window._authDoLogin = async function(){
   var role = 'user';
   var validado = false;
 
-  var token = _getToken();
-  if(token){
-    var authData = await readAuthGist();
-    if(authData && authData.users){
-      var found = authData.users.find(function(u){
-        return u.username.toLowerCase() === username.toLowerCase() && u.passwordHash === inputHash;
-      });
-      if(found){
-        validado = true;
-        username = found.username;
-        role = found.role || 'user';
-      }
+  // Validar contra o Gist de Auth
+  var authData = await readAuthGist();
+  if(authData && authData.users){
+    var found = authData.users.find(function(u){
+      return u.username.toLowerCase() === username.toLowerCase() && u.passwordHash === inputHash;
+    });
+    if(found){
+      validado = true;
+      username = found.username;
+      role = found.role || 'user';
     }
   }
 
+  // Fallback local
   if(!validado){
     var fallback = await sha256('202328');
     if(username.toLowerCase() === 'anderson' && inputHash === fallback){
@@ -657,6 +650,10 @@ window._authDoLogin = async function(){
   }
 
   if(validado){
+    // Esconder seção de token após sucesso (não precisa mais)
+    var tokenSection = document.getElementById('authTokenSection');
+    if(tokenSection) tokenSection.style.display = 'none';
+
     setSession(username, role, keepConnected);
     window._authCurrentUser = {username: username, role: role};
     switchToUserData(username);
@@ -793,7 +790,6 @@ window._authRefreshDevices = async function(){
   var myDeviceId = getDeviceId();
   var h = '';
   var usersToShow = cur.role === 'admin' ? data.users : data.users.filter(function(u){ return u.username.toLowerCase() === cur.username.toLowerCase(); });
-
   usersToShow.forEach(function(user){
     var sessions = (user.sessions || []).filter(function(s){ return new Date(s.expiresAt).getTime() > Date.now(); });
     if(sessions.length === 0 && usersToShow.length > 1) return;
@@ -821,15 +817,15 @@ window._authRefreshDevices = async function(){
     }
     h += '</div>';
   });
-  if(!h) h = '<p style="color:var(--tx3);font-size:.85em">Nenhum dispositivo ativo encontrado.</p>';
+  if(!h) h = '<p style="color:var(--tx3);font-size:.85em">Nenhum dispositivo ativo.</p>';
   el.innerHTML = h;
 };
 
 window._authKickDevice = async function(username, deviceId){
-  if(!confirm('Encerrar sess\u00e3o deste dispositivo?')) return;
+  if(!confirm('Encerrar sess\u00e3o?')) return;
   await unregisterDevice(username, deviceId);
-  if(typeof toast === 'function') toast('Sess\u00e3o encerrada!');
-  else alert('Sess\u00e3o encerrada!');
+  if(typeof toast === 'function') toast('Encerrada!');
+  else alert('Encerrada!');
   window._authRefreshDevices();
 };
 
@@ -841,7 +837,7 @@ window._authRenderUsers = async function(){
   if(!el) return;
   var data = await readAuthGist();
   if(!data || !data.users){
-    el.innerHTML = '<p style="color:var(--tx3);font-size:.85em">Conecte ao cloud para gerenciar usu\u00e1rios.</p>';
+    el.innerHTML = '<p style="color:var(--tx3);font-size:.85em">Conecte ao cloud.</p>';
     return;
   }
   var h = '<div class="table-wrap"><table><thead><tr><th>Usu\u00e1rio</th><th>Perfil</th><th>Criado em</th><th>Dispositivos</th><th>A\u00e7\u00f5es</th></tr></thead><tbody>';
@@ -851,7 +847,7 @@ window._authRenderUsers = async function(){
     var roleLabel = u.role==='admin' ? 'Admin' : 'Usu\u00e1rio';
     var activeSessions = (u.sessions || []).filter(function(s){ return new Date(s.expiresAt).getTime() > Date.now(); });
     var devCount = activeSessions.length;
-    var devBadge = devCount > 0 ? '<span class="badge badge-success">'+devCount+' ativo'+(devCount>1?'s':'')+'</span>' : '<span class="badge badge-warning">0</span>';
+    var devBadge = devCount > 0 ? '<span class="badge badge-success">'+devCount+'</span>' : '<span class="badge badge-warning">0</span>';
     h += '<tr><td><strong>'+u.username+'</strong></td>'+
       '<td><span class="badge '+badge+'">'+roleLabel+'</span></td>'+
       '<td>'+dc+'</td><td>'+devBadge+'</td>'+
@@ -867,20 +863,20 @@ window._authAddUser = async function(){
   var pass = document.getElementById('newAuthPass').value;
   var role = document.getElementById('newAuthRole').value;
   var msg = document.getElementById('authMsg');
-  if(!name||!pass){msg.innerHTML='<span style="color:var(--dn2)">Preencha nome e senha.</span>';return;}
+  if(!name||!pass){msg.innerHTML='<span style="color:var(--dn2)">Preencha tudo.</span>';return;}
   var data = await readAuthGist();
-  if(!data){msg.innerHTML='<span style="color:var(--dn2)">Erro ao conectar.</span>';return;}
+  if(!data){msg.innerHTML='<span style="color:var(--dn2)">Erro cloud.</span>';return;}
   if(data.users.some(function(u){return u.username.toLowerCase()===name.toLowerCase();})){
-    msg.innerHTML='<span style="color:var(--dn2)">Usu\u00e1rio j\u00e1 existe.</span>';return;
+    msg.innerHTML='<span style="color:var(--dn2)">J\u00e1 existe.</span>';return;
   }
   data.users.push({username:name,passwordHash:await sha256(pass),createdAt:new Date().toISOString(),role:role,sessions:[]});
   if(await writeAuthGist(data)){
-    msg.innerHTML='<span style="color:var(--ok)">Usu\u00e1rio "'+name+'" criado!</span>';
+    msg.innerHTML='<span style="color:var(--ok)">"'+name+'" criado!</span>';
     document.getElementById('newAuthUser').value='';
     document.getElementById('newAuthPass').value='';
     window._authRenderUsers();
   } else {
-    msg.innerHTML='<span style="color:var(--dn2)">Erro ao salvar.</span>';
+    msg.innerHTML='<span style="color:var(--dn2)">Erro.</span>';
   }
 };
 
@@ -893,13 +889,12 @@ window._authChangePass = async function(username){
   if(!u) return alert('N\u00e3o encontrado.');
   u.passwordHash = await sha256(np);
   if(await writeAuthGist(data)) alert('Senha alterada!');
-  else alert('Erro ao salvar.');
+  else alert('Erro.');
 };
 
 window._authDelUser = async function(username){
   var cur = window._authCurrentUser;
-  if(cur && cur.username.toLowerCase()===username.toLowerCase())
-    return alert('N\u00e3o pode excluir a si mesmo.');
+  if(cur && cur.username.toLowerCase()===username.toLowerCase()) return alert('N\u00e3o pode excluir a si mesmo.');
   if(!confirm('Excluir "'+username+'"?')) return;
   var data = await readAuthGist();
   if(!data) return alert('Erro.');
@@ -924,14 +919,18 @@ window._authDelUser = async function(username){
     window._authCurrentUser = {username:session.user, role:session.role||'user'};
     switchToUserData(session.user);
     showApp(session.user, session.role||'user');
-    // Iniciar cloud APÓS switchToUserData (que sobrescreve as funções)
     setTimeout(function(){
       if(typeof initCloud === 'function') initCloud();
     }, 300);
   } else {
-    setTimeout(function(){ document.getElementById('authUser').focus(); }, 200);
+    // Focar no campo correto
+    setTimeout(function(){
+      var tokenEl = document.getElementById('authToken');
+      if(tokenEl) tokenEl.focus();
+      else document.getElementById('authUser').focus();
+    }, 200);
   }
 })();
 
-console.log('[Financeiro Pro] Auth v5.2 — Fix race condition + migração.');
+console.log('[Financeiro Pro] Auth v5.3 — Token na tela de login.');
 })();
