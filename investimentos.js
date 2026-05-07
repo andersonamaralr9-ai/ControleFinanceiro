@@ -1,5 +1,5 @@
-// investimentos.js v4 — Investimentos com visual profissional
-// Donut chart SVG, valores sem centavos, layout limpo
+// investimentos.js v5 — Investimentos visual profissional
+// Unificado: donut + detalhes em coluna única (sem gráficos redundantes)
 (function(){
 'use strict';
 
@@ -8,47 +8,43 @@
 // ================================================================
 var sty = document.createElement('style');
 sty.textContent = `
-/* ── INVESTIMENTOS v4 ── */
+/* ── INVESTIMENTOS v5 ── */
 
 /* Resumo */
 .inv-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-bottom:24px;}
 .inv-summary .card{padding:16px 14px;}
 .inv-summary .card .card-value{font-size:1.15em;}
 
-/* Alocação — 2 colunas */
-.inv-alloc{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;}
-.inv-alloc-box{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);padding:20px;box-shadow:var(--sh);}
-.inv-alloc-box h3{font-size:.88em;margin-bottom:16px;color:var(--tx2);font-weight:600;}
+/* Alocação — layout unificado (donut à esquerda, detalhes à direita) */
+.inv-alloc-unified{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);padding:24px;box-shadow:var(--sh);margin-bottom:24px;}
+.inv-alloc-unified h3{font-size:.92em;margin-bottom:20px;color:var(--tx2);font-weight:600;}
+.inv-alloc-content{display:flex;gap:32px;align-items:flex-start;}
+.inv-alloc-chart{flex-shrink:0;}
 
 /* SVG Donut */
-.inv-donut-container{display:flex;flex-direction:column;align-items:center;gap:16px;}
 .inv-donut-svg-wrap{position:relative;width:220px;height:220px;}
 .inv-donut-svg-wrap svg{width:100%;height:100%;transform:rotate(-90deg);}
 .inv-donut-center-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;}
 .inv-donut-center-label .inv-dc-val{font-size:1.2em;font-weight:800;color:var(--ok);display:block;line-height:1.2;}
 .inv-donut-center-label .inv-dc-sub{font-size:.65em;color:var(--tx3);display:block;margin-top:2px;}
 
-/* Legenda */
-.inv-legend{width:100%;}
-.inv-legend-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bg3);}
-.inv-legend-row:last-child{border:none;}
-.inv-legend-dot{width:14px;height:14px;border-radius:4px;flex-shrink:0;}
-.inv-legend-info{flex:1;min-width:0;}
-.inv-legend-name{font-size:.82em;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.inv-legend-meta{font-size:.7em;color:var(--tx3);}
-.inv-legend-vals{text-align:right;flex-shrink:0;}
-.inv-legend-pct{font-size:.85em;font-weight:700;color:var(--pri2);}
-.inv-legend-amt{font-size:.72em;color:var(--tx2);display:block;}
+/* Detalhes ao lado do donut */
+.inv-alloc-details{flex:1;min-width:0;}
+.inv-detail-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--bg3);transition:background .15s;}
+.inv-detail-row:hover{background:var(--bg3);border-radius:6px;padding-left:8px;padding-right:8px;margin:0 -8px;}
+.inv-detail-row:last-child{border:none;}
+.inv-detail-dot{width:16px;height:16px;border-radius:5px;flex-shrink:0;}
+.inv-detail-info{flex:1;min-width:0;}
+.inv-detail-name{font-size:.88em;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.inv-detail-sub{font-size:.72em;color:var(--tx3);margin-top:2px;}
+.inv-detail-vals{text-align:right;flex-shrink:0;}
+.inv-detail-pct{font-size:.95em;font-weight:800;color:var(--pri2);}
+.inv-detail-amt{font-size:.78em;color:var(--tx2);display:block;margin-top:1px;}
+.inv-detail-rent{font-size:.7em;display:block;margin-top:1px;}
 
-/* Barras de alocação */
-.inv-bar-item{margin-bottom:14px;}
-.inv-bar-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;}
-.inv-bar-name{font-size:.84em;font-weight:600;}
-.inv-bar-right{display:flex;align-items:baseline;gap:8px;}
-.inv-bar-pct{font-size:.82em;font-weight:700;color:var(--pri2);}
-.inv-bar-amt{font-size:.78em;color:var(--tx2);}
-.inv-bar-track{background:var(--bg3);border-radius:6px;height:12px;overflow:hidden;}
-.inv-bar-fill{height:100%;border-radius:6px;transition:width .6s ease;}
+/* Barra mini dentro do detalhe */
+.inv-detail-bar{height:6px;background:var(--bg3);border-radius:4px;margin-top:6px;overflow:hidden;}
+.inv-detail-bar-fill{height:100%;border-radius:4px;transition:width .6s ease;}
 
 /* Rentabilidade mensal */
 .inv-rent-box{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);padding:18px 20px;box-shadow:var(--sh);margin-bottom:24px;}
@@ -88,7 +84,9 @@ sty.textContent = `
 .btn-info:hover{opacity:.85;transform:translateY(-1px);}
 
 @media(max-width:768px){
-  .inv-alloc{grid-template-columns:1fr;}
+  .inv-alloc-content{flex-direction:column;align-items:center;gap:20px;}
+  .inv-alloc-chart{width:100%;display:flex;justify-content:center;}
+  .inv-alloc-details{width:100%;}
   .inv-cards-grid{grid-template-columns:1fr;}
   .inv-summary{grid-template-columns:1fr 1fr;}
   .inv-donut-svg-wrap{width:180px;height:180px;}
@@ -98,6 +96,7 @@ sty.textContent = `
 @media(max-width:380px){
   .inv-rent-grid{grid-template-columns:repeat(2,1fr);}
   .inv-summary{grid-template-columns:1fr;}
+  .inv-donut-svg-wrap{width:150px;height:150px;}
 }
 `;
 document.head.appendChild(sty);
@@ -194,14 +193,12 @@ function getInvRentMes(inv, mes){
 // SVG DONUT CHART
 // ================================================================
 function buildDonutSVG(segments, totalValue, size){
-  // segments = [{label, value, color}, ...]
-  // Retorna HTML string de SVG
   size = size || 220;
   var cx = size / 2, cy = size / 2;
   var outerR = size / 2 - 4;
-  var innerR = outerR * 0.62; // espessura do donut
-  var gap = 0.008; // gap em radianos entre segmentos
-  
+  var innerR = outerR * 0.62;
+  var gap = 0.008;
+
   if(!segments.length || totalValue <= 0){
     return '<svg viewBox="0 0 '+size+' '+size+'" xmlns="http://www.w3.org/2000/svg">'+
       '<circle cx="'+cx+'" cy="'+cy+'" r="'+outerR+'" fill="none" stroke="var(--bg4)" stroke-width="'+(outerR-innerR)+'"/>'+
@@ -217,11 +214,11 @@ function buildDonutSVG(segments, totalValue, size){
     var seg = segments[i];
     var fraction = seg.value / totalValue;
     var angle = fraction * availableAngle;
-    
-    if(angle < 0.01) continue; // muito pequeno
-    
+
+    if(angle < 0.01) continue;
+
     var endAngle = startAngle + angle;
-    
+
     var x1 = cx + outerR * Math.cos(startAngle);
     var y1 = cy + outerR * Math.sin(startAngle);
     var x2 = cx + outerR * Math.cos(endAngle);
@@ -230,17 +227,17 @@ function buildDonutSVG(segments, totalValue, size){
     var y3 = cy + innerR * Math.sin(endAngle);
     var x4 = cx + innerR * Math.cos(startAngle);
     var y4 = cy + innerR * Math.sin(startAngle);
-    
+
     var largeArc = angle > Math.PI ? 1 : 0;
-    
+
     var d = 'M '+x1.toFixed(2)+' '+y1.toFixed(2)+
             ' A '+outerR+' '+outerR+' 0 '+largeArc+' 1 '+x2.toFixed(2)+' '+y2.toFixed(2)+
             ' L '+x3.toFixed(2)+' '+y3.toFixed(2)+
             ' A '+innerR+' '+innerR+' 0 '+largeArc+' 0 '+x4.toFixed(2)+' '+y4.toFixed(2)+
             ' Z';
-    
+
     paths += '<path d="'+d+'" fill="'+seg.color+'" opacity=".9"><title>'+seg.label+': '+fmtInt(seg.value)+'</title></path>';
-    
+
     startAngle = endAngle + gap;
   }
 
@@ -251,7 +248,6 @@ function buildDonutSVG(segments, totalValue, size){
 // OVERRIDE renderInvest
 // ================================================================
 window.renderInvest = function(){
-  // Atualizar select de tipos
   var st = g('invTipo');
   if(st){
     st.innerHTML = '';
@@ -264,7 +260,6 @@ window.renderInvest = function(){
   var pgEl = document.getElementById('pg-investimentos');
   if(!pgEl) return;
 
-  // Remover área dinâmica anterior
   var existing = document.getElementById('invDynamicArea');
   if(existing) existing.remove();
 
@@ -273,7 +268,6 @@ window.renderInvest = function(){
 
   // ===== CÁLCULOS =====
   var totalInvestido = 0, totalCapital = 0, totalRent = 0, totalSaldo = 0;
-  var totalAportes = 0, totalResgates = 0;
   var porTipo = {};
 
   invs.forEach(function(inv){
@@ -285,12 +279,6 @@ window.renderInvest = function(){
     totalCapital += capital;
     totalRent += rent;
     totalSaldo += saldo;
-
-    (inv.movimentacoes || []).forEach(function(m){
-      var v = Number(m.valor) || 0;
-      if(m.tipo === 'aporte') totalAportes += v;
-      else if(m.tipo === 'resgate') totalResgates += v;
-    });
 
     var tipo = inv.tipo || 'Outro';
     if(!porTipo[tipo]) porTipo[tipo] = { investido: 0, capital: 0, rent: 0, saldo: 0, count: 0 };
@@ -318,15 +306,13 @@ window.renderInvest = function(){
   html += '<div class="card"><div class="card-label">Ativos</div><div class="card-value purple">' + invs.length + '</div></div>';
   html += '</div>';
 
-  // ===== ALOCAÇÃO: DONUT + BARRAS =====
+  // ===== ALOCAÇÃO UNIFICADA: DONUT + DETALHES LADO A LADO =====
   var tipos = Object.keys(porTipo).sort(function(a, b){ return porTipo[b].saldo - porTipo[a].saldo; });
 
-  html += '<div class="inv-alloc">';
+  html += '<div class="inv-alloc-unified"><h3>\uD83D\uDCCA Distribui\u00e7\u00e3o da Carteira</h3>';
 
-  // Coluna 1: Donut SVG
-  html += '<div class="inv-alloc-box"><h3>&#128176; Distribui\u00e7\u00e3o</h3>';
   if(!tipos.length){
-    html += '<p style="color:var(--tx3);text-align:center;padding:40px">Nenhum investimento</p>';
+    html += '<p style="color:var(--tx3);text-align:center;padding:40px">Nenhum investimento cadastrado.</p>';
   } else {
     var segments = [];
     tipos.forEach(function(tipo, idx){
@@ -337,65 +323,51 @@ window.renderInvest = function(){
       });
     });
 
-    html += '<div class="inv-donut-container">';
+    html += '<div class="inv-alloc-content">';
+
+    // Coluna esquerda: Donut
+    html += '<div class="inv-alloc-chart">';
     html += '<div class="inv-donut-svg-wrap">';
     html += buildDonutSVG(segments, Math.max(totalSaldo, 1));
     html += '<div class="inv-donut-center-label">';
     html += '<span class="inv-dc-val">' + fmtInt(totalSaldo) + '</span>';
     html += '<span class="inv-dc-sub">Saldo Total</span>';
-    html += '</div></div>';
+    html += '</div></div></div>';
 
-    // Legenda
-    html += '<div class="inv-legend">';
+    // Coluna direita: Detalhes por tipo
+    html += '<div class="inv-alloc-details">';
     tipos.forEach(function(tipo, idx){
       var data = porTipo[tipo];
       var pct = totalSaldo > 0 ? ((data.saldo / totalSaldo) * 100) : 0;
-      html += '<div class="inv-legend-row">';
-      html += '<div class="inv-legend-dot" style="background:' + getColor(idx) + '"></div>';
-      html += '<div class="inv-legend-info">';
-      html += '<div class="inv-legend-name">' + tipo + '</div>';
-      html += '<div class="inv-legend-meta">' + data.count + ' ativo' + (data.count !== 1 ? 's' : '') + '</div>';
+      var rentColor = data.rent >= 0 ? 'var(--ok)' : 'var(--dn2)';
+      var rentSign = data.rent > 0 ? '+' : '';
+
+      html += '<div class="inv-detail-row">';
+      html += '<div class="inv-detail-dot" style="background:' + getColor(idx) + '"></div>';
+      html += '<div class="inv-detail-info">';
+      html += '<div class="inv-detail-name">' + tipo + '</div>';
+      html += '<div class="inv-detail-sub">' + data.count + ' ativo' + (data.count !== 1 ? 's' : '') + ' &middot; Capital: ' + fmtInt(data.capital) + '</div>';
+      html += '<div class="inv-detail-bar"><div class="inv-detail-bar-fill" style="width:' + Math.max(pct, 3) + '%;background:' + getColor(idx) + '"></div></div>';
       html += '</div>';
-      html += '<div class="inv-legend-vals">';
-      html += '<div class="inv-legend-pct">' + pct.toFixed(1) + '%</div>';
-      html += '<span class="inv-legend-amt">' + fmtInt(data.saldo) + '</span>';
+      html += '<div class="inv-detail-vals">';
+      html += '<div class="inv-detail-pct">' + pct.toFixed(1) + '%</div>';
+      html += '<div class="inv-detail-amt">' + fmtInt(data.saldo) + '</div>';
+      html += '<div class="inv-detail-rent" style="color:' + rentColor + '">' + rentSign + fmtInt(data.rent) + '</div>';
       html += '</div></div>';
     });
-    html += '</div></div>';
-  }
-  html += '</div>';
+    html += '</div>';
 
-  // Coluna 2: Barras de alocação
-  html += '<div class="inv-alloc-box"><h3>&#128202; Aloca\u00e7\u00e3o por Tipo</h3>';
-  if(!tipos.length){
-    html += '<p style="color:var(--tx3)">Nenhum investimento</p>';
-  } else {
-    tipos.forEach(function(tipo, idx){
-      var data = porTipo[tipo];
-      var pct = totalSaldo > 0 ? ((data.saldo / totalSaldo) * 100) : 0;
-      var rentT = data.rent;
-      var rentLabel = rentT >= 0 ? '<span style="color:var(--ok)">+' + fmtInt(rentT) + '</span>' : '<span style="color:var(--dn2)">' + fmtInt(rentT) + '</span>';
-
-      html += '<div class="inv-bar-item">';
-      html += '<div class="inv-bar-header">';
-      html += '<span class="inv-bar-name">' + tipo + ' <small style="color:var(--tx3)">(' + data.count + ')</small></span>';
-      html += '<div class="inv-bar-right"><span class="inv-bar-pct">' + pct.toFixed(1) + '%</span><span class="inv-bar-amt">' + fmtInt(data.saldo) + '</span></div>';
-      html += '</div>';
-      html += '<div class="inv-bar-track"><div class="inv-bar-fill" style="width:' + Math.max(pct, 2) + '%;background:' + getColor(idx) + '"></div></div>';
-      html += '<div style="font-size:.72em;color:var(--tx3);margin-top:3px">Capital: ' + fmtInt(data.capital) + ' &bull; Rent: ' + rentLabel + '</div>';
-      html += '</div>';
-    });
+    html += '</div>'; // .inv-alloc-content
   }
-  html += '</div></div>';
+
+  html += '</div>'; // .inv-alloc-unified
 
   // ===== RENTABILIDADE MENSAL =====
-  html += '<div class="inv-rent-box"><h3>&#128200; Rentabilidade Mensal</h3>';
+  html += '<div class="inv-rent-box"><h3>\uD83D\uDCC8 Rentabilidade Mensal</h3>';
   html += '<div class="inv-rent-grid">';
-  var meses6 = [];
   var acum6 = 0;
   for(var mi = -5; mi <= 0; mi++){
     var mes = addMes(ma, mi);
-    meses6.push(mes);
     var rentMes = 0;
     invs.forEach(function(inv){ rentMes += getInvRentMes(inv, mes); });
     acum6 += rentMes;
@@ -406,7 +378,6 @@ window.renderInvest = function(){
     html += '<div class="irc-val ' + cls + '">' + prefix + fmtInt(rentMes) + '</div>';
     html += '</div>';
   }
-  // Acumulado
   var clsAcum = acum6 > 0 ? 'pos' : (acum6 < 0 ? 'neg' : 'zero');
   html += '<div class="inv-rent-cell acum">';
   html += '<div class="irc-mes">Acumulado</div>';
@@ -451,7 +422,7 @@ window.renderInvest = function(){
       if(inv.obs) html += '<div class="inv-row"><span class="inv-label">Obs</span><span class="inv-val" style="color:var(--tx3);font-weight:400;font-size:.82em">' + inv.obs + '</span></div>';
       html += '</div>';
 
-      // Histórico rentabilidade (compact)
+      // Histórico rentabilidade
       if(rents.length){
         html += '<div class="inv-card-section"><div class="inv-card-section-title">Rentabilidade</div><div class="inv-card-section-list">';
         rents.slice(0, 6).forEach(function(r){
@@ -463,7 +434,7 @@ window.renderInvest = function(){
         html += '</div></div>';
       }
 
-      // Histórico movimentações (compact)
+      // Histórico movimentações
       if(movs.length){
         html += '<div class="inv-card-section"><div class="inv-card-section-title">Movimenta\u00e7\u00f5es</div><div class="inv-card-section-list">';
         movs.slice(0, 5).forEach(function(m){
@@ -491,7 +462,6 @@ window.renderInvest = function(){
 
   area.innerHTML = html;
 
-  // Esconder tabela original
   var tbWrap = pgEl.querySelector('.table-wrap');
   if(tbWrap) tbWrap.style.display = 'none';
   pgEl.appendChild(area);
@@ -647,5 +617,5 @@ window._invDelRent = function(invId, mes){
   salvar(); _invRenderRentList(inv); renderInvest();
 };
 
-console.log('[Financeiro Pro] Investimentos v4 — SVG donut, valores inteiros, layout profissional.');
+console.log('[Financeiro Pro] Investimentos v5 — Donut + detalhes unificados, sem redundância.');
 })();
