@@ -1,6 +1,5 @@
-// resumo-enhanced.js v1 — Tela de Resumo Melhorada
-// Adiciona: Compras pagas/pendentes, Valores a receber, Fatura do cartão
-// Substitua ou adicione este arquivo no index.html antes de </body>
+// resumo-enhanced.js v2 — Tela de Resumo Melhorada (corrigido)
+// Compras pagas/pendentes, Receitas confirmadas/pendentes, Fatura, Contratos separados rec/desp
 (function(){
 'use strict';
 
@@ -9,16 +8,12 @@
 // ================================================================
 var sty = document.createElement('style');
 sty.textContent = `
-/* ── RESUMO ENHANCED v1 ── */
-
-/* Nova grade de cards: 3 colunas principais */
+/* ── RESUMO ENHANCED v2 ── */
 .res-cards-main{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
 .res-cards-secondary{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:24px;}
-
-/* Card com sub-valores */
 .res-card{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);padding:18px 16px;box-shadow:var(--sh);transition:transform .2s;}
 .res-card:hover{transform:translateY(-3px);}
-.res-card .rc-label{font-size:.68em;color:var(--tx3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.res-card .rc-label{font-size:.68em;color:var(--tx3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;display:flex;align-items:center;}
 .res-card .rc-value{font-size:1.3em;font-weight:700;margin-bottom:8px;}
 .res-card .rc-sub{display:flex;justify-content:space-between;align-items:center;font-size:.76em;padding:4px 0;border-top:1px solid var(--bg3);}
 .res-card .rc-sub-label{color:var(--tx3);}
@@ -26,33 +21,21 @@ sty.textContent = `
 .res-card .rc-badge{display:inline-block;font-size:.62em;padding:2px 7px;border-radius:10px;font-weight:700;margin-left:6px;}
 .res-card .rc-badge.ok{background:rgba(0,206,201,.15);color:var(--ok);}
 .res-card .rc-badge.pend{background:rgba(253,203,110,.15);color:var(--wn);}
-
-/* Card destaque com borda */
 .res-card.card-receita{border-top:3px solid var(--ok);}
 .res-card.card-despesa{border-top:3px solid var(--dn2);}
 .res-card.card-saldo{border-top:3px solid var(--inf2);}
 .res-card.card-cartao{border-top:3px solid #e65100;}
 .res-card.card-contrato{border-top:3px solid var(--pri);}
 .res-card.card-assinatura{border-top:3px solid var(--wn);}
-
-/* Ícone no label */
 .res-card .rc-icon{margin-right:4px;}
-
-/* Seção de gráficos */
 .res-chart-section{display:grid;grid-template-columns:5fr 3fr;gap:20px;margin-bottom:24px;}
 .res-chart-box{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);padding:20px;box-shadow:var(--sh);}
 .res-chart-box h3{font-size:.9em;margin-bottom:16px;color:var(--tx2);font-weight:600;}
-
-/* Quick actions */
 .res-quick-row{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
 .res-quick-btn{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);padding:10px 16px;font-size:.78em;color:var(--tx2);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px;font-weight:600;}
 .res-quick-btn:hover{border-color:var(--pri);color:var(--pri2);transform:translateY(-1px);}
-
-/* Clicável */
 .res-clickable{cursor:pointer;transition:opacity .15s;}
 .res-clickable:hover{opacity:.8;}
-
-/* Modal detalhamento */
 .res-det-list{max-height:400px;overflow-y:auto;}
 .res-det-item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid var(--bg3);font-size:.85em;}
 .res-det-item:hover{background:var(--bg3);}
@@ -62,7 +45,6 @@ sty.textContent = `
 .res-det-item .rdi-val{font-weight:700;flex-shrink:0;margin-left:12px;}
 .res-det-total{display:flex;justify-content:space-between;padding:12px;font-weight:700;font-size:.95em;border-top:2px solid var(--bg4);margin-top:4px;}
 .res-det-empty{text-align:center;padding:30px;color:var(--tx3);font-size:.88em;}
-
 @media(max-width:768px){
   .res-cards-main{grid-template-columns:1fr 1fr;gap:10px;}
   .res-cards-secondary{grid-template-columns:1fr 1fr;gap:10px;}
@@ -117,7 +99,7 @@ function showDetail(title, items, colorClass){
       var cor = colorClass === 'green' ? 'color:var(--ok)' : (colorClass === 'red' ? 'color:var(--dn2)' : 'color:var(--tx)');
       h += '<div class="res-det-item">' +
         '<span class="rdi-desc">' + (e.desc || '-') + '</span>' +
-        '<span class="rdi-meta">' + (e.origem || '') + '</span>' +
+        '<span class="rdi-meta">' + (e.origem || '') + (e.cat ? ' \u00b7 ' + e.cat : '') + '</span>' +
         '<span class="rdi-val" style="' + cor + '">' + fmtV(e.valor) + '</span>' +
         '</div>';
     });
@@ -132,8 +114,6 @@ function showDetail(title, items, colorClass){
 // ================================================================
 // OVERRIDE renderResumo
 // ================================================================
-var _origRenderResumo = window.renderResumo;
-
 window.renderResumo = function(){
   g('mesLabel').textContent = mesNomeFull(curMes);
 
@@ -171,12 +151,13 @@ window.renderResumo = function(){
   // Agrupar por cartão
   var fatPorCartao = {};
   fatItens.forEach(function(i){
-    var nome = i.cartao || 'Sem cartão';
+    var nome = i.cartao || 'Sem cart\u00e3o';
     if(!fatPorCartao[nome]) fatPorCartao[nome] = 0;
     fatPorCartao[nome] += Number(i.valor) || 0;
   });
 
-    // Card Contratos — separar receita e despesa
+  // ===== CONTRATOS — separar receita e despesa =====
+  var contAtivos = S.contratos.filter(function(c){ return !c.encerradoEm; }).length;
   var contRecMes = 0, contDespMes = 0;
   E.forEach(function(e){
     if(e.origem === 'Contrato'){
@@ -185,26 +166,26 @@ window.renderResumo = function(){
     }
   });
 
-  html += '<div class="res-card card-contrato res-clickable" onclick="nav(\'contratos\')">';
-  html += '<div class="rc-label"><span class="rc-icon">&#128196;</span>Contratos</div>';
-  html += '<div class="rc-value" style="color:var(--pri2)">' + contAtivos + ' <small style="font-size:.5em;color:var(--tx3)">ativos</small></div>';
-  if(contRecMes > 0) html += '<div class="rc-sub"><span class="rc-sub-label">Receita</span><span class="rc-sub-val" style="color:var(--ok)">' + fmtV(contRecMes) + '</span></div>';
-  if(contDespMes > 0) html += '<div class="rc-sub"><span class="rc-sub-label">Despesa</span><span class="rc-sub-val" style="color:var(--dn2)">' + fmtV(contDespMes) + '</span></div>';
-  if(!contRecMes && !contDespMes) html += '<div class="rc-sub"><span class="rc-sub-label">Total no m\u00eas</span><span class="rc-sub-val" style="color:var(--tx3)">R$ 0,00</span></div>';
-  html += '</div>';
+  // ===== ASSINATURAS =====
+  var assAtivas = S.assinaturas.filter(function(s){ return !s.encerradaEm; }).length;
+  var totalAssMes = 0;
+  E.forEach(function(e){
+    if(e.origem && e.origem.indexOf('Assinatura') === 0){
+      totalAssMes += e.valor;
+    }
+  });
 
-
-  // ===== HTML CARDS PRINCIPAIS =====
+  // ===== HTML =====
   var html = '';
 
   // Atalhos rápidos
   html += '<div class="res-quick-row">';
   html += '<div class="res-quick-btn" onclick="nav(\'checkpag\')">&#9989; Check Pagamentos</div>';
   html += '<div class="res-quick-btn" onclick="nav(\'extratoCat\')">&#128202; Extrato Categorizado</div>';
-  html += '<div class="res-quick-btn" onclick="nav(\'lancs\')">&#128221; Novo Lançamento</div>';
+  html += '<div class="res-quick-btn" onclick="nav(\'lancs\')">&#128221; Novo Lan\u00e7amento</div>';
   html += '</div>';
 
-  // Linha 1: Receitas, Despesas, Saldo (3 colunas)
+  // Linha 1: Receitas, Despesas, Saldo
   html += '<div class="res-cards-main">';
 
   // Card Receitas
@@ -228,12 +209,11 @@ window.renderResumo = function(){
   html += '<div class="rc-label"><span class="rc-icon">&#128176;</span>Saldo</div>';
   html += '<div class="rc-value" style="color:' + (saldo >= 0 ? 'var(--inf2)' : 'var(--dn2)') + '">' + fmtV(saldo) + '</div>';
   var saldoConf = recConf - despConf;
-  var saldoPend = recPend - despPend;
   html += '<div class="rc-sub"><span class="rc-sub-label">Confirmado</span><span class="rc-sub-val" style="color:' + (saldoConf >= 0 ? 'var(--ok)' : 'var(--dn2)') + '">' + fmtV(saldoConf) + '</span></div>';
   html += '<div class="rc-sub"><span class="rc-sub-label">Projetado</span><span class="rc-sub-val" style="color:' + (saldo >= 0 ? 'var(--inf2)' : 'var(--dn2)') + '">' + fmtV(saldo) + '</span></div>';
   html += '</div>';
 
-  html += '</div>';
+  html += '</div>'; // fecha res-cards-main
 
   // Linha 2: Cartão, Contratos, Assinaturas
   html += '<div class="res-cards-secondary">';
@@ -252,25 +232,33 @@ window.renderResumo = function(){
   }
   html += '</div>';
 
-  // Card Contratos
+  // Card Contratos — receita e despesa separados
   html += '<div class="res-card card-contrato res-clickable" onclick="nav(\'contratos\')">';
   html += '<div class="rc-label"><span class="rc-icon">&#128196;</span>Contratos</div>';
   html += '<div class="rc-value" style="color:var(--pri2)">' + contAtivos + ' <small style="font-size:.5em;color:var(--tx3)">ativos</small></div>';
-  html += '<div class="rc-sub"><span class="rc-sub-label">Total no mês</span><span class="rc-sub-val" style="color:var(--pri2)">' + fmtV(totalContMes) + '</span></div>';
+  if(contRecMes > 0){
+    html += '<div class="rc-sub"><span class="rc-sub-label">Receita</span><span class="rc-sub-val" style="color:var(--ok)">' + fmtV(contRecMes) + '</span></div>';
+  }
+  if(contDespMes > 0){
+    html += '<div class="rc-sub"><span class="rc-sub-label">Despesa</span><span class="rc-sub-val" style="color:var(--dn2)">' + fmtV(contDespMes) + '</span></div>';
+  }
+  if(!contRecMes && !contDespMes){
+    html += '<div class="rc-sub"><span class="rc-sub-label">Total no m\u00eas</span><span class="rc-sub-val" style="color:var(--tx3)">R$ 0,00</span></div>';
+  }
   html += '</div>';
 
   // Card Assinaturas
   html += '<div class="res-card card-assinatura res-clickable" onclick="nav(\'assinaturas\')">';
   html += '<div class="rc-label"><span class="rc-icon">&#128257;</span>Assinaturas</div>';
   html += '<div class="rc-value" style="color:var(--wn)">' + assAtivas + ' <small style="font-size:.5em;color:var(--tx3)">ativas</small></div>';
-  html += '<div class="rc-sub"><span class="rc-sub-label">Total no mês</span><span class="rc-sub-val" style="color:var(--wn)">' + fmtV(totalAssMes) + '</span></div>';
+  html += '<div class="rc-sub"><span class="rc-sub-label">Total no m\u00eas</span><span class="rc-sub-val" style="color:var(--wn)">' + fmtV(totalAssMes) + '</span></div>';
   html += '</div>';
 
-  html += '</div>';
+  html += '</div>'; // fecha res-cards-secondary
 
   g('resumoCards').innerHTML = html;
 
-  // ===== GRÁFICOS (manter bar chart e top categorias) =====
+  // ===== GRÁFICOS =====
   var meses = [];
   for(var i = -5; i <= 0; i++) meses.push(addMes(curMes, i));
   var data = meses.map(function(m){
@@ -302,7 +290,7 @@ window.renderResumo = function(){
       '<div class="top-cat-bar"><div class="top-cat-fill" style="width:' + (t[1] / maxC) * 100 + '%"></div></div></div>';
   }).join('') : '<p style="color:var(--tx3)">Sem despesas</p>';
 
-  // ===== ARMAZENAR DADOS PARA MODAIS =====
+  // ===== DADOS PARA MODAIS =====
   window._resData = {
     recItems: recItems, despItems: despItems,
     recConfItems: recConfItems, recPendItems: recPendItems,
@@ -331,7 +319,6 @@ window._resShowFatura = function(){
   if(!fatItens.length){
     h = '<div class="res-det-empty">Nenhuma compra no cart\u00e3o neste m\u00eas.</div>';
   } else {
-    // Agrupar por cartão
     var porCartao = {};
     fatItens.forEach(function(i){
       var nome = i.cartao || 'Sem cart\u00e3o';
@@ -361,5 +348,5 @@ window._resShowFatura = function(){
   openM('modalResDet');
 };
 
-console.log('[Financeiro Pro] Resumo Enhanced v1 \u2014 Despesas pagas/pendentes, Receitas confirmadas/pendentes, Fatura cart\u00e3o.');
+console.log('[Financeiro Pro] Resumo Enhanced v2 \u2014 Contratos rec/desp separados, vari\u00e1veis corrigidas.');
 })();
