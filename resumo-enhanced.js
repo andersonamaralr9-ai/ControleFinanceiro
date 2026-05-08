@@ -1,15 +1,11 @@
-// resumo-enhanced.js v6 — Mobile: layout lista compacta tipo app bancário
+// resumo-enhanced.js v6.1 — Fix: gráfico mobile não cobre rótulos
 (function(){
 'use strict';
 
-// ================================================================
-// CSS
-// ================================================================
 var sty = document.createElement('style');
 sty.textContent = `
-/* ─── RESUMO ENHANCED v6 ─── */
+/* ─── RESUMO ENHANCED v6.1 ─── */
 
-/* Reset container — anula o .cards do index.html */
 #resumoCards.cards {
   display: block !important;
   grid-template-columns: none !important;
@@ -18,7 +14,6 @@ sty.textContent = `
   margin-top: 0 !important;
 }
 
-/* ═══ WRAPPER ═══ */
 #resWrap { width: 100%; }
 
 /* ═══ QUICK ACTIONS ═══ */
@@ -62,12 +57,9 @@ sty.textContent = `
 .rd-tot { display: flex; justify-content: space-between; padding: 12px; font-weight: 700; font-size: .95em; border-top: 2px solid var(--bg4); margin-top: 4px; }
 .rd-empty { text-align: center; padding: 30px; color: var(--tx3); font-size: .88em; }
 
-/* ═══════════════════════════════ */
 /* ═══ MOBILE — LISTA COMPACTA ═══ */
-/* ═══════════════════════════════ */
 @media (max-width: 768px) {
 
-  /* Reset absoluto do container */
   #resumoCards.cards {
     display: block !important;
     grid-template-columns: none !important;
@@ -75,10 +67,8 @@ sty.textContent = `
     padding: 0 !important;
   }
 
-  /* Esconder desktop grids */
   .rg-main, .rg-sec { display: none !important; }
 
-  /* Quick actions — scroll horizontal minúsculo */
   .rq-row {
     flex-wrap: nowrap !important;
     overflow-x: auto;
@@ -91,7 +81,6 @@ sty.textContent = `
   .rq-row::-webkit-scrollbar { display: none; }
   .rq-btn { flex-shrink: 0; padding: 4px 8px; font-size: .62em; border-radius: 6px; }
 
-  /* ─── Mobile list ─── */
   .rm-list {
     display: flex !important;
     flex-direction: column;
@@ -103,7 +92,6 @@ sty.textContent = `
     margin-bottom: 10px;
   }
 
-  /* Linha individual */
   .rm-ln {
     display: flex;
     align-items: center;
@@ -116,69 +104,95 @@ sty.textContent = `
   }
   .rm-ln:last-child { border-bottom: none; }
   .rm-ln:active { background: var(--bg3); }
-
-  /* Ícone */
   .rm-ic { font-size: .9em; flex-shrink: 0; width: 20px; text-align: center; }
-
-  /* Label */
   .rm-lb { font-size: .68em; color: var(--tx2); flex: 1; min-width: 0; font-weight: 600; }
-
-  /* Valor principal */
   .rm-vl { font-size: .78em; font-weight: 700; text-align: right; white-space: nowrap; }
-
-  /* Sub-info (badge ou texto menor) */
   .rm-sub { font-size: .5em; color: var(--tx3); display: flex; gap: 4px; align-items: center; margin-left: 4px; flex-shrink: 0; }
   .rm-sub .rm-b { padding: 1px 4px; border-radius: 4px; font-weight: 700; font-size: .9em; }
   .rm-sub .rm-b.g { background: rgba(0,206,201,.15); color: var(--ok); }
   .rm-sub .rm-b.y { background: rgba(253,203,110,.15); color: var(--wn); }
-
-  /* Saldo destaque */
   .rm-sal { background: var(--bg3); padding: 10px; }
   .rm-sal .rm-vl { font-size: .95em; }
-
-  /* Seção header */
   .rm-sh { padding: 6px 10px; font-size: .5em; color: var(--tx3); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; background: var(--bg3); }
 
-  /* ─── Gráficos mobile ─── */
+  /* ═══ GRÁFICOS MOBILE — FIX PRINCIPAL ═══ */
   .chart-row {
     grid-template-columns: 1fr !important;
     gap: 8px !important;
     margin-bottom: 10px !important;
   }
   .chart-box {
-    padding: 8px !important;
-    overflow: hidden !important;
+    padding: 10px 8px !important;
+    overflow: visible !important;
   }
   .chart-box h3 {
-    font-size: .68em !important;
-    margin-bottom: 6px !important;
+    font-size: .72em !important;
+    margin-bottom: 8px !important;
   }
 
-  /* Barras */
+  /* Container do gráfico de barras — NÃO usar height fixa.
+     Usar min-height + overflow visible para que barras + rótulos caibam */
   .bar-chart {
-    height: 90px !important;
-    gap: 2px !important;
-    overflow: hidden !important;
+    height: auto !important;
+    min-height: 120px !important;
+    gap: 4px !important;
+    overflow: visible !important;
+    align-items: flex-end !important;
+    padding-top: 22px !important;
+    padding-bottom: 0 !important;
+    position: relative !important;
   }
-  .bar-group { min-width: 0 !important; }
+
+  .bar-group {
+    min-width: 0 !important;
+    overflow: visible !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+
+  /* Rótulos de valor ACIMA das barras */
   .bar-top-val {
-    font-size: .38em !important;
-    min-height: auto !important;
-    margin-bottom: 1px !important;
-    line-height: 1 !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
+    font-size: .45em !important;
+    min-height: 12px !important;
+    margin-bottom: 2px !important;
+    line-height: 1.2 !important;
+    overflow: visible !important;
     white-space: nowrap !important;
+    text-align: center !important;
   }
-  .bar-bars { gap: 1px !important; }
-  .bar { max-width: 14px !important; }
-  .bar-bottom { margin-top: 2px !important; }
-  .bar-label { font-size: .42em !important; }
+
+  /* Área das barras — flex grow para ocupar o espaço disponível */
+  .bar-bars {
+    gap: 2px !important;
+    align-items: flex-end !important;
+    min-height: 60px !important;
+    flex: 1 !important;
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  .bar {
+    max-width: 16px !important;
+    border-radius: 3px 3px 0 0 !important;
+  }
+
+  /* Rótulo do mês ABAIXO das barras — sempre visível */
+  .bar-bottom {
+    margin-top: 4px !important;
+    overflow: visible !important;
+  }
+  .bar-label {
+    font-size: .5em !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
+    line-height: 1.2 !important;
+  }
 
   /* Top categorias */
-  .top-cat-item { margin-bottom: 5px !important; }
-  .top-cat-hdr { font-size: .65em !important; }
-  .top-cat-bar { height: 4px !important; }
+  .top-cat-item { margin-bottom: 6px !important; }
+  .top-cat-hdr { font-size: .7em !important; }
+  .top-cat-bar { height: 5px !important; }
 }
 
 /* Desktop: esconder mobile list */
@@ -188,9 +202,9 @@ sty.textContent = `
   .rm-vl { font-size: .7em; }
   .rm-lb { font-size: .62em; }
   .rq-btn { font-size: .56em; padding: 3px 6px; }
-  .bar-chart { height: 70px !important; }
-  .bar-top-val { font-size: .34em !important; }
-  .bar-label { font-size: .38em !important; }
+  .bar-top-val { font-size: .4em !important; }
+  .bar-label { font-size: .45em !important; }
+  .bar-bars { min-height: 45px !important; }
 }
 `;
 document.head.appendChild(sty);
@@ -239,7 +253,6 @@ window.renderResumo = function() {
   g('mesLabel').textContent = mesNomeFull(curMes);
   var E = allEntries(curMes), chk = ck(curMes);
 
-  // Cálculos
   var rec = 0, desp = 0, rcf = 0, rpn = 0, dcf = 0, dpn = 0, rcn = 0, rpnn = 0, dcn = 0, dpnn = 0;
   var rI = [], dI = [];
   E.forEach(function(e) {
@@ -260,7 +273,6 @@ window.renderResumo = function() {
   var aA = S.assinaturas.filter(function(s) { return !s.encerradaEm; }).length, aT = 0;
   E.forEach(function(e) { if (e.origem && e.origem.indexOf('Assinatura') === 0) aT += e.valor; });
 
-  // ═══ BUILD HTML ═══
   var h = '<div id="resWrap">';
 
   // Quick actions
@@ -272,118 +284,58 @@ window.renderResumo = function() {
 
   // ─── DESKTOP GRID: Main ───
   h += '<div class="rg-main">';
-  // Receitas
   h += '<div class="rc6 t-rec clk" onclick="window._resRec()">';
   h += '<div class="rc6-lbl"><span class="rc6-ico">&#128200;</span>Receitas</div>';
   h += '<div class="rc6-val" style="color:var(--ok)">' + fmtV(rec) + '</div>';
   h += '<div class="rc6-row"><span class="rc6-rl">Recebido</span><span class="rc6-rv" style="color:var(--ok)">' + fc(rcf) + ' <span class="rc6-bdg g">' + rcn + '</span></span></div>';
   h += '<div class="rc6-row"><span class="rc6-rl">Pendente</span><span class="rc6-rv" style="color:var(--wn)">' + fc(rpn) + ' <span class="rc6-bdg y">' + rpnn + '</span></span></div>';
   h += '</div>';
-  // Despesas
   h += '<div class="rc6 t-desp clk" onclick="window._resDesp()">';
   h += '<div class="rc6-lbl"><span class="rc6-ico">&#128201;</span>Despesas</div>';
   h += '<div class="rc6-val" style="color:var(--dn2)">' + fmtV(desp) + '</div>';
   h += '<div class="rc6-row"><span class="rc6-rl">Pagas</span><span class="rc6-rv" style="color:var(--ok)">' + fc(dcf) + ' <span class="rc6-bdg g">' + dcn + '</span></span></div>';
   h += '<div class="rc6-row"><span class="rc6-rl">Pendentes</span><span class="rc6-rv" style="color:var(--wn)">' + fc(dpn) + ' <span class="rc6-bdg y">' + dpnn + '</span></span></div>';
   h += '</div>';
-  // Saldo
   h += '<div class="rc6 t-sal">';
   h += '<div class="rc6-lbl"><span class="rc6-ico">&#128176;</span>Saldo</div>';
   h += '<div class="rc6-val" style="color:' + (sal >= 0 ? 'var(--inf2)' : 'var(--dn2)') + '">' + fmtV(sal) + '</div>';
   h += '</div>';
-  h += '</div>'; // rg-main
+  h += '</div>';
 
   // ─── DESKTOP GRID: Sec ───
   h += '<div class="rg-sec">';
-  // Fatura
   h += '<div class="rc6 t-cc clk" onclick="window._resFat()">';
   h += '<div class="rc6-lbl"><span class="rc6-ico">&#128179;</span>Fatura Cart\u00e3o</div>';
   h += '<div class="rc6-val" style="color:#e65100">' + fmtV(fT) + '</div>';
   h += '</div>';
-  // Contratos
   h += '<div class="rc6 t-cont clk" onclick="nav(\'contratos\')">';
   h += '<div class="rc6-lbl"><span class="rc6-ico">&#128196;</span>Contratos</div>';
   h += '<div class="rc6-val" style="color:var(--pri2)">' + cA + ' <small style="font-size:.55em;font-weight:400">ativos</small></div>';
   h += '</div>';
-  // Assinaturas
   h += '<div class="rc6 t-ass clk" onclick="nav(\'assinaturas\')">';
   h += '<div class="rc6-lbl"><span class="rc6-ico">&#128257;</span>Assinaturas</div>';
   h += '<div class="rc6-val" style="color:var(--wn)">' + aA + ' <small style="font-size:.55em;font-weight:400">ativas</small></div>';
   h += '</div>';
-  h += '</div>'; // rg-sec
+  h += '</div>';
 
-  // ─── MOBILE LIST (hidden on desktop) ───
+  // ─── MOBILE LIST ───
   h += '<div class="rm-list">';
-  // Seção Principal
   h += '<div class="rm-sh">Principal</div>';
-  // Receitas
-  h += '<div class="rm-ln" onclick="window._resRec()">';
-  h += '<span class="rm-ic">&#128200;</span>';
-  h += '<span class="rm-lb">Receitas</span>';
-  h += '<span class="rm-vl" style="color:var(--ok)">' + fc(rec) + '</span>';
-  h += '<span class="rm-sub"><span class="rm-b g">' + rcn + '</span><span class="rm-b y">' + rpnn + '</span></span>';
-  h += '</div>';
-  // Despesas
-  h += '<div class="rm-ln" onclick="window._resDesp()">';
-  h += '<span class="rm-ic">&#128201;</span>';
-  h += '<span class="rm-lb">Despesas</span>';
-  h += '<span class="rm-vl" style="color:var(--dn2)">' + fc(desp) + '</span>';
-  h += '<span class="rm-sub"><span class="rm-b g">' + dcn + '</span><span class="rm-b y">' + dpnn + '</span></span>';
-  h += '</div>';
-  // Saldo
-  h += '<div class="rm-ln rm-sal">';
-  h += '<span class="rm-ic">&#128176;</span>';
-  h += '<span class="rm-lb">Saldo</span>';
-  h += '<span class="rm-vl" style="color:' + (sal >= 0 ? 'var(--inf2)' : 'var(--dn2)') + '">' + fc(sal) + '</span>';
-  h += '</div>';
-
-  // Seção Secundária
+  h += '<div class="rm-ln" onclick="window._resRec()"><span class="rm-ic">&#128200;</span><span class="rm-lb">Receitas</span><span class="rm-vl" style="color:var(--ok)">' + fc(rec) + '</span><span class="rm-sub"><span class="rm-b g">' + rcn + '</span><span class="rm-b y">' + rpnn + '</span></span></div>';
+  h += '<div class="rm-ln" onclick="window._resDesp()"><span class="rm-ic">&#128201;</span><span class="rm-lb">Despesas</span><span class="rm-vl" style="color:var(--dn2)">' + fc(desp) + '</span><span class="rm-sub"><span class="rm-b g">' + dcn + '</span><span class="rm-b y">' + dpnn + '</span></span></div>';
+  h += '<div class="rm-ln rm-sal"><span class="rm-ic">&#128176;</span><span class="rm-lb">Saldo</span><span class="rm-vl" style="color:' + (sal >= 0 ? 'var(--inf2)' : 'var(--dn2)') + '">' + fc(sal) + '</span></div>';
   h += '<div class="rm-sh">Detalhes</div>';
-  // Fatura
-  h += '<div class="rm-ln" onclick="window._resFat()">';
-  h += '<span class="rm-ic">&#128179;</span>';
-  h += '<span class="rm-lb">Fatura Cart\u00e3o</span>';
-  h += '<span class="rm-vl" style="color:#e65100">' + fc(fT) + '</span>';
-  h += '</div>';
-  // Contratos
-  h += '<div class="rm-ln" onclick="nav(\'contratos\')">';
-  h += '<span class="rm-ic">&#128196;</span>';
-  h += '<span class="rm-lb">Contratos</span>';
-  h += '<span class="rm-vl" style="color:var(--pri2)">' + cA + '</span>';
-  h += '</div>';
-  // Assinaturas
-  h += '<div class="rm-ln" onclick="nav(\'assinaturas\')">';
-  h += '<span class="rm-ic">&#128257;</span>';
-  h += '<span class="rm-lb">Assinaturas</span>';
-  h += '<span class="rm-vl" style="color:var(--wn)">' + fc(aT) + '</span>';
-  h += '</div>';
-
-  // Recebido / Pendente breakdown
+  h += '<div class="rm-ln" onclick="window._resFat()"><span class="rm-ic">&#128179;</span><span class="rm-lb">Fatura Cart\u00e3o</span><span class="rm-vl" style="color:#e65100">' + fc(fT) + '</span></div>';
+  h += '<div class="rm-ln" onclick="nav(\'contratos\')"><span class="rm-ic">&#128196;</span><span class="rm-lb">Contratos</span><span class="rm-vl" style="color:var(--pri2)">' + cA + '</span></div>';
+  h += '<div class="rm-ln" onclick="nav(\'assinaturas\')"><span class="rm-ic">&#128257;</span><span class="rm-lb">Assinaturas</span><span class="rm-vl" style="color:var(--wn)">' + fc(aT) + '</span></div>';
   h += '<div class="rm-sh">Status pagamentos</div>';
-  h += '<div class="rm-ln">';
-  h += '<span class="rm-ic" style="color:var(--ok)">\u2713</span>';
-  h += '<span class="rm-lb">Recebido</span>';
-  h += '<span class="rm-vl" style="color:var(--ok)">' + fc(rcf) + '</span>';
-  h += '</div>';
-  h += '<div class="rm-ln">';
-  h += '<span class="rm-ic" style="color:var(--wn)">\u23F3</span>';
-  h += '<span class="rm-lb">A receber</span>';
-  h += '<span class="rm-vl" style="color:var(--wn)">' + fc(rpn) + '</span>';
-  h += '</div>';
-  h += '<div class="rm-ln">';
-  h += '<span class="rm-ic" style="color:var(--ok)">\u2713</span>';
-  h += '<span class="rm-lb">Pago</span>';
-  h += '<span class="rm-vl" style="color:var(--ok)">' + fc(dcf) + '</span>';
-  h += '</div>';
-  h += '<div class="rm-ln">';
-  h += '<span class="rm-ic" style="color:var(--wn)">\u23F3</span>';
-  h += '<span class="rm-lb">A pagar</span>';
-  h += '<span class="rm-vl" style="color:var(--wn)">' + fc(dpn) + '</span>';
+  h += '<div class="rm-ln"><span class="rm-ic" style="color:var(--ok)">\u2713</span><span class="rm-lb">Recebido</span><span class="rm-vl" style="color:var(--ok)">' + fc(rcf) + '</span></div>';
+  h += '<div class="rm-ln"><span class="rm-ic" style="color:var(--wn)">\u23F3</span><span class="rm-lb">A receber</span><span class="rm-vl" style="color:var(--wn)">' + fc(rpn) + '</span></div>';
+  h += '<div class="rm-ln"><span class="rm-ic" style="color:var(--ok)">\u2713</span><span class="rm-lb">Pago</span><span class="rm-vl" style="color:var(--ok)">' + fc(dcf) + '</span></div>';
+  h += '<div class="rm-ln"><span class="rm-ic" style="color:var(--wn)">\u23F3</span><span class="rm-lb">A pagar</span><span class="rm-vl" style="color:var(--wn)">' + fc(dpn) + '</span></div>';
   h += '</div>';
 
-  h += '</div>'; // rm-list
-
-  h += '</div>'; // resWrap
+  h += '</div>';
 
   g('resumoCards').innerHTML = h;
 
@@ -396,14 +348,32 @@ window.renderResumo = function() {
   });
   var gM = Math.max.apply(null, dt.map(function(x) { return Math.max(x.r, x.d); }).concat([1]));
 
-  var barH = 160; // desktop
-  if (window.innerWidth <= 768) barH = 80;
-  if (window.innerWidth <= 380) barH = 60;
+  // *** FIX: altura máxima das barras proporcional ao espaço real ***
+  var isMob = window.innerWidth <= 768;
+  var maxBarPx = isMob ? 55 : 160;
+  if (window.innerWidth <= 380) maxBarPx = 40;
 
   g('barChart').innerHTML = dt.map(function(x) {
-    var rH = Math.max((x.r / gM) * barH, 3);
-    var dH = Math.max((x.d / gM) * barH, 3);
-    return '<div class="bar-group"><div class="bar-top-val g">' + fmtI(x.r) + '</div><div class="bar-top-val r">' + fmtI(x.d) + '</div><div class="bar-bars"><div class="bar rec" style="height:' + rH + 'px"></div><div class="bar desp" style="height:' + dH + 'px"></div></div><div class="bar-bottom"><div class="bar-label">' + mesNome(x.m) + '</div></div></div>';
+    var rH = Math.max(Math.round((x.r / gM) * maxBarPx), 3);
+    var dH = Math.max(Math.round((x.d / gM) * maxBarPx), 3);
+    // Mobile: formatar valores de forma mais curta
+    var rv, dv;
+    if (isMob) {
+      rv = x.r >= 1000 ? Math.round(x.r / 1000) + 'k' : Math.round(x.r);
+      dv = x.d >= 1000 ? Math.round(x.d / 1000) + 'k' : Math.round(x.d);
+    } else {
+      rv = fmtI(x.r);
+      dv = fmtI(x.d);
+    }
+    return '<div class="bar-group">' +
+      '<div class="bar-top-val g">' + rv + '</div>' +
+      '<div class="bar-top-val r">' + dv + '</div>' +
+      '<div class="bar-bars">' +
+        '<div class="bar rec" style="height:' + rH + 'px"></div>' +
+        '<div class="bar desp" style="height:' + dH + 'px"></div>' +
+      '</div>' +
+      '<div class="bar-bottom"><div class="bar-label">' + mesNome(x.m) + '</div></div>' +
+    '</div>';
   }).join('');
 
   // Top categorias
@@ -415,7 +385,6 @@ window.renderResumo = function() {
     return '<div class="top-cat-item"><div class="top-cat-hdr"><span>' + t[0] + '</span><span style="font-weight:700">' + fmtV(t[1]) + '</span></div><div class="top-cat-bar"><div class="top-cat-fill" style="width:' + (t[1] / mC) * 100 + '%"></div></div></div>';
   }).join('') : '<p style="color:var(--tx3)">Sem despesas</p>';
 
-  // Guardar dados para modais
   window._resData = { rI: rI, dI: dI, fI: fI, fT: fT };
 };
 
@@ -446,5 +415,5 @@ window._resFat = function() {
   openM('modalResDet');
 };
 
-console.log('[Financeiro Pro] Resumo Enhanced v6 \u2014 Mobile: lista compacta estilo app banc\u00e1rio.');
+console.log('[Financeiro Pro] Resumo Enhanced v6.1 \u2014 Fix gr\u00e1fico: barras n\u00e3o cobrem r\u00f3tulos.');
 })();
