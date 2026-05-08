@@ -1,9 +1,9 @@
-// checkpagamentos.js v3 — Layout duas colunas (Receitas | Despesas) + resumo expandido
+// checkpagamentos.js v4 — Mobile-first: layout compacto sem zoom
 (function(){
 'use strict';
 
 // ================================================================
-// PERSISTÊNCIA — dentro de S (sincroniza com Gist)
+// PERSISTÊNCIA
 // ================================================================
 function ensureCheckObj(){
   if(!S.checkPagamentos || typeof S.checkPagamentos !== 'object' || Array.isArray(S.checkPagamentos)){
@@ -20,7 +20,6 @@ function saveChecks(mes, checks){
   salvar();
 }
 
-// mergeState override
 var _origMerge = window.mergeState;
 if(_origMerge){
   window.mergeState = function(d){
@@ -50,90 +49,177 @@ var checkMes = mesAtual();
 // ================================================================
 var sty = document.createElement('style');
 sty.textContent = `
-/* === RESUMO: 2 linhas — quantidades + valores === */
-.check-summary-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px;}
-.check-summary-card{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);padding:14px 16px;text-align:center;box-shadow:var(--sh);}
-.check-summary-card .cs-label{font-size:.68em;text-transform:uppercase;letter-spacing:1px;color:var(--tx3);margin-bottom:4px;}
-.check-summary-card .cs-value{font-size:1.15em;font-weight:700;}
-.check-summary-divider{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
-.check-summary-group{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);padding:16px;box-shadow:var(--sh);}
-.check-summary-group h4{font-size:.78em;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--bg4);}
-.check-summary-group h4.rec-title{color:var(--ok);}
-.check-summary-group h4.desp-title{color:var(--dn2);}
+/* === CHECK PAGAMENTOS v4 === */
+
+/* Resumo: 3 cards inline */
+.ck-sum-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px;}
+.ck-sum-card{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);padding:14px 16px;text-align:center;box-shadow:var(--sh);}
+.ck-sum-card .cs-label{font-size:.68em;text-transform:uppercase;letter-spacing:1px;color:var(--tx3);margin-bottom:4px;}
+.ck-sum-card .cs-value{font-size:1.15em;font-weight:700;}
+
+/* Resumo receitas/despesas */
+.ck-sum-div{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+.ck-sum-grp{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);padding:16px;box-shadow:var(--sh);}
+.ck-sum-grp h4{font-size:.78em;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--bg4);}
+.ck-sum-grp h4.rec-t{color:var(--ok);}
+.ck-sum-grp h4.desp-t{color:var(--dn2);}
 .csg-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:.84em;}
 .csg-row .csg-label{color:var(--tx2);}
 .csg-row .csg-val{font-weight:700;}
 
-/* === PROGRESS === */
-.check-progress{background:var(--bg3);border-radius:8px;height:14px;overflow:hidden;margin-bottom:20px;position:relative;}
-.check-progress-fill{height:100%;border-radius:8px;background:var(--okG);transition:width .4s ease;}
-.check-progress-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:.68em;font-weight:700;color:var(--tx);text-shadow:0 1px 2px rgba(0,0,0,.4);}
+/* Progress */
+.ck-progress{background:var(--bg3);border-radius:8px;height:14px;overflow:hidden;margin-bottom:20px;position:relative;}
+.ck-progress-fill{height:100%;border-radius:8px;background:var(--okG);transition:width .4s ease;}
+.ck-progress-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:.68em;font-weight:700;color:var(--tx);text-shadow:0 1px 2px rgba(0,0,0,.4);}
 
-/* === SALDO === */
-.check-saldo-bar{display:flex;justify-content:center;align-items:center;gap:24px;margin-bottom:20px;padding:14px;background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);box-shadow:var(--sh);}
-.check-saldo-bar .csb-item{text-align:center;}
-.check-saldo-bar .csb-label{font-size:.68em;text-transform:uppercase;letter-spacing:1px;color:var(--tx3);margin-bottom:2px;}
-.check-saldo-bar .csb-val{font-size:1.1em;font-weight:700;}
+/* Saldo */
+.ck-saldo{display:flex;justify-content:center;align-items:center;gap:24px;margin-bottom:20px;padding:14px;background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);box-shadow:var(--sh);}
+.ck-saldo .csb-item{text-align:center;}
+.ck-saldo .csb-label{font-size:.68em;text-transform:uppercase;letter-spacing:1px;color:var(--tx3);margin-bottom:2px;}
+.ck-saldo .csb-val{font-size:1.1em;font-weight:700;}
 
-/* === AÇÕES E FILTROS === */
-.check-actions-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
-.check-filter-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center;}
-.check-filter-bar .form-control{max-width:180px;}
-.check-filter-bar .filter-count{font-size:.78em;color:var(--tx3);margin-left:auto;}
+/* Ações e Filtros */
+.ck-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+.ck-filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center;}
+.ck-filters .form-control{max-width:180px;}
+.ck-filters .filter-count{font-size:.78em;color:var(--tx3);margin-left:auto;}
 
-/* === DUAS COLUNAS === */
-.check-columns{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
-.check-col-header{font-size:.9em;font-weight:700;padding:12px 16px;border-radius:var(--rad);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;}
-.check-col-header.rec{background:rgba(0,206,201,.08);border:1px solid rgba(0,206,201,.2);color:var(--ok);}
-.check-col-header.desp{background:rgba(214,48,49,.08);border:1px solid rgba(214,48,49,.2);color:var(--dn2);}
+/* Duas colunas */
+.ck-columns{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.ck-col-hdr{font-size:.9em;font-weight:700;padding:12px 16px;border-radius:var(--rad);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;}
+.ck-col-hdr.rec{background:rgba(0,206,201,.08);border:1px solid rgba(0,206,201,.2);color:var(--ok);}
+.ck-col-hdr.desp{background:rgba(214,48,49,.08);border:1px solid rgba(214,48,49,.2);color:var(--dn2);}
 
-.check-section{margin-bottom:16px;}
-.check-section-title{font-size:.82em;font-weight:700;padding:8px 14px;background:var(--bg3);border-radius:var(--rad) var(--rad) 0 0;color:var(--tx2);border:1px solid var(--bg4);border-bottom:none;display:flex;justify-content:space-between;align-items:center;}
-.check-section-total{font-weight:700;color:var(--pri2);font-size:.85em;}
+.ck-section{margin-bottom:16px;}
+.ck-sec-title{font-size:.82em;font-weight:700;padding:8px 14px;background:var(--bg3);border-radius:var(--rad) var(--rad) 0 0;color:var(--tx2);border:1px solid var(--bg4);border-bottom:none;display:flex;justify-content:space-between;align-items:center;}
+.ck-sec-total{font-weight:700;color:var(--pri2);font-size:.85em;}
 
-.check-list{background:var(--bg2);border:1px solid var(--bg4);border-radius:0 0 var(--rad) var(--rad);overflow:hidden;box-shadow:var(--sh);}
+.ck-list{background:var(--bg2);border:1px solid var(--bg4);border-radius:0 0 var(--rad) var(--rad);overflow:hidden;box-shadow:var(--sh);}
 
-.check-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--bg3);transition:background .15s,opacity .15s;cursor:pointer;-webkit-user-select:none;user-select:none;}
-.check-item:last-child{border-bottom:none;}
-.check-item:hover{background:var(--bg3);}
-.check-item.checked{opacity:.55;}
-.check-item.checked .check-desc{text-decoration:line-through;color:var(--tx3);}
-.check-item.checked .check-valor{text-decoration:line-through;}
-
-.check-box{width:20px;height:20px;border-radius:6px;border:2px solid var(--bg4);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;font-size:.72em;color:transparent;}
-.check-item.checked .check-box{background:var(--ok);border-color:var(--ok);color:#fff;}
-
-.check-info{flex:1;min-width:0;}
-.check-desc{font-size:.84em;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.check-detail{font-size:.68em;color:var(--tx3);margin-top:2px;}
-
-.check-valor{font-weight:700;font-size:.85em;text-align:right;white-space:nowrap;min-width:80px;}
-.check-valor.rec{color:var(--ok);}
-.check-valor.desp{color:var(--dn2);}
-
-.check-origem{font-size:.64em;padding:2px 7px;border-radius:10px;white-space:nowrap;flex-shrink:0;}
-.check-origem.contrato{background:rgba(108,92,231,.15);color:var(--pri2);}
-.check-origem.assinatura{background:rgba(253,203,110,.15);color:var(--wn);}
-.check-origem.lancamento{background:rgba(9,132,227,.15);color:var(--inf2);}
-.check-origem.cartao{background:rgba(230,81,0,.12);color:#e65100;}
-
-.check-empty{padding:30px;text-align:center;color:var(--tx3);font-size:.85em;}
-
-@media(max-width:768px){
-  .check-columns{grid-template-columns:1fr;}
-  .check-summary-row{grid-template-columns:1fr 1fr 1fr;}
-  .check-summary-divider{grid-template-columns:1fr;}
-  .check-item{padding:9px 10px;gap:8px;}
-  .check-desc{font-size:.78em;}
-  .check-valor{font-size:.78em;min-width:65px;}
-  .check-origem{font-size:.58em;padding:2px 5px;}
-  .check-filter-bar{flex-direction:column;align-items:stretch;}
-  .check-filter-bar .form-control{max-width:100%;}
-  .check-filter-bar .filter-count{margin-left:0;text-align:center;}
-  .check-saldo-bar{flex-direction:column;gap:10px;}
+/* ═══ ITEM — layout que NÃO estoura no mobile ═══ */
+.ck-item{
+  display:grid;
+  grid-template-columns:24px 1fr auto;
+  grid-template-rows:auto auto;
+  gap:0 8px;
+  padding:10px 14px;
+  border-bottom:1px solid var(--bg3);
+  cursor:pointer;
+  -webkit-user-select:none;user-select:none;
+  transition:background .15s,opacity .15s;
+  align-items:center;
 }
+.ck-item:last-child{border-bottom:none;}
+.ck-item:hover{background:var(--bg3);}
+.ck-item.checked{opacity:.55;}
+.ck-item.checked .ck-desc{text-decoration:line-through;color:var(--tx3);}
+.ck-item.checked .ck-val{text-decoration:line-through;}
+
+/* Checkbox — col 1, row 1-2 */
+.ck-box{
+  grid-column:1;grid-row:1/3;
+  width:20px;height:20px;border-radius:6px;border:2px solid var(--bg4);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  transition:all .2s;font-size:.72em;color:transparent;
+  align-self:center;
+}
+.ck-item.checked .ck-box{background:var(--ok);border-color:var(--ok);color:#fff;}
+
+/* Linha 1: descrição + valor */
+.ck-desc{
+  grid-column:2;grid-row:1;
+  font-size:.84em;font-weight:600;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  min-width:0;
+}
+.ck-val{
+  grid-column:3;grid-row:1;
+  font-weight:700;font-size:.85em;text-align:right;white-space:nowrap;
+}
+.ck-val.rec{color:var(--ok);}
+.ck-val.desp{color:var(--dn2);}
+
+/* Linha 2: meta (categoria, data, origem) */
+.ck-meta{
+  grid-column:2/4;grid-row:2;
+  display:flex;align-items:center;gap:6px;
+  font-size:.66em;color:var(--tx3);margin-top:1px;
+  flex-wrap:wrap;
+  min-width:0;
+}
+.ck-origem{
+  padding:1px 6px;border-radius:8px;white-space:nowrap;flex-shrink:0;font-size:.92em;
+}
+.ck-origem.contrato{background:rgba(108,92,231,.15);color:var(--pri2);}
+.ck-origem.assinatura{background:rgba(253,203,110,.15);color:var(--wn);}
+.ck-origem.lancamento{background:rgba(9,132,227,.15);color:var(--inf2);}
+.ck-origem.cartao{background:rgba(230,81,0,.12);color:#e65100;}
+
+.ck-empty{padding:30px;text-align:center;color:var(--tx3);font-size:.85em;}
+
+/* ═══ MOBILE ═══ */
+@media(max-width:768px){
+  /* Colunas viram uma só */
+  .ck-columns{grid-template-columns:1fr !important;}
+
+  /* Summary: 3 cards mini */
+  .ck-sum-row{grid-template-columns:repeat(3,1fr);gap:6px;}
+  .ck-sum-card{padding:8px 6px;}
+  .ck-sum-card .cs-label{font-size:.55em;letter-spacing:.5px;}
+  .ck-sum-card .cs-value{font-size:.9em;}
+
+  /* Resumo rec/desp empilhado */
+  .ck-sum-div{grid-template-columns:1fr;gap:8px;margin-bottom:12px;}
+  .ck-sum-grp{padding:10px 12px;}
+  .ck-sum-grp h4{font-size:.68em;margin-bottom:6px;padding-bottom:6px;}
+  .csg-row{font-size:.75em;padding:3px 0;}
+
+  /* Progress menor */
+  .ck-progress{height:12px;margin-bottom:12px;}
+  .ck-progress-text{font-size:.6em;}
+
+  /* Saldo compacto */
+  .ck-saldo{flex-direction:row;gap:16px;padding:10px;margin-bottom:12px;}
+  .ck-saldo .csb-label{font-size:.58em;}
+  .ck-saldo .csb-val{font-size:.85em;}
+
+  /* Ações */
+  .ck-actions .btn{font-size:.7em;padding:6px 10px;}
+
+  /* Filtros */
+  .ck-filters{flex-direction:column;align-items:stretch;gap:6px;}
+  .ck-filters .form-control{max-width:100%;font-size:.82em;padding:8px 10px;}
+  .ck-filters .filter-count{margin-left:0;text-align:center;font-size:.7em;}
+
+  /* Col header */
+  .ck-col-hdr{font-size:.75em;padding:8px 10px;margin-bottom:8px;flex-wrap:wrap;gap:4px;}
+
+  /* Seção */
+  .ck-sec-title{font-size:.72em;padding:6px 10px;}
+  .ck-sec-total{font-size:.72em;}
+
+  /* Item — mais compacto */
+  .ck-item{
+    grid-template-columns:20px 1fr auto;
+    gap:0 6px;
+    padding:8px 10px;
+  }
+  .ck-box{width:18px;height:18px;border-radius:5px;font-size:.65em;}
+  .ck-desc{font-size:.75em;}
+  .ck-val{font-size:.75em;}
+  .ck-meta{font-size:.58em;gap:4px;}
+  .ck-origem{font-size:.88em;padding:1px 5px;}
+}
+
 @media(max-width:380px){
-  .check-summary-row{grid-template-columns:1fr 1fr;}
+  .ck-sum-row{grid-template-columns:1fr 1fr 1fr;gap:4px;}
+  .ck-sum-card .cs-value{font-size:.8em;}
+  .ck-sum-card .cs-label{font-size:.5em;}
+  .ck-saldo{flex-direction:column;gap:8px;}
+  .ck-item{padding:7px 8px;gap:0 5px;}
+  .ck-desc{font-size:.7em;}
+  .ck-val{font-size:.7em;}
+  .ck-meta{font-size:.54em;}
 }
 `;
 document.head.appendChild(sty);
@@ -162,35 +248,35 @@ var pgDiv = document.createElement('div');
 pgDiv.className = 'page';
 pgDiv.id = 'pg-checkpag';
 pgDiv.innerHTML =
-  '<h2 class="page-title">&#9989; Check de Pagamentos do M\u00eas</h2>' +
+  '<h2 class="page-title">&#9989; Check de Pagamentos</h2>' +
   '<div class="month-nav">' +
     '<button class="btn btn-outline" onclick="chgCheckM(-1)">&#9664;</button>' +
     '<span class="mes-label" id="checkMesLabel"></span>' +
     '<button class="btn btn-outline" onclick="chgCheckM(1)">&#9654;</button>' +
   '</div>' +
-  '<div id="checkSummaryArea"></div>' +
-  '<div id="checkProgress"></div>' +
-  '<div id="checkSaldoBar"></div>' +
-  '<div class="check-actions-bar">' +
+  '<div id="ckSummary"></div>' +
+  '<div id="ckProgress"></div>' +
+  '<div id="ckSaldo"></div>' +
+  '<div class="ck-actions">' +
     '<button class="btn btn-sm btn-success" onclick="checkMarcarTodos()">&#9989; Marcar Todos</button>' +
     '<button class="btn btn-sm btn-outline" onclick="checkDesmarcarTodos()">Desmarcar Todos</button>' +
   '</div>' +
-  '<div class="check-filter-bar">' +
-    '<select id="checkFiltroOrigem" class="form-control" onchange="renderCheckPag()">' +
+  '<div class="ck-filters">' +
+    '<select id="ckFiltroOrigem" class="form-control" onchange="renderCheckPag()">' +
       '<option value="">Todas as origens</option>' +
       '<option value="Lan\u00e7amento">Lan\u00e7amentos</option>' +
       '<option value="Contrato">Contratos</option>' +
       '<option value="Assinatura">Assinaturas</option>' +
       '<option value="Cart\u00e3o">Cart\u00e3o</option>' +
     '</select>' +
-    '<select id="checkFiltroStatus" class="form-control" onchange="renderCheckPag()">' +
+    '<select id="ckFiltroStatus" class="form-control" onchange="renderCheckPag()">' +
       '<option value="">Todos</option>' +
       '<option value="pendente">Pendentes</option>' +
       '<option value="pago">J\u00e1 pagos</option>' +
     '</select>' +
-    '<span class="filter-count" id="checkFilterCount"></span>' +
+    '<span class="filter-count" id="ckFilterCount"></span>' +
   '</div>' +
-  '<div id="checkArea" class="check-columns"></div>';
+  '<div id="ckArea" class="ck-columns"></div>';
 mainDiv.appendChild(pgDiv);
 
 // ================================================================
@@ -255,11 +341,23 @@ function getGrupoIcon(g){
 function getGrupoLabel(g){
   if(g === 'Contrato') return 'Contratos';
   if(g === 'Assinatura') return 'Assinaturas';
-  if(g === 'Cart\u00e3o') return 'Cart\u00e3o de Cr\u00e9dito';
+  if(g === 'Cart\u00e3o') return 'Cart\u00e3o';
   return 'Lan\u00e7amentos';
 }
 
-// Renderizar uma lista de itens agrupados por origem
+// Abreviar origem para mobile
+function getOrigemCurta(entry){
+  var o = entry.origem || 'Manual';
+  if(o.length > 14 && window.innerWidth <= 768){
+    // "Assinatura - Netflix" → "Assin."
+    if(o.startsWith('Assinatura')) return 'Assin.';
+    if(o.startsWith('Cart\u00e3o')) return 'Cart\u00e3o';
+    return o.substring(0, 10) + '\u2026';
+  }
+  return o;
+}
+
+// Renderizar itens agrupados
 function renderColItems(items, checks){
   var ordemGrupos = ['Contrato', 'Assinatura', 'Cart\u00e3o', 'Lan\u00e7amento'];
   var grupos = {};
@@ -277,37 +375,34 @@ function renderColItems(items, checks){
     var grupoTotal = gItems.reduce(function(s, e){ return s + e.valor; }, 0);
     var grupoPagos = gItems.filter(function(e){ return !!checks[buildItemKey(e)]; }).length;
 
-    html += '<div class="check-section">';
-    html += '<div class="check-section-title">' +
+    html += '<div class="ck-section">';
+    html += '<div class="ck-sec-title">' +
       '<span>' + getGrupoIcon(gNome) + ' ' + getGrupoLabel(gNome) + ' (' + grupoPagos + '/' + gItems.length + ')</span>' +
-      '<span class="check-section-total">' + fmtV(grupoTotal) + '</span></div>';
-    html += '<div class="check-list">';
+      '<span class="ck-sec-total">' + fmtV(grupoTotal) + '</span></div>';
+    html += '<div class="ck-list">';
 
     gItems.forEach(function(e){
       var key = buildItemKey(e);
       var isPago = !!checks[key];
       var keyEsc = key.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;');
 
-      html += '<div class="check-item ' + (isPago ? 'checked' : '') + '" onclick="toggleCheck(\'' + keyEsc + '\')">' +
-        '<div class="check-box">' + (isPago ? '&#10003;' : '') + '</div>' +
-        '<div class="check-info">' +
-          '<div class="check-desc">' + (e.desc || '-') + '</div>' +
-          '<div class="check-detail">' + (e.cat || '') +
-            (e.data ? ' \u2022 ' + fmtD(e.data) : '') +
-            (e.obs ? ' \u2022 ' + e.obs : '') +
-          '</div>' +
+      html += '<div class="ck-item ' + (isPago ? 'checked' : '') + '" onclick="toggleCheck(\'' + keyEsc + '\')">' +
+        '<div class="ck-box">' + (isPago ? '&#10003;' : '') + '</div>' +
+        '<div class="ck-desc">' + (e.desc || '-') + '</div>' +
+        '<div class="ck-val ' + (e.tipo === 'receita' ? 'rec' : 'desp') + '">' + fmtV(e.valor) + '</div>' +
+        '<div class="ck-meta">' +
+          '<span class="ck-origem ' + getOrigemClass(getOrigemSimples(e)) + '">' + getOrigemCurta(e) + '</span>' +
+          '<span>' + (e.cat || '') + '</span>' +
+          (e.data ? '<span>' + fmtD(e.data) + '</span>' : '') +
         '</div>' +
-        '<span class="check-origem ' + getOrigemClass(getOrigemSimples(e)) + '">' + (e.origem || 'Manual') + '</span>' +
-        '<div class="check-valor ' + (e.tipo === 'receita' ? 'rec' : 'desp') + '">' +
-          fmtV(e.valor) +
-        '</div></div>';
+      '</div>';
     });
 
     html += '</div></div>';
   });
 
   if(!items.length){
-    html = '<div class="check-empty">Nenhum item</div>';
+    html = '<div class="ck-empty">Nenhum item</div>';
   }
 
   return html;
@@ -322,20 +417,17 @@ window.renderCheckPag = function(){
   var entries = allEntries(checkMes);
   var checks = loadChecks(checkMes);
 
-  // Separar receitas e despesas
   var receitas = [], despesas = [];
   entries.forEach(function(e){
     if(e.tipo === 'receita') receitas.push(e);
     else despesas.push(e);
   });
 
-  // Ordenar por valor desc
   receitas.sort(function(a,b){ return b.valor - a.valor; });
   despesas.sort(function(a,b){ return b.valor - a.valor; });
 
-  // Filtros (sem filtro de tipo — a separação em colunas já resolve)
-  var filtroOrigem = (document.getElementById('checkFiltroOrigem') || {}).value || '';
-  var filtroStatus = (document.getElementById('checkFiltroStatus') || {}).value || '';
+  var filtroOrigem = (document.getElementById('ckFiltroOrigem') || {}).value || '';
+  var filtroStatus = (document.getElementById('ckFiltroStatus') || {}).value || '';
 
   function applyFilter(list){
     return list.filter(function(e){
@@ -352,7 +444,7 @@ window.renderCheckPag = function(){
   var filteredRec = applyFilter(receitas);
   var filteredDesp = applyFilter(despesas);
 
-  // Estatísticas (sobre TODOS, não filtrados)
+  // Estatísticas globais
   var totalRec = 0, totalDesp = 0;
   var pagosRec = 0, pagosDesp = 0;
   var pagosCountRec = 0, pagosCountDesp = 0;
@@ -370,51 +462,43 @@ window.renderCheckPag = function(){
   var pagosCount = pagosCountRec + pagosCountDesp;
   var pct = totalCount ? Math.round(pagosCount / totalCount * 100) : 0;
 
-  // ===== RESUMO: Quantidades + Valores em duas seções =====
-  var summaryHtml =
-    // Linha 1: Quantidades
-    '<div class="check-summary-row">' +
-      '<div class="check-summary-card"><div class="cs-label">Total Itens</div><div class="cs-value" style="color:var(--pri2)">' + totalCount + '</div></div>' +
-      '<div class="check-summary-card"><div class="cs-label">Validados</div><div class="cs-value" style="color:var(--ok)">' + pagosCount + '</div></div>' +
-      '<div class="check-summary-card"><div class="cs-label">Pendentes</div><div class="cs-value" style="color:' + ((totalCount - pagosCount) > 0 ? 'var(--dn2)' : 'var(--ok)') + '">' + (totalCount - pagosCount) + '</div></div>' +
+  // Summary
+  document.getElementById('ckSummary').innerHTML =
+    '<div class="ck-sum-row">' +
+      '<div class="ck-sum-card"><div class="cs-label">Total</div><div class="cs-value" style="color:var(--pri2)">' + totalCount + '</div></div>' +
+      '<div class="ck-sum-card"><div class="cs-label">Validados</div><div class="cs-value" style="color:var(--ok)">' + pagosCount + '</div></div>' +
+      '<div class="ck-sum-card"><div class="cs-label">Pendentes</div><div class="cs-value" style="color:' + ((totalCount - pagosCount) > 0 ? 'var(--dn2)' : 'var(--ok)') + '">' + (totalCount - pagosCount) + '</div></div>' +
     '</div>' +
-    // Linha 2: Receitas x Despesas lado a lado
-    '<div class="check-summary-divider">' +
-      // Coluna Receitas
-      '<div class="check-summary-group">' +
-        '<h4 class="rec-title">&#128200; Receitas (' + receitas.length + ' itens)</h4>' +
+    '<div class="ck-sum-div">' +
+      '<div class="ck-sum-grp"><h4 class="rec-t">&#128200; Receitas (' + receitas.length + ')</h4>' +
         '<div class="csg-row"><span class="csg-label">Total</span><span class="csg-val" style="color:var(--ok)">' + fmtV(totalRec) + '</span></div>' +
         '<div class="csg-row"><span class="csg-label">Confirmadas</span><span class="csg-val" style="color:var(--ok)">' + fmtV(pagosRec) + '</span></div>' +
         '<div class="csg-row"><span class="csg-label">Pendentes</span><span class="csg-val" style="color:' + ((totalRec - pagosRec) > 0 ? 'var(--wn)' : 'var(--ok)') + '">' + fmtV(totalRec - pagosRec) + '</span></div>' +
       '</div>' +
-      // Coluna Despesas
-      '<div class="check-summary-group">' +
-        '<h4 class="desp-title">&#128201; Despesas (' + despesas.length + ' itens)</h4>' +
+      '<div class="ck-sum-grp"><h4 class="desp-t">&#128201; Despesas (' + despesas.length + ')</h4>' +
         '<div class="csg-row"><span class="csg-label">Total</span><span class="csg-val" style="color:var(--dn2)">' + fmtV(totalDesp) + '</span></div>' +
         '<div class="csg-row"><span class="csg-label">Pagas</span><span class="csg-val" style="color:var(--dn2)">' + fmtV(pagosDesp) + '</span></div>' +
         '<div class="csg-row"><span class="csg-label">Pendentes</span><span class="csg-val" style="color:' + ((totalDesp - pagosDesp) > 0 ? 'var(--wn)' : 'var(--ok)') + '">' + fmtV(totalDesp - pagosDesp) + '</span></div>' +
       '</div>' +
     '</div>';
 
-  document.getElementById('checkSummaryArea').innerHTML = summaryHtml;
-
-  // Barra de progresso
-  document.getElementById('checkProgress').innerHTML =
-    '<div class="check-progress">' +
-      '<div class="check-progress-fill" style="width:' + pct + '%;' + (pct === 100 ? 'background:var(--ok)' : '') + '"></div>' +
-      '<div class="check-progress-text">' + pct + '% conclu\u00eddo (' + pagosCount + '/' + totalCount + ')</div>' +
+  // Progress
+  document.getElementById('ckProgress').innerHTML =
+    '<div class="ck-progress">' +
+      '<div class="ck-progress-fill" style="width:' + pct + '%;' + (pct === 100 ? 'background:var(--ok)' : '') + '"></div>' +
+      '<div class="ck-progress-text">' + pct + '% (' + pagosCount + '/' + totalCount + ')</div>' +
     '</div>';
 
-  // Barra de saldo
+  // Saldo
   var saldo = totalRec - totalDesp;
   var saldoConf = pagosRec - pagosDesp;
-  document.getElementById('checkSaldoBar').innerHTML =
-    '<div class="check-saldo-bar">' +
+  document.getElementById('ckSaldo').innerHTML =
+    '<div class="ck-saldo">' +
       '<div class="csb-item"><div class="csb-label">Saldo Previsto</div><div class="csb-val" style="color:' + (saldo >= 0 ? 'var(--ok)' : 'var(--dn2)') + '">' + fmtV(saldo) + '</div></div>' +
       '<div class="csb-item"><div class="csb-label">Saldo Confirmado</div><div class="csb-val" style="color:' + (saldoConf >= 0 ? 'var(--ok)' : 'var(--dn2)') + '">' + fmtV(saldoConf) + '</div></div>' +
     '</div>';
 
-  // ===== DUAS COLUNAS: Receitas | Despesas =====
+  // Colunas
   var recCount = filteredRec.length;
   var despCount = filteredDesp.length;
   var recPagos = filteredRec.filter(function(e){ return !!checks[buildItemKey(e)]; }).length;
@@ -422,28 +506,17 @@ window.renderCheckPag = function(){
   var recTotal = filteredRec.reduce(function(s,e){ return s+e.valor; },0);
   var despTotal = filteredDesp.reduce(function(s,e){ return s+e.valor; },0);
 
-  var colHtml =
-    // Coluna Receitas
-    '<div class="check-col">' +
-      '<div class="check-col-header rec">' +
-        '<span>&#128200; Receitas (' + recPagos + '/' + recCount + ')</span>' +
-        '<span>' + fmtV(recTotal) + '</span>' +
-      '</div>' +
+  document.getElementById('ckArea').innerHTML =
+    '<div class="ck-col">' +
+      '<div class="ck-col-hdr rec"><span>&#128200; Receitas (' + recPagos + '/' + recCount + ')</span><span>' + fmtV(recTotal) + '</span></div>' +
       renderColItems(filteredRec, checks) +
     '</div>' +
-    // Coluna Despesas
-    '<div class="check-col">' +
-      '<div class="check-col-header desp">' +
-        '<span>&#128201; Despesas (' + despPagos + '/' + despCount + ')</span>' +
-        '<span>' + fmtV(despTotal) + '</span>' +
-      '</div>' +
+    '<div class="ck-col">' +
+      '<div class="ck-col-hdr desp"><span>&#128201; Despesas (' + despPagos + '/' + despCount + ')</span><span>' + fmtV(despTotal) + '</span></div>' +
       renderColItems(filteredDesp, checks) +
     '</div>';
 
-  document.getElementById('checkArea').innerHTML = colHtml;
-
-  // Filter count
-  var fc = document.getElementById('checkFilterCount');
+  var fc = document.getElementById('ckFilterCount');
   if(fc) fc.textContent = (recCount + despCount) + ' de ' + totalCount + ' item(ns)';
 };
 
@@ -462,5 +535,5 @@ window.nav = function(pg){
   }
 };
 
-console.log('[Financeiro Pro] Check de Pagamentos v3 (duas colunas) carregado.');
+console.log('[Financeiro Pro] Check de Pagamentos v4 — Mobile sem zoom.');
 })();
