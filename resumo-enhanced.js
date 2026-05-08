@@ -176,14 +176,23 @@ window.renderResumo = function(){
     fatPorCartao[nome] += Number(i.valor) || 0;
   });
 
-  // ===== CONTRATOS / ASSINATURAS =====
-  var contAtivos = S.contratos.filter(function(c){ return !c.encerradoEm; }).length;
-  var assAtivas = S.assinaturas.filter(function(s){ return !s.encerradaEm; }).length;
+    // Card Contratos — separar receita e despesa
+  var contRecMes = 0, contDespMes = 0;
+  E.forEach(function(e){
+    if(e.origem === 'Contrato'){
+      if(e.tipo === 'receita') contRecMes += e.valor;
+      else contDespMes += e.valor;
+    }
+  });
 
-  var totalContMes = 0;
-  E.forEach(function(e){ if(e.origem === 'Contrato') totalContMes += e.valor; });
-  var totalAssMes = 0;
-  E.forEach(function(e){ if(e.origem && e.origem.startsWith('Assinatura')) totalAssMes += e.valor; });
+  html += '<div class="res-card card-contrato res-clickable" onclick="nav(\'contratos\')">';
+  html += '<div class="rc-label"><span class="rc-icon">&#128196;</span>Contratos</div>';
+  html += '<div class="rc-value" style="color:var(--pri2)">' + contAtivos + ' <small style="font-size:.5em;color:var(--tx3)">ativos</small></div>';
+  if(contRecMes > 0) html += '<div class="rc-sub"><span class="rc-sub-label">Receita</span><span class="rc-sub-val" style="color:var(--ok)">' + fmtV(contRecMes) + '</span></div>';
+  if(contDespMes > 0) html += '<div class="rc-sub"><span class="rc-sub-label">Despesa</span><span class="rc-sub-val" style="color:var(--dn2)">' + fmtV(contDespMes) + '</span></div>';
+  if(!contRecMes && !contDespMes) html += '<div class="rc-sub"><span class="rc-sub-label">Total no m\u00eas</span><span class="rc-sub-val" style="color:var(--tx3)">R$ 0,00</span></div>';
+  html += '</div>';
+
 
   // ===== HTML CARDS PRINCIPAIS =====
   var html = '';
