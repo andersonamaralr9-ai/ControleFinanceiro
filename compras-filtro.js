@@ -1,4 +1,4 @@
-// compras-filtro.js v3 — Resumo no topo + Mobile friendly + Navegação de mês fixa
+// compras-filtro.js v4 — Resumo no topo, form no meio, compras embaixo
 (function(){
 'use strict';
 
@@ -7,7 +7,6 @@
 // ================================================================
 var sty = document.createElement('style');
 sty.textContent = `
-.cp-top-area{margin-bottom:16px;}
 .cp-filter-bar{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);padding:16px 20px;margin-bottom:16px;box-shadow:var(--sh);}
 .cp-filter-row{display:flex;gap:10px;flex-wrap:wrap;align-items:end;}
 .cp-filter-row .form-group{flex:1;min-width:150px;}
@@ -23,7 +22,6 @@ sty.textContent = `
 .cp-parc-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.72em;font-weight:700;}
 .cp-parc-ativa{background:rgba(0,206,201,.12);color:var(--ok);}
 .cp-parc-quitada{background:rgba(108,92,231,.12);color:var(--pri2);}
-.cp-parc-antecipada{background:rgba(253,203,110,.12);color:var(--wn);}
 .cp-highlight{background:rgba(253,203,110,.06)!important;}
 .cp-totais-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:20px;}
 .cp-total-card{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);padding:14px 18px;box-shadow:var(--sh);}
@@ -31,13 +29,9 @@ sty.textContent = `
 .cp-total-card .cp-tc-row{display:flex;justify-content:space-between;font-size:.82em;padding:3px 0;}
 .cp-total-card .cp-tc-row .cp-tc-label{color:var(--tx3);}
 .cp-total-card .cp-tc-row .cp-tc-val{font-weight:700;}
-/* NAV MÊS FIXO NO TOPO */
 .cp-mes-nav{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:14px;}
 .cp-mes-nav .cp-mes-label{font-size:1.05em;font-weight:700;min-width:160px;text-align:center;}
-
-/* MOBILE CARDS COMPRAS */
 .cp-mob-cards{display:none;}
-
 @media(max-width:768px){
   .cp-filter-row{flex-direction:column;}
   .cp-filter-row .form-group{min-width:100%;}
@@ -47,10 +41,8 @@ sty.textContent = `
   .cp-summary .card .card-value{font-size:.9em;}
   .cp-totais-grid{grid-template-columns:1fr;}
   .cp-mes-nav .cp-mes-label{font-size:.88em;min-width:120px;}
-  /* Esconder tabela desktop, mostrar cards mobile */
   .cp-section .table-wrap{display:none!important;}
   .cp-mob-cards{display:block!important;}
-  /* Card mobile compra */
   .cpm{background:var(--bg3);border-radius:10px;padding:12px;margin-bottom:8px;overflow:hidden;max-width:100%;box-sizing:border-box;}
   .cpm-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
   .cpm-desc{font-size:.85em;font-weight:600;margin-bottom:4px;word-break:break-word;}
@@ -88,25 +80,32 @@ window.renderCompras = function(){
   var mobCards = document.getElementById('comprasMobCards');
   if(mobCards) mobCards.style.display = 'none';
 
-  // Remover área dinâmica anterior
-  var existing = document.getElementById('cpDynamicArea');
-  if(existing) existing.remove();
+  // Limpar áreas anteriores
+  var oldTop = document.getElementById('cpTopArea');
+  if(oldTop) oldTop.remove();
+  var oldBottom = document.getElementById('cpBottomArea');
+  if(oldBottom) oldBottom.remove();
 
-  // ═══ CRIAR ÁREA NO TOPO (depois do título, ANTES do formulário) ═══
-  var area = document.createElement('div');
-  area.id = 'cpDynamicArea';
+  var formSection = pgEl.querySelector('.form-section');
 
-  // Nav de mês
-  var navHTML = '<div class="cp-mes-nav">' +
-    '<button class="btn btn-outline" onclick="window._cpChgMes(-1)">&#9664;</button>' +
-    '<span class="cp-mes-label" id="cpMesLabel">' + mesNomeFull(cpFiltroMes) + '</span>' +
-    '<button class="btn btn-outline" onclick="window._cpChgMes(1)">&#9654;</button>' +
-  '</div>';
+  // ═══ PARTE 1: TOPO (nav mês + resumo) — ANTES do formulário ═══
+  var topArea = document.createElement('div');
+  topArea.id = 'cpTopArea';
+  topArea.innerHTML =
+    '<div class="cp-mes-nav">' +
+      '<button class="btn btn-outline" onclick="window._cpChgMes(-1)">&#9664;</button>' +
+      '<span class="cp-mes-label" id="cpMesLabel">' + mesNomeFull(cpFiltroMes) + '</span>' +
+      '<button class="btn btn-outline" onclick="window._cpChgMes(1)">&#9654;</button>' +
+    '</div>' +
+    '<div class="cp-summary" id="cpResumoCards"></div>';
 
-  // Resumo cards
-  var resumoHTML = '<div class="cp-summary" id="cpResumoCards"></div>';
+  if(formSection){
+    pgEl.insertBefore(topArea, formSection);
+  } else {
+    pgEl.appendChild(topArea);
+  }
 
-  // Filtros
+  // ═══ PARTE 2: ABAIXO (filtros + totais + tabela) — DEPOIS do formulário ═══
   var cartOpts = '<option value="">Todos</option>';
   S.cartoes.forEach(function(c){
     cartOpts += '<option value="' + c.id + '">' + c.nome + '</option>';
@@ -116,41 +115,39 @@ window.renderCompras = function(){
     catOpts += '<option value="' + c + '">' + c + '</option>';
   });
 
-  var filterHTML = '<div class="cp-filter-bar">' +
-    '<div class="cp-filter-row">' +
-      '<div class="form-group"><label>Buscar</label>' +
-        '<input id="cpFiltroNome" class="form-control" placeholder="Pesquisar..." oninput="window._cpApplyFilter()"></div>' +
-      '<div class="form-group"><label>Cart\\u00e3o</label>' +
-        '<select id="cpFiltroCartao" class="form-control" onchange="window._cpApplyFilter()">' + cartOpts + '</select></div>' +
-      '<div class="form-group"><label>Categoria</label>' +
-        '<select id="cpFiltroCat" class="form-control" onchange="window._cpApplyFilter()">' + catOpts + '</select></div>' +
-      '<div class="form-group"><label>Status</label>' +
-        '<select id="cpFiltroStatus" class="form-control" onchange="window._cpApplyFilter()">' +
-          '<option value="">Todos</option><option value="ativa">Parcela ativa</option><option value="parcelada">Parceladas</option><option value="avista">\\u00c0 vista</option>' +
-        '</select></div>' +
-    '</div></div>';
+  var bottomArea = document.createElement('div');
+  bottomArea.id = 'cpBottomArea';
+  bottomArea.innerHTML =
+    '<div class="cp-filter-bar">' +
+      '<div class="cp-filter-row">' +
+        '<div class="form-group"><label>Buscar</label>' +
+          '<input id="cpFiltroNome" class="form-control" placeholder="Pesquisar..." oninput="window._cpApplyFilter()"></div>' +
+        '<div class="form-group"><label>Cart&atilde;o</label>' +
+          '<select id="cpFiltroCartao" class="form-control" onchange="window._cpApplyFilter()">' + cartOpts + '</select></div>' +
+        '<div class="form-group"><label>Categoria</label>' +
+          '<select id="cpFiltroCat" class="form-control" onchange="window._cpApplyFilter()">' + catOpts + '</select></div>' +
+        '<div class="form-group"><label>Status</label>' +
+          '<select id="cpFiltroStatus" class="form-control" onchange="window._cpApplyFilter()">' +
+            '<option value="">Todos</option><option value="ativa">Parcela ativa</option><option value="parcelada">Parceladas</option><option value="avista">&Agrave; vista</option>' +
+          '</select></div>' +
+      '</div></div>' +
+    '<div class="cp-totais-grid" id="cpTotaisGrid"></div>' +
+    '<div class="cp-section">' +
+      '<h3>&#128722; Compras da Compet&ecirc;ncia <span class="cp-count" id="cpResultCount">0</span></h3>' +
+      '<div class="table-wrap"><table class="cp-table"><thead><tr>' +
+        '<th>Data</th><th>Cart&atilde;o</th><th>Descri&ccedil;&atilde;o</th><th>Categoria</th>' +
+        '<th>Total</th><th>Parcela</th><th>Valor Parc.</th><th>Status</th><th>A&ccedil;&otilde;es</th>' +
+      '</tr></thead><tbody id="cpTbGerencial"></tbody></table></div>' +
+      '<div class="cp-mob-cards" id="cpMobCards"></div>' +
+    '</div>';
 
-  var totaisHTML = '<div class="cp-totais-grid" id="cpTotaisGrid"></div>';
-
-  // Tabela desktop + cards mobile
-  var tabelaHTML = '<div class="cp-section">' +
-    '<h3>&#128722; Compras da Compet\\u00eancia <span class="cp-count" id="cpResultCount">0</span></h3>' +
-    '<div class="table-wrap"><table class="cp-table"><thead><tr>' +
-      '<th>Data</th><th>Cart\\u00e3o</th><th>Descri\\u00e7\\u00e3o</th><th>Categoria</th>' +
-      '<th>Total</th><th>Parcela</th><th>Valor Parc.</th><th>Status</th><th>A\\u00e7\\u00f5es</th>' +
-    '</tr></thead><tbody id="cpTbGerencial"></tbody></table></div>' +
-    '<div class="cp-mob-cards" id="cpMobCards"></div>' +
-  '</div>';
-
-  area.innerHTML = '<div class="cp-top-area">' + navHTML + resumoHTML + '</div>' +
-                   filterHTML + totaisHTML + tabelaHTML;
-
-  // ═══ INSERIR ANTES do formulário (que é o primeiro .form-section) ═══
-  var formSection = pgEl.querySelector('.form-section');
-  if(formSection){
-    pgEl.insertBefore(area, formSection);
+  // Inserir DEPOIS do formulário
+  if(formSection && formSection.nextSibling){
+    pgEl.insertBefore(bottomArea, formSection.nextSibling);
+  } else if(formSection){
+    pgEl.appendChild(bottomArea);
   } else {
-    pgEl.appendChild(area);
+    pgEl.appendChild(bottomArea);
   }
 
   _cpApplyFilter();
@@ -224,7 +221,6 @@ window._cpApplyFilter = function(){
     }
   });
 
-  // Filtros
   if(nomeLower) itens = itens.filter(function(it){ return it.desc.toLowerCase().indexOf(nomeLower) >= 0; });
   if(filtroCartao) itens = itens.filter(function(it){ return it.cartaoId === filtroCartao; });
   if(filtroCat) itens = itens.filter(function(it){ return it.cat === filtroCat; });
@@ -237,7 +233,6 @@ window._cpApplyFilter = function(){
     return b.valorParcela - a.valorParcela;
   });
 
-  // Cálculos
   var totalCompras = itens.length;
   var totalFaturaMes = itens.reduce(function(s, it){ return s + it.valorParcela; }, 0);
   var totalComprasNovas = itens.filter(function(it){ return it.isCompetenciaOriginal; }).length;
@@ -252,11 +247,11 @@ window._cpApplyFilter = function(){
   var resumoEl = document.getElementById('cpResumoCards');
   if(resumoEl){
     resumoEl.innerHTML =
-      '<div class="card"><div class="card-label">Fatura do M\u00eas</div><div class="card-value red">' + fmtV(totalFaturaMes) + '</div></div>' +
+      '<div class="card"><div class="card-label">Fatura do M&ecirc;s</div><div class="card-value red">' + fmtV(totalFaturaMes) + '</div></div>' +
       '<div class="card"><div class="card-label">Itens</div><div class="card-value blue">' + totalCompras + '</div></div>' +
       '<div class="card"><div class="card-label">Novas</div><div class="card-value purple">' + totalComprasNovas + '</div></div>' +
       '<div class="card"><div class="card-label">Parceladas</div><div class="card-value red">' + totalParceladas + '</div></div>' +
-      '<div class="card"><div class="card-label">\u00c0 Vista</div><div class="card-value green">' + totalAVista + '</div></div>' +
+      '<div class="card"><div class="card-label">&Agrave; Vista</div><div class="card-value green">' + totalAVista + '</div></div>' +
       '<div class="card"><div class="card-label">Futuro</div><div class="card-value red">' + fmtV(totalFuturo) + '</div></div>';
   }
 
@@ -282,7 +277,7 @@ window._cpApplyFilter = function(){
         totaisH += '<div class="cp-total-card">' +
           '<h4>&#128179; ' + d.nome + '</h4>' +
           '<div class="cp-tc-row"><span class="cp-tc-label">Fatura</span><span class="cp-tc-val" style="color:var(--dn2)">' + fmtV(d.fatura) + '</span></div>' +
-          (limite > 0 ? '<div class="cp-tc-row"><span class="cp-tc-label">Dispon\u00edvel</span><span class="cp-tc-val" style="color:' + (disponivel >= 0 ? 'var(--ok)' : 'var(--dn2)') + '">' + fmtV(disponivel) + '</span></div>' : '') +
+          (limite > 0 ? '<div class="cp-tc-row"><span class="cp-tc-label">Dispon&iacute;vel</span><span class="cp-tc-val" style="color:' + (disponivel >= 0 ? 'var(--ok)' : 'var(--dn2)') + '">' + fmtV(disponivel) + '</span></div>' : '') +
           '<div class="cp-tc-row"><span class="cp-tc-label">Novas</span><span class="cp-tc-val">' + d.novas + '</span></div>' +
           '<div class="cp-tc-row"><span class="cp-tc-label">Parceladas</span><span class="cp-tc-val">' + d.parc + '</span></div>' +
           '<div class="cp-tc-row"><span class="cp-tc-label">Futuro</span><span class="cp-tc-val" style="color:var(--dn2)">' + fmtV(d.futuro) + '</span></div>' +
@@ -300,13 +295,13 @@ window._cpApplyFilter = function(){
   var tbEl = document.getElementById('cpTbGerencial');
   if(tbEl){
     if(!itens.length){
-      tbEl.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--tx3);padding:30px">Nenhuma compra na compet\u00eancia.</td></tr>';
+      tbEl.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--tx3);padding:30px">Nenhuma compra na compet&ecirc;ncia.</td></tr>';
     } else {
       var h = '';
       itens.forEach(function(it){
         var idEsc = it.id.replace(/'/g, "\\'");
-        var statusBadge = !it.isParcelada ? '<span class="cp-parc-badge cp-parc-quitada">\u00c0 vista</span>'
-          : it.isUltimaParcela ? '<span class="cp-parc-badge cp-parc-quitada">\u00daltima</span>'
+        var statusBadge = !it.isParcelada ? '<span class="cp-parc-badge cp-parc-quitada">&Agrave; vista</span>'
+          : it.isUltimaParcela ? '<span class="cp-parc-badge cp-parc-quitada">&Uacute;ltima</span>'
           : '<span class="cp-parc-badge cp-parc-ativa">Ativa</span>';
         var antBadge = it.antCount > 0 ? ' <span class="badge badge-purple">&#9889; ' + it.antCount + ' ant.</span>' : '';
         var rowClass = it.isParcelada && !it.isUltimaParcela ? ' class="cp-highlight"' : '';
@@ -330,11 +325,11 @@ window._cpApplyFilter = function(){
   var mobEl = document.getElementById('cpMobCards');
   if(mobEl){
     if(!itens.length){
-      mobEl.innerHTML = '<p style="color:var(--tx3);text-align:center;padding:20px">Nenhuma compra na compet\u00eancia.</p>';
+      mobEl.innerHTML = '<p style="color:var(--tx3);text-align:center;padding:20px">Nenhuma compra na compet&ecirc;ncia.</p>';
     } else {
       mobEl.innerHTML = itens.map(function(it){
         var idEsc = it.id.replace(/'/g, "\\'");
-        var statusTxt = !it.isParcelada ? '\u00c0 vista' : it.parcelaAtual + '/' + it.parcelas;
+        var statusTxt = !it.isParcelada ? '&Agrave; vista' : it.parcelaAtual + '/' + it.parcelas;
         return '<div class="cpm">' +
           '<div class="cpm-top"><span class="cpm-date">' + fmtD(it.data) + '</span><span class="cpm-val">' + fmtV(it.valorParcela) + '</span></div>' +
           '<div class="cpm-desc">' + it.desc + '</div>' +
@@ -354,5 +349,5 @@ window._cpApplyFilter = function(){
   }
 };
 
-console.log('[Financeiro Pro] Compras Filtro v3 — Resumo no topo + Mobile cards.');
+console.log('[Financeiro Pro] Compras Filtro v4 — Resumo topo, form meio, compras abaixo.');
 })();
