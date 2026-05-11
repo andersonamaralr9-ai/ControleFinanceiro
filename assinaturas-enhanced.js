@@ -190,7 +190,7 @@ window.renderAssinaturas = function(){
       '<div class="card"><div class="card-label">Ativas</div><div class="card-value green">' + ativas + '</div></div>' +
       '<div class="card"><div class="card-label">Total Mensal</div><div class="card-value red">' + fmtV(totalValorMes) + '</div></div>' +
       '<div class="card"><div class="card-label">Encerradas</div><div class="card-value purple">' + encerradas + '</div></div>' +
-      '<div class="card"><div class="card-label">Maior Cart\\u00e3o</div><div class="card-value blue" style="font-size:.75em">' + maiorCartao + '</div></div>' +
+      '<div class="card"><div class="card-label">Maior Cart&atilde;o</div><div class="card-value blue" style="font-size:.75em">' + maiorCartao + '</div></div>' +
     '</div>';
 
   // ═══ 2. ADICIONAR BOTÃO EDITAR EM CADA ASSINATURA ═══
