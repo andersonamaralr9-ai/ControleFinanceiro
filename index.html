@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Financeiro Pro v5.9</title>
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2830/2830284.png">
+<link rel="apple-touch-icon" href="https://st3.depositphotos.com/11956860/18392/v/450/depositphotos_183927972-stock-illustration-logo-icon-communication-media-information.jpg">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <style>
@@ -230,7 +230,10 @@ tr:hover td{background:rgba(108,92,231,.03);}
 <!-- MOBILE HEADER -->
 <div class="mobile-header" id="mobHeader">
   <button class="hamburger" onclick="toggleSidebar()">&#9776;</button>
-  <span class="mob-title">Financeiro Pro</span>
+  <span class="mob-title" style="display:flex;align-items:center;gap:6px;-webkit-text-fill-color:initial;background:none;">
+  <img src="https://st3.depositphotos.com/11956860/18392/v/450/depositphotos_183927972-stock-illustration-logo-icon-communication-media-information.jpg" alt="" style="width:22px;height:22px;border-radius:5px;">
+  <span style="background:var(--priG);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Financeiro Pro</span>
+</span>
   <div class="mob-sync"><span class="sdot off" id="mobSyncDot"></span><span id="mobSyncLabel">Offline</span></div>
 </div>
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
@@ -244,7 +247,10 @@ tr:hover td{background:rgba(108,92,231,.03);}
 </div></div></div>
 
 <nav class="sidebar" id="sidebar">
-  <div class="logo">&#128176; Financeiro Pro</div>
+  <div class="logo" style="display:flex;align-items:center;justify-content:center;gap:8px;-webkit-text-fill-color:initial;background:none;">
+  <img src="https://st3.depositphotos.com/11956860/18392/v/450/depositphotos_183927972-stock-illustration-logo-icon-communication-media-information.jpg" alt="Logo" style="width:32px;height:32px;border-radius:8px;">
+  <span style="background:var(--priG);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Financeiro Pro</span>
+</div>
   <div class="group-label">Principal</div>
   <a onclick="nav('resumo')" id="nav-resumo" class="active"><span>&#128202; Resumo</span></a>
   <div class="sep"></div>
