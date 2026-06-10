@@ -227,6 +227,27 @@ function getInvestInicial(inv, mes){
   if(dataMes === mes) return Number(inv.valor) || 0;
   return 0;
 }
+// Saldo real da carteira ao final de um mês (capital + movimentações + rentabilidade acumulada até esse mês)
+function getPortfolioSaldoAtMes(invs, mes){
+  var total = 0;
+  invs.forEach(function(inv){
+    var invStart = (inv.data || '').substring(0, 7);
+    if(invStart && invStart > mes) return; // investimento ainda não existia
+    var val = Number(inv.valor) || 0;
+    (inv.movimentacoes || []).forEach(function(m){
+      var mMes = (m.data || '').substring(0, 7);
+      if(mMes && mMes <= mes){
+        var v = Number(m.valor) || 0;
+        if(m.tipo === 'resgate') val -= v; else val += v;
+      }
+    });
+    (inv.rentabilidade || []).forEach(function(r){
+      if(r.mes && r.mes <= mes) val += Number(r.valor) || 0;
+    });
+    total += val;
+  });
+  return total;
+}
 
 // ================================================================
 // MODAL DE DETALHAMENTO
@@ -407,9 +428,10 @@ window.renderInvest = function(){
   var totalEntrada = acumInicial + acumAporte;
   var saldoMov = totalEntrada - acumResgate;
 
-  // KPIs
+  // Saldo real da carteira ao final do período
+  var saldoCarteira = getPortfolioSaldoAtMes(invs, ma);
   var rentColor = acumRent >= 0 ? 'var(--ok)' : 'var(--dn2)';
-  var saldoColor = saldoMov > 0 ? 'var(--ok)' : (saldoMov < 0 ? 'var(--dn2)' : 'var(--tx3)');
+  var saldoCarteiraColor = saldoCarteira > 0 ? 'var(--ok)' : 'var(--dn2)';
 
   var h = '<div class="inv-hist-box" id="invMovBox">';
   h += '<div class="inv-hist-box-header">';
@@ -420,12 +442,12 @@ window.renderInvest = function(){
   h += '<span><span class="leg-dot" style="background:var(--dn2)"></span>Resgates</span>';
   h += '</div></div>';
 
-  // KPIs
+  // KPIs — saldo da carteira bate com o donut
   h += '<div class="inv-hist-kpis">';
   h += '<div class="inv-hist-kpi"><div class="ihk-lbl">Rentabilidade acum.</div><div class="ihk-val" style="color:' + rentColor + '">' + (acumRent > 0 ? '+' : '') + fmtShort(acumRent) + '</div></div>';
   h += '<div class="inv-hist-kpi"><div class="ihk-lbl">Aportes acum.</div><div class="ihk-val" style="color:var(--inf2)">' + fmtShort(totalEntrada) + '</div></div>';
   h += '<div class="inv-hist-kpi"><div class="ihk-lbl">Resgates acum.</div><div class="ihk-val" style="color:var(--dn2)">' + (acumResgate > 0 ? '-' : '') + fmtShort(acumResgate) + '</div></div>';
-  h += '<div class="inv-hist-kpi"><div class="ihk-lbl">Saldo movimentações</div><div class="ihk-val" style="color:' + saldoColor + '">' + (saldoMov > 0 ? '+' : '') + fmtShort(saldoMov) + '</div></div>';
+  h += '<div class="inv-hist-kpi"><div class="ihk-lbl">Saldo da Carteira</div><div class="ihk-val" style="color:' + saldoCarteiraColor + '">' + fmtShort(saldoCarteira) + '</div></div>';
   h += '</div>';
 
   // Tabela
@@ -435,12 +457,12 @@ window.renderInvest = function(){
   h += '<th>Rentabilidade</th>';
   h += '<th class="hide-mob">Aportes</th>';
   h += '<th class="hide-mob">Resgates</th>';
-  h += '<th>Saldo Mov.</th>';
+  h += '<th>Saldo Carteira</th>';
   h += '</tr></thead><tbody>';
 
   meses.forEach(function(row){
-    var saldoR = row.aporte - row.resgate;
-    var saldoRCls = saldoR > 0 ? 'iht-val-pos' : (saldoR < 0 ? 'iht-val-neg' : 'iht-val-zero');
+    var saldoMesCarteira = getPortfolioSaldoAtMes(invs, row.mes);
+    var saldoCls = saldoMesCarteira > 0 ? 'iht-val-pos' : (saldoMesCarteira < 0 ? 'iht-val-neg' : 'iht-val-zero');
     var rentCls = row.rent > 0 ? 'iht-val-pos' : (row.rent < 0 ? 'iht-val-neg' : 'iht-val-zero');
     var barW = maxRent > 0 ? Math.round(Math.abs(row.rent) / maxRent * 100) : 0;
     var barColor = row.rent >= 0 ? 'var(--ok)' : 'var(--dn2)';
@@ -452,20 +474,19 @@ window.renderInvest = function(){
     h += '</td>';
     h += '<td class="hide-mob">' + (row.aporte > 0 ? '<span class="iht-val-pos">+' + fmt(row.aporte) + '</span>' : '<span class="iht-val-zero">—</span>') + '</td>';
     h += '<td class="hide-mob">' + (row.resgate > 0 ? '<span class="iht-val-neg">-' + fmt(row.resgate) + '</span>' : '<span class="iht-val-zero">—</span>') + '</td>';
-    h += '<td><span class="' + saldoRCls + '">' + (saldoR > 0 ? '+' : '') + fmt(saldoR) + '</span></td>';
+    h += '<td><span class="' + saldoCls + '">' + fmt(saldoMesCarteira) + '</span></td>';
     h += '</tr>';
   });
 
-  // Linha acumulado
-  var acSaldoMov = totalEntrada - acumResgate;
-  var acSaldoCls = acSaldoMov > 0 ? 'iht-val-pos' : (acSaldoMov < 0 ? 'iht-val-neg' : 'iht-val-zero');
+  // Linha acumulado — saldo bate com o donut
   var acRentCls = acumRent > 0 ? 'iht-val-pos' : (acumRent < 0 ? 'iht-val-neg' : 'iht-val-zero');
+  var acSaldoCls = saldoCarteira > 0 ? 'iht-val-pos' : (saldoCarteira < 0 ? 'iht-val-neg' : 'iht-val-zero');
   h += '<tr class="iht-acum">';
-  h += '<td>Acumulado 6m</td>';
+  h += '<td>Saldo atual</td>';
   h += '<td><span class="' + acRentCls + '">' + (acumRent > 0 ? '+' : '') + fmt(acumRent) + '</span></td>';
   h += '<td class="hide-mob"><span style="color:var(--inf2)">' + fmt(totalEntrada) + '</span></td>';
   h += '<td class="hide-mob"><span style="color:var(--dn2)">' + (acumResgate > 0 ? '-' : '') + fmt(acumResgate) + '</span></td>';
-  h += '<td><span class="' + acSaldoCls + '">' + (acSaldoMov > 0 ? '+' : '') + fmt(acSaldoMov) + '</span></td>';
+  h += '<td><span class="' + acSaldoCls + '" title="Igual ao valor no gráfico de pizza">' + fmt(saldoCarteira) + '</span></td>';
   h += '</tr>';
   h += '</tbody></table></div>';
 
