@@ -236,13 +236,17 @@ tr:hover td{background:rgba(255,255,255,.025);}
   .mobile-header{display:flex;}
   .sidebar{transform:translateX(-100%);width:240px;z-index:200;}
   .sidebar.open{transform:translateX(0);}
-  .main{margin-left:0;padding:66px 14px 24px;}
-  .page-title{font-size:1.15em;margin-bottom:14px;}
-  .cards{grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;}
+  .main{margin-left:0;padding:58px 0 24px;}
+  .page{padding:16px 12px;}
+  .page-title{font-size:1.2em;margin-bottom:2px;letter-spacing:-.3px;}
+  .page-subtitle{font-size:.78em;margin-bottom:12px;}
+  /* Ocultar subtítulo na página de Resumo (mês já aparece no nav) */
+  #pg-resumo .page-subtitle{display:none;}
+  .cards{grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
   .card{padding:12px 10px;}
   .card .card-value{font-size:1.05em;}
-  .card .card-label{font-size:.66em;}
-  .chart-row{grid-template-columns:1fr;gap:12px;}
+  .card .card-label{font-size:.64em;}
+  .chart-row{grid-template-columns:1fr;gap:10px;}
   .chart-box{padding:14px;overflow:hidden;}
   .bar-chart{height:160px;gap:4px;overflow:hidden;}
   .bar-group{min-width:0;}
@@ -251,36 +255,51 @@ tr:hover td{background:rgba(255,255,255,.025);}
   .bar-label{font-size:.55em;}
   .top-cat-item{margin-bottom:10px;}
   .top-cat-hdr{font-size:.76em;}
-  .month-nav{display:flex;align-items:center;justify-content:center;gap:10px;}
-  .month-nav .btn{width:auto;min-width:40px;padding:8px 14px;display:inline-flex;align-items:center;justify-content:center;}
-  .month-nav .mes-label{font-size:.9em;min-width:120px;text-align:center;}
-  .form-grid{grid-template-columns:1fr!important;}
-  .form-section{padding:16px;}
-  .form-control{padding:11px 12px;font-size:.88em;}
+  .month-nav{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:14px;}
+  .month-nav .btn{width:auto;min-width:36px;padding:7px 12px;display:inline-flex;align-items:center;justify-content:center;}
+  .month-nav .mes-label{font-size:.88em;min-width:110px;text-align:center;}
+  /* Formulários: 2 colunas no mobile para aproveitar mais espaço */
+  .form-grid{grid-template-columns:1fr 1fr!important;}
+  .form-section{padding:14px 12px;margin-bottom:14px;border-radius:10px;}
+  .form-control{padding:10px 11px;font-size:.86em;}
+  /* Campos que ocupam linha inteira */
+  .form-group:has(textarea),.form-group:has([id$="Obs"]),.form-group:has([id$="obs"]),.form-group:has(.btn){grid-column:1/-1;}
   .form-grid .btn{width:100%;text-align:center;display:block;padding:12px 20px;font-size:.87em;}
   .btn-sm{width:auto!important;display:inline-block!important;padding:6px 12px!important;font-size:.74em!important;}
   .btn-outline{width:auto!important;display:inline-flex!important;}
   .filter-bar{flex-direction:column;align-items:stretch;gap:8px;}
   .filter-bar .form-control{max-width:100%;}
   .filter-bar .btn{width:100%;display:block;text-align:center;}
-  .table-wrap{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-left:-14px;margin-right:-14px;border-radius:0;border-left:none;border-right:none;}
+  /* Tabelas: edge-to-edge com scroll horizontal */
+  .table-wrap{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-left:-12px;margin-right:-12px;border-radius:0;border-left:none;border-right:none;}
   table{min-width:500px;}
-  table th,table td{padding:8px 10px;font-size:.75em;white-space:nowrap;}
-  #pg-lancs table{min-width:600px;}
-  #pg-extrato table{min-width:550px;}
-  #pg-compras table{min-width:600px;}
+  table th,table td{padding:9px 10px;font-size:.75em;white-space:nowrap;}
+  #pg-lancs table{min-width:560px;}
+  #pg-extrato table{min-width:520px;}
+  #pg-compras table{min-width:580px;}
   #balArea .table-wrap,#balArea>div{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:100%;}
   #balArea table{min-width:700px;font-size:.75em;}
-  .modal-content{width:98%;max-height:92vh;border-radius:14px;}
+  .modal-content{width:100%;max-height:92vh;border-radius:16px 16px 0 0;position:fixed;bottom:0;left:0;right:0;top:auto;margin:0;}
+  .modal{align-items:flex-end;}
   .modal-body{padding:16px;}
   .modal-header{padding:14px 16px;}
   .modal-body .btn{width:100%;}
   .cc-grid,.sub-grid{grid-template-columns:1fr;}
-  .cc-card{padding:16px;}
+  .cc-card{padding:14px;}
   .sub-box-header{padding:12px 14px;font-size:.88em;}
   .sub-box-body{padding:12px 14px;}
   .sub-box-actions{padding:8px 14px 12px;}
   .sub-box-actions .btn{width:auto;}
+  /* Listas mobile do resumo enhanced — edge-to-edge */
+  .rm-list{margin-left:-12px!important;margin-right:-12px!important;border-radius:0!important;border-left:none!important;border-right:none!important;}
+  .rq-row{margin-left:0;margin-right:0;}
+  /* Cards mobile do resumo */
+  .rc6{border-radius:10px!important;}
+  /* sub/cc cards */
+  .sub-grid,.cc-grid{gap:10px;}
+  /* Sidebar stats no mobile quando sidebar aberta */
+  .sidebar-saldo,.sidebar-stats{display:block!important;}
+  body.page-resumo .sidebar-saldo,body.page-resumo .sidebar-stats{display:none!important;}
   .theme-grid{grid-template-columns:repeat(3,1fr);gap:8px;}
   .theme-opt{padding:14px 8px 12px;font-size:.75em;}
   .theme-opt .dot{width:24px;height:24px;}
