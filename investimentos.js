@@ -382,7 +382,7 @@ window.renderInvest = function(){
   });
 
   var rentPct = totalCapital > 0 ? ((totalRent / totalCapital) * 100) : 0;
-  var ma = mesAtual();
+  var ma = window.invMesRef || mesAtual();
   var rentMesAtual = 0;
   invs.forEach(function(inv){ rentMesAtual += getInvRentMes(inv, ma); });
 

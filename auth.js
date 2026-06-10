@@ -536,10 +536,11 @@ function switchToUserData(user){
         var loc=JSON.parse(JSON.stringify(S));
         var rem=await readUserGistFile(window._authUsername);
         if(rem&&typeof rem==='object'&&(rem.lancamentos||rem.cartoes||rem.contratos)){
+          var _snapAS=JSON.stringify(S);
           S=deepMergeState(loc,rem);
           localStorage.setItem(window._userSK,JSON.stringify(S));
           await writeUserGistFile(window._authUsername,S);
-          if(typeof renderAll==='function')renderAll();
+          if(JSON.stringify(S)!==_snapAS&&typeof renderAll==='function')renderAll();
           syncUI('on','Auto-sync '+new Date().toLocaleTimeString('pt-BR'));
         }else{
           await writeUserGistFile(window._authUsername,S);
@@ -600,9 +601,10 @@ function switchToUserData(user){
     var loc=JSON.parse(JSON.stringify(S));
     var rem=await readUserGistFile(window._authUsername);
     if(rem&&typeof rem==='object'&&(rem.lancamentos||rem.cartoes||rem.contratos)){
+      var _snapIC=JSON.stringify(S);
       S=deepMergeState(loc,rem);
       localStorage.setItem(window._userSK,JSON.stringify(S));
-      if(typeof renderAll==='function')renderAll();
+      if(JSON.stringify(S)!==_snapIC&&typeof renderAll==='function')renderAll();
       await writeUserGistFile(window._authUsername,S);
       cloudOk=true;syncUI('on','Cloud conectado');
       startAutoSync();return;
