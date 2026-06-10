@@ -179,8 +179,12 @@ window._invAddMov = function(){
   if(!Array.isArray(inv.movimentacoes)) inv.movimentacoes = [];
   inv.movimentacoes.push({tipo:tipo, valor:valor, data:data, obs:obs, id:uid()});
 
-  // Cria lançamento automático
-  criarLancamentoInvestimento(tipo, valor, inv.nome||'Investimento', data, obs);
+  // Lançamento: aporte pergunta, resgate sempre cria
+  var gerarLanc = tipo === 'resgate' ||
+    confirm('Deseja gerar um lançamento de despesa em "Investimento" para este aporte?');
+  if(gerarLanc){
+    criarLancamentoInvestimento(tipo, valor, inv.nome||'Investimento', data, obs);
+  }
 
   salvar();
   document.getElementById('miValor').value = '';
@@ -190,15 +194,13 @@ window._invAddMov = function(){
   if(typeof _invRenderMovList === 'function'){
     _invRenderMovList(inv);
   } else {
-    // Fallback: busca na janela
     var el = document.getElementById('miMovList');
     if(el) el.innerHTML = '<p style="color:var(--tx3);text-align:center;font-size:.85em">Movimentação adicionada.</p>';
   }
   if(typeof renderInvest === 'function') renderInvest();
 
-  // Toast de confirmação
   _invIntegToast(tipo === 'aporte'
-    ? 'Aporte de '+_fmt(valor)+' registrado + lançamento de despesa criado!'
+    ? 'Aporte de '+_fmt(valor)+' registrado!' + (gerarLanc ? ' Lançamento de despesa criado.' : '')
     : 'Resgate de '+_fmt(valor)+' registrado + lançamento de receita criado!'
   );
 };
@@ -217,15 +219,17 @@ window.addInvest = function(){
 
   if(!nome || !valor || !data) return alert('Preencha tudo.');
 
-  // Adiciona investimento
   S.investimentos.push({
     id: uid(), nome:nome, tipo:tipo, valor:valor,
     data:data, obs:obs,
     movimentacoes:[], rentabilidade:[]
   });
 
-  // Cria lançamento de despesa (aporte inicial)
-  criarLancamentoInvestimento('aporte', valor, nome, data, 'Investimento inicial'+(obs?' - '+obs:''));
+  // Pergunta se deve gerar lançamento de despesa para o aporte inicial
+  var gerarLanc = confirm('Deseja gerar um lançamento de despesa em "Investimento" para este aporte inicial de '+_fmt(valor)+'?');
+  if(gerarLanc){
+    criarLancamentoInvestimento('aporte', valor, nome, data, 'Investimento inicial'+(obs?' - '+obs:''));
+  }
 
   salvar();
   document.getElementById('invNome').value='';
@@ -233,7 +237,7 @@ window.addInvest = function(){
   document.getElementById('invObs').value='';
   if(typeof renderInvest === 'function') renderInvest();
 
-  _invIntegToast('Investimento "'+nome+'" criado + lançamento de despesa de '+_fmt(valor)+' gerado!');
+  _invIntegToast('Investimento "'+nome+'" criado!' + (gerarLanc ? ' Lançamento de despesa gerado.' : ''));
 };
 
 // ================================================================
@@ -394,24 +398,26 @@ window._invPanelConfirm = function(invId){
   if(!Array.isArray(inv.movimentacoes)) inv.movimentacoes = [];
   inv.movimentacoes.push({tipo:tipo, valor:valor, data:data, obs:'Via Lançamentos', id:uid()});
 
-  // Cria lançamento automático
-  criarLancamentoInvestimento(tipo, valor, inv.nome||'Investimento', data, 'Via painel de lançamentos');
+  // Lançamento: aporte pergunta, resgate sempre cria
+  var gerarLanc = tipo === 'resgate' ||
+    confirm('Deseja gerar um lançamento de despesa em "Investimento" para este aporte de '+_fmt(valor)+'?');
+  if(gerarLanc){
+    criarLancamentoInvestimento(tipo, valor, inv.nome||'Investimento', data, 'Via painel de lançamentos');
+  }
 
   salvar();
 
-  // Limpa campo
   document.getElementById('ipValor_'+invId).value = '';
   var projDiv = document.getElementById('invProj_'+invId);
   if(projDiv) projDiv.classList.remove('show');
 
-  // Atualiza tudo
   _renderInvPanel();
   if(typeof renderLancs === 'function') renderLancs();
   if(typeof renderInvest === 'function') renderInvest();
 
   _invIntegToast(tipo === 'aporte'
-    ? 'Aporte de '+_fmt(valor)+' em "'+inv.nome+'" confirmado!'
-    : 'Resgate de '+_fmt(valor)+' de "'+inv.nome+'" confirmado!'
+    ? 'Aporte de '+_fmt(valor)+' em "'+inv.nome+'" confirmado!' + (gerarLanc ? ' Lançamento de despesa criado.' : '')
+    : 'Resgate de '+_fmt(valor)+' de "'+inv.nome+'" confirmado! Lançamento de receita criado.'
   );
 };
 

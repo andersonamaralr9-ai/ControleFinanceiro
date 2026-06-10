@@ -159,8 +159,7 @@ async function writeAuthGist(data){return await writeGistFile('auth_users.json',
 async function ensureAuthFile(){
   var ad=await readAuthGist();
   if(ad&&ad.users)return ad;
-  var h=await sha256('202328');
-  var data={users:[{username:'Anderson',passwordHash:h,createdAt:new Date().toISOString(),role:'admin',sessions:[]}]};
+  var data={users:[]};
   await writeGistFile('auth_users.json',data);
   return data;
 }
@@ -233,15 +232,15 @@ sty.textContent=`
 .dev-user-group h4{font-size:.92em;color:var(--pri2);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--bg4)}
 
 /* ===== SIDEBAR MODERNA ===== */
-.sidebar{scrollbar-width:thin;scrollbar-color:var(--bg4) transparent}
-.sidebar::-webkit-scrollbar{width:4px}
-.sidebar::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:4px}
-.sidebar .logo{padding:28px 20px 20px;font-size:1.4em;font-weight:800;background:linear-gradient(135deg,#a29bfe,#6c5ce7,#00cec9);background-size:200% 200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:authGrad 4s ease infinite;text-align:center;letter-spacing:-.3px}
-.sidebar a{border-radius:0 10px 10px 0;margin-right:10px;border-left:3px solid transparent;transition:all .2s}
-.sidebar a:hover{background:linear-gradient(90deg,rgba(108,92,231,.08),transparent);border-left-color:var(--pri2);transform:translateX(4px)}
-.sidebar a.active{background:linear-gradient(90deg,rgba(108,92,231,.15),rgba(108,92,231,.03));border-left-color:var(--pri);color:var(--tx);font-weight:600}
-.sidebar a.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:60%;background:var(--priG);border-radius:0 3px 3px 0}
-.sidebar .group-label{font-size:.65em;letter-spacing:3px;color:var(--tx3);opacity:.6;padding:16px 20px 6px}
+.sidebar{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.06) transparent}
+.sidebar::-webkit-scrollbar{width:3px}
+.sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:4px}
+.sidebar .logo{padding:22px 18px 14px;font-size:1.2em;font-weight:700;background:linear-gradient(135deg,#a29bfe,#6c5ce7);background-size:200% 200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:authGrad 4s ease infinite;text-align:center;letter-spacing:-.3px}
+.sidebar a{border-radius:9px;margin:1px 8px;padding:9px 12px;border-left:none;transition:all .18s}
+.sidebar a:hover{background:rgba(255,255,255,.05);color:var(--tx2);transform:none}
+.sidebar a.active{background:rgba(108,92,231,.14);color:var(--pri2);font-weight:600}
+.sidebar a.active::before{display:none}
+.sidebar .group-label{font-size:.62em;letter-spacing:2px;color:var(--tx3);opacity:.7;padding:14px 16px 4px}
 
 /* ===== MOBILE HEADER MODERNA ===== */
 .mobile-header{backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);background:rgba(26,29,39,.9)!important;border-bottom:1px solid rgba(108,92,231,.1)!important}
@@ -249,31 +248,29 @@ sty.textContent=`
 .mobile-header .hamburger{color:var(--pri2);font-size:1.3em;padding:6px 10px;border-radius:8px;transition:background .2s}
 .mobile-header .hamburger:active{background:rgba(108,92,231,.15)}
 
-/* ===== CARDS com hover glow ===== */
-.card{transition:transform .25s,box-shadow .25s;border:1px solid var(--bg4);position:relative;overflow:hidden}
-.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--priG);opacity:0;transition:opacity .25s}
-.card:hover::before{opacity:1}
-.card:hover{transform:translateY(-4px);box-shadow:0 8px 30px rgba(0,0,0,.2)}
+/* ===== CARDS ===== */
+.card{transition:transform .2s;border:1px solid rgba(255,255,255,.06);border-top:2.5px solid var(--bg4);position:relative;overflow:hidden}
+.card:hover{transform:translateY(-2px)}
 
 /* ===== PAGE TITLES ===== */
-.page-title{font-size:1.5em;font-weight:800;margin-bottom:22px;padding-bottom:14px;border-bottom:2px solid transparent;border-image:linear-gradient(90deg,var(--pri),transparent) 1;letter-spacing:-.3px}
+.page-title{font-size:1.4em;font-weight:700;margin-bottom:22px;padding-bottom:0;border-bottom:none;border-image:none;letter-spacing:-.4px}
 
-/* ===== FORM SECTIONS com glow ===== */
-.form-section{border:1px solid var(--bg4);transition:border-color .3s,box-shadow .3s;border-radius:16px}
-.form-section:hover{border-color:rgba(108,92,231,.15);box-shadow:0 4px 20px rgba(108,92,231,.05)}
+/* ===== FORM SECTIONS ===== */
+.form-section{border:1px solid rgba(255,255,255,.06);transition:border-color .2s;border-radius:14px}
+.form-section:hover{border-color:rgba(108,92,231,.15)}
 
-/* ===== BOTÕES melhorados ===== */
-.btn-primary{background:linear-gradient(135deg,#6c5ce7,#a29bfe);position:relative;overflow:hidden;transition:all .25s}
-.btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(108,92,231,.3)}
+/* ===== BOTÕES ===== */
+.btn-primary{background:linear-gradient(135deg,#6c5ce7,#a29bfe);transition:all .18s}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(108,92,231,.35)}
 .btn-primary:active{transform:translateY(0)}
 
-/* ===== TABELAS modernas ===== */
-th{background:linear-gradient(135deg,var(--bg3),rgba(108,92,231,.05));font-size:.72em;letter-spacing:1.2px}
-tr{transition:background .15s}
+/* ===== TABELAS ===== */
+th{background:var(--bg3);font-size:.7em;letter-spacing:.8px}
+tr{transition:background .12s}
 
 /* ===== SYNC BAR ===== */
-.sidebar .sync-bar{background:rgba(108,92,231,.03);border-top:1px solid rgba(108,92,231,.08);padding:14px 16px}
-.sidebar .sync-bar .sdot{box-shadow:0 0 8px currentColor}
+.sidebar .sync-bar{background:transparent;border-top:1px solid rgba(255,255,255,.04);padding:12px 16px}
+.sidebar .sync-bar .sdot.on{box-shadow:0 0 6px var(--ok)}
 
 /* ===== SUB-BOX / CONTRACT CARDS ===== */
 .sub-box{border-radius:16px;transition:transform .25s,box-shadow .25s}
@@ -326,7 +323,7 @@ document.head.appendChild(sty);
 // ================================================================
 // HTML LOGIN
 // ================================================================
-var _hasToken=!!(localStorage.getItem('finApp_gist_token'));
+var _hasToken=!!(localStorage.getItem('finApp_gist_token_enc'));
 var ov=document.createElement('div');ov.className='auth-overlay';ov.id='authOverlay';
 var tkHTML='';
 if(!_hasToken){
@@ -364,10 +361,70 @@ if(_atkEl)_atkEl.addEventListener('keydown',function(e){if(e.key==='Enter')docum
 window._authCurrentUser=null;
 
 // ================================================================
-// TOKEN
+// TOKEN — criptografado com AES-GCM (PBKDF2 da senha)
 // ================================================================
-function _setGistToken(t){window.gistToken=t;localStorage.setItem('finApp_gist_token',t);}
-function _getToken(){return window.gistToken||localStorage.getItem('finApp_gist_token')||'';}
+var _TOKEN_ENC_KEY = 'finApp_gist_token_enc';
+var _TOKEN_SESS_KEY = 'finApp_tk_sesskey';
+
+function _setGistToken(t){window.gistToken=t;}
+function _getToken(){return window.gistToken||'';}
+
+async function _pbkdf2Key(pass, salt){
+  var km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pass),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey(
+    {name:'PBKDF2',salt:salt,iterations:100000,hash:'SHA-256'},
+    km,{name:'AES-GCM',length:256},true,['encrypt','decrypt']);
+}
+async function _encryptToken(token, pass){
+  var salt=crypto.getRandomValues(new Uint8Array(16));
+  var iv=crypto.getRandomValues(new Uint8Array(12));
+  var key=await _pbkdf2Key(pass,salt);
+  var ct=await crypto.subtle.encrypt({name:'AES-GCM',iv:iv},key,new TextEncoder().encode(token));
+  var buf=new Uint8Array(28+ct.byteLength);
+  buf.set(salt,0);buf.set(iv,16);buf.set(new Uint8Array(ct),28);
+  localStorage.setItem(_TOKEN_ENC_KEY,btoa(String.fromCharCode(...buf)));
+  // Salvar chave derivada na sessão para uso sem senha
+  var raw=await crypto.subtle.exportKey('raw',key);
+  sessionStorage.setItem(_TOKEN_SESS_KEY,btoa(String.fromCharCode(...new Uint8Array(raw))));
+}
+async function _decryptToken(pass){
+  var enc=localStorage.getItem(_TOKEN_ENC_KEY);if(!enc)return null;
+  try{
+    var buf=Uint8Array.from(atob(enc),function(c){return c.charCodeAt(0);});
+    var key=await _pbkdf2Key(pass,buf.slice(0,16));
+    var pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:buf.slice(16,28)},key,buf.slice(28));
+    var token=new TextDecoder().decode(pt);
+    var raw=await crypto.subtle.exportKey('raw',key);
+    sessionStorage.setItem(_TOKEN_SESS_KEY,btoa(String.fromCharCode(...new Uint8Array(raw))));
+    return token;
+  }catch(e){return null;}
+}
+async function _getTokenFromSession(){
+  var skb64=sessionStorage.getItem(_TOKEN_SESS_KEY);if(!skb64)return null;
+  var enc=localStorage.getItem(_TOKEN_ENC_KEY);if(!enc)return null;
+  try{
+    var skRaw=Uint8Array.from(atob(skb64),function(c){return c.charCodeAt(0);});
+    var key=await crypto.subtle.importKey('raw',skRaw,{name:'AES-GCM'},false,['decrypt']);
+    var buf=Uint8Array.from(atob(enc),function(c){return c.charCodeAt(0);});
+    var pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:buf.slice(16,28)},key,buf.slice(28));
+    return new TextDecoder().decode(pt);
+  }catch(e){return null;}
+}
+async function _reencryptTokenWithSessionKey(token){
+  var skb64=sessionStorage.getItem(_TOKEN_SESS_KEY);if(!skb64)return false;
+  try{
+    var skRaw=Uint8Array.from(atob(skb64),function(c){return c.charCodeAt(0);});
+    var key=await crypto.subtle.importKey('raw',skRaw,{name:'AES-GCM'},false,['encrypt']);
+    var iv=crypto.getRandomValues(new Uint8Array(12));
+    var ct=await crypto.subtle.encrypt({name:'AES-GCM',iv:iv},key,new TextEncoder().encode(token));
+    // Formato sessão: 16 bytes zero (sem salt PBKDF2) + 12 iv + ciphertext
+    // Marcado com prefixo 0x01 para distinguir do formato PBKDF2
+    var buf=new Uint8Array(1+12+ct.byteLength);
+    buf[0]=0x01;buf.set(iv,1);buf.set(new Uint8Array(ct),13);
+    localStorage.setItem(_TOKEN_ENC_KEY+'_sess',btoa(String.fromCharCode(...buf)));
+    return true;
+  }catch(e){return false;}
+}
 
 // ================================================================
 // SESSÃO
@@ -519,7 +576,7 @@ function switchToUserData(user){
     var t=(document.getElementById('inputToken')||{}).value;
     if(!t)t=(document.getElementById('bkToken')||{}).value;
     if(!t||!t.trim()){alert('Informe o token.');return;}
-    _setGistToken(t.trim());syncUI('loading','Conectando...');
+    _setGistToken(t.trim());await _reencryptTokenWithSessionKey(t.trim());syncUI('loading','Conectando...');
     var tm=document.getElementById('modalToken');if(tm&&tm.classList.contains('show'))closeM('modalToken');
     await ensureAuthFile();
     if(window._authUsername.toLowerCase()==='anderson')await migrateAndersonOnce();
@@ -534,8 +591,8 @@ function switchToUserData(user){
   };
 
   window.initCloud=async function(){
-    var st=localStorage.getItem('finApp_gist_token')||'';if(st)window.gistToken=st;
-    if(!window.gistToken){cloudOk=false;syncUI('off','Sem token');return;}
+    if(!window.gistToken){var st=await _getTokenFromSession();if(st)window.gistToken=st;}
+    if(!window.gistToken){cloudOk=false;syncUI('off','Entre para sincronizar');return;}
     syncUI('loading','Conectando...');
     await ensureAuthFile();
     if(window._authUsername.toLowerCase()==='anderson')await migrateAndersonOnce();
@@ -568,7 +625,7 @@ function switchToUserData(user){
   window.doConnectFromBk=async function(){
     var t=(document.getElementById('bkToken')||{}).value;
     if(!t||!t.trim()){alert('Informe o token.');return;}
-    _setGistToken(t.trim());syncUI('loading','Conectando...');
+    _setGistToken(t.trim());await _reencryptTokenWithSessionKey(t.trim());syncUI('loading','Conectando...');
     await ensureAuthFile();
     if(window._authUsername.toLowerCase()==='anderson')await migrateAndersonOnce();
     var loc=JSON.parse(JSON.stringify(S));
@@ -582,7 +639,7 @@ function switchToUserData(user){
   };
 
   window.doSyncNow=async function(){
-    var st=localStorage.getItem('finApp_gist_token')||'';if(st)window.gistToken=st;
+    if(!window.gistToken){var st=await _getTokenFromSession();if(st)window.gistToken=st;}
     syncUI('loading','Sincronizando...');
     var ok=await writeUserGistFile(window._authUsername,S);
     if(ok)syncUI('on','Sync '+new Date().toLocaleTimeString('pt-BR'));
@@ -590,7 +647,9 @@ function switchToUserData(user){
   };
 
   window.doDisconnect=function(){
-    window.gistToken='';cloudOk=false;localStorage.removeItem('finApp_gist_token');
+    window.gistToken='';cloudOk=false;
+    localStorage.removeItem(_TOKEN_ENC_KEY);localStorage.removeItem(_TOKEN_ENC_KEY+'_sess');
+    sessionStorage.removeItem(_TOKEN_SESS_KEY);
     stopAutoSync();syncUI('off','Offline');
     var el=document.getElementById('auSyncTimer');if(el)el.textContent='';
     if(typeof renderCloudArea==='function')renderCloudArea();
@@ -614,17 +673,22 @@ window._authDoLogin=async function(){
       te=document.getElementById('authToken'),ke=document.getElementById('authKeep'),
       ee=document.getElementById('authError'),btn=document.getElementById('authLoginBtn');
   var user=(ue.value||'').trim(),pass=pe.value,keep=ke.checked;
-  if(te){var tv=(te.value||'').trim();if(tv)_setGistToken(tv);}
   if(!user||!pass){ee.textContent='Preencha usu\u00e1rio e senha.';return;}
-  var tk=_getToken();if(!tk){ee.textContent='Informe o Token GitHub.';return;}
   btn.disabled=true;btn.textContent='Verificando...';ee.textContent='';
+  // Descriptografar token salvo usando a senha (gera chave de sess\u00e3o automaticamente)
+  var decTk=await _decryptToken(pass);
+  if(decTk){window.gistToken=decTk;}
+  // Se o campo de token foi preenchido, usar e criptografar com a senha
+  if(te){var tv=(te.value||'').trim();if(tv){window.gistToken=tv;await _encryptToken(tv,pass);}}
+  // Migra\u00e7\u00e3o \u00fanica: se ainda h\u00e1 token em plaintext, criptografar e remover
+  if(!window.gistToken){var legTk=localStorage.getItem('finApp_gist_token');if(legTk){window.gistToken=legTk;await _encryptToken(legTk,pass);localStorage.removeItem('finApp_gist_token');}}
+  var tk=_getToken();if(!tk){ee.textContent='Informe o Token GitHub.';btn.disabled=false;btn.textContent='Entrar';return;}
   var ih=await sha256(pass),role='user',ok=false;
   var ad=await ensureAuthFile();
   if(ad&&ad.users){
     var f=ad.users.find(function(u){return u.username.toLowerCase()===user.toLowerCase()&&u.passwordHash===ih;});
     if(f){ok=true;user=f.username;role=f.role||'user';}
   }
-  if(!ok){var fb=await sha256('202328');if(user.toLowerCase()==='anderson'&&ih===fb){ok=true;user='Anderson';role='admin';}}
   if(ok){
     var ts=document.getElementById('authTokenSection');if(ts)ts.style.display='none';
     setSession(user,role,keep);
