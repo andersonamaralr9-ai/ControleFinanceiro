@@ -485,11 +485,17 @@ async function unregisterDevice(user,did){
 // MIGRAÇÃO ANDERSON
 // ================================================================
 async function migrateAndersonOnce(){
+  // Após migração confirmada, nunca mais verificar (economiza 1 read no Gist a cada login)
+  if(localStorage.getItem('finApp_migrated_v1'))return null;
   var userFile=await readUserGistFile('Anderson');
-  if(userFile&&((userFile.lancamentos&&userFile.lancamentos.length>0)||(userFile.contratos&&userFile.contratos.length>0)||(userFile.cartoes&&userFile.cartoes.length>0)))return null;
+  if(userFile&&((userFile.lancamentos&&userFile.lancamentos.length>0)||(userFile.contratos&&userFile.contratos.length>0)||(userFile.cartoes&&userFile.cartoes.length>0))){
+    localStorage.setItem('finApp_migrated_v1','1');
+    return null;
+  }
   var legacy=await readGistFile('financeiro.json');
   if(!legacy||(!legacy.lancamentos&&!legacy.contratos&&!legacy.cartoes))return null;
   await writeUserGistFile('Anderson',legacy);
+  localStorage.setItem('finApp_migrated_v1','1');
   console.log('[Auth v8] Migração: financeiro.json → anderson.json');
   return legacy;
 }
@@ -595,9 +601,10 @@ function switchToUserData(user){
     if(!window.gistToken){var st=await _getTokenFromSession();if(st)window.gistToken=st;}
     if(!window.gistToken){cloudOk=false;syncUI('off','Entre para sincronizar');return;}
     syncUI('loading','Conectando...');
+    // Invalidar cache UMA vez antes de todos os reads — evita duplo HTTP call
+    invalidateGistCache();
     await ensureAuthFile();
     if(window._authUsername.toLowerCase()==='anderson')await migrateAndersonOnce();
-    invalidateGistCache();
     var loc=JSON.parse(JSON.stringify(S));
     var rem=await readUserGistFile(window._authUsername);
     if(rem&&typeof rem==='object'&&(rem.lancamentos||rem.cartoes||rem.contratos)){
