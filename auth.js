@@ -61,6 +61,12 @@ function deepMergeState(local,remote){
   if(!local||(!local.lancamentos&&!local.contratos&&!local.cartoes))
     return ensureArrays(JSON.parse(JSON.stringify(remote)));
   var r=JSON.parse(JSON.stringify(remote)),l=JSON.parse(JSON.stringify(local));
+
+  // Merge tombstones: união de ambos os lados, maior timestamp vence por id
+  var lDel=l._deletedIds||{},rDel=r._deletedIds||{},delIds={};
+  Object.keys(lDel).forEach(function(id){delIds[id]=lDel[id];});
+  Object.keys(rDel).forEach(function(id){delIds[id]=Math.max(delIds[id]||0,rDel[id]);});
+
   ['lancamentos','cartoes','comprasCartao','assinaturas','contratos','investimentos','caixa'].forEach(function(k){
     var ra=Array.isArray(r[k])?r[k]:[],la=Array.isArray(l[k])?l[k]:[];
     var map={};
@@ -70,8 +76,13 @@ function deepMergeState(local,remote){
       if(map[i.id]){var rts=map[i.id]._ts||0,lts=i._ts||0;if(lts>rts)map[i.id]=i;}
       else map[i.id]=i;
     });
+    // Aplicar tombstones: remover itens deletados (tombstone mais recente que o item vence)
+    Object.keys(delIds).forEach(function(id){
+      if(map[id]&&delIds[id]>=(map[id]._ts||0))delete map[id];
+    });
     r[k]=Object.values(map);
   });
+  r._deletedIds=delIds;
   if(!r.planejamento||Array.isArray(r.planejamento))r.planejamento={};
   if(l.planejamento&&typeof l.planejamento==='object'&&!Array.isArray(l.planejamento))
     Object.keys(l.planejamento).forEach(function(k){
@@ -102,6 +113,7 @@ function ensureArrays(st){
   if(!st.cats)st.cats=JSON.parse(JSON.stringify(defCats));
   Object.keys(defCats).forEach(function(k){if(!Array.isArray(st.cats[k]))st.cats[k]=defCats[k].slice();});
   if(!st.config)st.config={theme:'dark'};
+  if(!st._deletedIds||typeof st._deletedIds!=='object'||Array.isArray(st._deletedIds))st._deletedIds={};
   return st;
 }
 
@@ -503,7 +515,7 @@ async function migrateAndersonOnce(){
 // ================================================================
 // SWITCH TO USER DATA
 // ================================================================
-function switchToUserData(user){
+function switchToUserData(user,skipRender){
   var uKey=getUserStorageKey(user);
   window._userSK=uKey;window._authUsername=user;
   try{var d=JSON.parse(localStorage.getItem(uKey));if(d){S=ensureArrays(d);}else{S=defState();}}catch(e){S=defState();}
@@ -608,14 +620,14 @@ function switchToUserData(user){
     var loc=JSON.parse(JSON.stringify(S));
     var rem=await readUserGistFile(window._authUsername);
     if(rem&&typeof rem==='object'&&(rem.lancamentos||rem.cartoes||rem.contratos)){
-      var _snapIC=JSON.stringify(S);
       S=deepMergeState(loc,rem);
       localStorage.setItem(window._userSK,JSON.stringify(S));
-      if(JSON.stringify(S)!==_snapIC&&typeof renderAll==='function')renderAll();
+      if(typeof renderAll==='function')renderAll(); // sempre renderiza após merge com Cloud
       await writeUserGistFile(window._authUsername,S);
       cloudOk=true;syncUI('on','Cloud conectado');
       startAutoSync();return;
     }
+    if(typeof renderAll==='function')renderAll(); // sem dados remotos: renderiza com local
     await writeUserGistFile(window._authUsername,S);
     cloudOk=true;syncUI('on','Cloud conectado');
     startAutoSync();
@@ -688,7 +700,7 @@ function switchToUserData(user){
   };
 
   if(S.config&&S.config.theme&&typeof setTheme==='function')setTheme(S.config.theme);
-  if(typeof renderAll==='function')renderAll();
+  if(!skipRender&&typeof renderAll==='function')renderAll();
 }
 
 // ================================================================
@@ -951,11 +963,12 @@ window._authDelUser=async function(u){
   var ss=getSession();
   if(ss){
     window._authCurrentUser={username:ss.user,role:ss.role||'user'};
-    switchToUserData(ss.user);
+    switchToUserData(ss.user,true); // skipRender=true: initCloud fará o único render
     showApp(ss.user,ss.role||'user');
-    // Registrar dispositivo novamente (refresh da sessão) e depois initCloud
     await registerDevice(ss.user,ss.keep||false);
     if(typeof initCloud==='function') await initCloud();
+    // Se initCloud não conseguiu conectar (sem token/offline), renderiza com dados locais
+    if(!cloudOk&&typeof renderAll==='function')renderAll();
   }else{
     setTimeout(function(){var t=document.getElementById('authToken');if(t)t.focus();else document.getElementById('authUser').focus();},200);
   }
