@@ -419,10 +419,80 @@ window._resFat = function() {
   openM('modalResDet');
 };
 
+// ================================================================
+// INVEST RESUMO \u2014 per-month metrics + mobile list
+// ================================================================
+window.renderResumoInvest = function() {
+  var el = g('resumoInvest'); if (!el) return;
+  var invs = S.investimentos || []; if (!invs.length) { el.innerHTML = ''; return; }
+  var ma = (typeof curMes !== 'undefined' && curMes) ? curMes : mesAtual();
+
+  var saldoInicial = 0, aporteMes = 0, resgateMes = 0, rentMes = 0;
+
+  invs.forEach(function(inv) {
+    var cap = Number(inv.valor) || 0;
+    (inv.movimentacoes || []).forEach(function(m) {
+      var mMes = getMes(m.data);
+      var v = Number(m.valor) || 0;
+      if (mMes < ma) {
+        cap += m.tipo === 'resgate' ? -v : v;
+      } else if (mMes === ma) {
+        if (m.tipo === 'aporte') aporteMes += v;
+        else resgateMes += v;
+      }
+    });
+    (inv.rentabilidade || []).forEach(function(r) {
+      var v = Number(r.valor) || 0;
+      if (r.mes < ma) cap += v;
+      else if (r.mes === ma) rentMes += v;
+    });
+    saldoInicial += cap;
+  });
+
+  var saldoFechamento = saldoInicial + aporteMes - resgateMes + rentMes;
+  var diff = saldoFechamento - saldoInicial;
+  var rentColor = rentMes > 0 ? 'var(--ok)' : (rentMes < 0 ? 'var(--dn2)' : 'var(--tx3)');
+  var salColor = diff >= 0 ? 'var(--ok)' : 'var(--dn2)';
+
+  // \u2500\u2500\u2500 DESKTOP: .rc6 cards \u2500\u2500\u2500
+  var dh = '<div style="margin-bottom:14px">';
+  dh += '<div style="font-size:.68em;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--tx3);margin-bottom:10px">Investimentos</div>';
+  dh += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">';
+  dh += '<div class="rc6" style="border-left-color:var(--inf2)!important">';
+  dh += '<div class="rc6-lbl">Saldo Inicial</div>';
+  dh += '<div class="rc6-val" style="color:var(--inf2)">' + fmtV(saldoInicial) + '</div>';
+  dh += '<div class="rc6-row"><span class="rc6-rl">Abertura de ' + mesNome(ma) + '</span></div>';
+  dh += '</div>';
+  dh += '<div class="rc6" style="border-left-color:' + rentColor + '!important">';
+  dh += '<div class="rc6-lbl">Rentabilidade</div>';
+  dh += '<div class="rc6-val" style="color:' + rentColor + '">' + (rentMes >= 0 ? '+' : '') + fmtV(rentMes) + '</div>';
+  dh += '<div class="rc6-row"><span class="rc6-rl" style="color:var(--ok)">Aportes: ' + fmtV(aporteMes) + '</span></div>';
+  dh += '<div class="rc6-row"><span class="rc6-rl" style="color:var(--dn2)">Resgates: ' + fmtV(resgateMes) + '</span></div>';
+  dh += '</div>';
+  dh += '<div class="rc6" style="border-left-color:var(--pri2)!important">';
+  dh += '<div class="rc6-lbl">Saldo Fechamento</div>';
+  dh += '<div class="rc6-val" style="color:var(--pri2)">' + fmtV(saldoFechamento) + '</div>';
+  dh += '<div class="rc6-row"><span class="rc6-rl" style="color:' + salColor + '">' + (diff >= 0 ? '+' : '') + fmtV(diff) + ' no m\u00eas</span><span class="rc6-rl" style="cursor:pointer;color:var(--pri2);float:right" onclick="nav(\'investimentos\')">Ver \u2192</span></div>';
+  dh += '</div>';
+  dh += '</div></div>';
+
+  // \u2500\u2500\u2500 MOBILE: .rm-list (oculto no desktop via CSS .rm-list { display:none }) \u2500\u2500\u2500
+  var mh = '<div class="rm-list">';
+  mh += '<div class="rm-sh">Investimentos</div>';
+  mh += '<div class="rm-ln"><span class="rm-ic">\ud83d\udcb0</span><span class="rm-lb">Saldo Inicial</span><span class="rm-vl" style="color:var(--inf2)">' + fc(saldoInicial) + '</span></div>';
+  mh += '<div class="rm-ln"><span class="rm-ic">\ud83d\udcc8</span><span class="rm-lb">Rentabilidade</span><span class="rm-vl" style="color:' + rentColor + '">' + (rentMes >= 0 ? '+' : '') + fc(rentMes) + '</span></div>';
+  mh += '<div class="rm-ln"><span class="rm-ic" style="color:var(--ok)">\u2191</span><span class="rm-lb">Aportes</span><span class="rm-vl" style="color:var(--ok)">' + fc(aporteMes) + '</span></div>';
+  mh += '<div class="rm-ln"><span class="rm-ic" style="color:var(--dn2)">\u2193</span><span class="rm-lb">Resgates</span><span class="rm-vl" style="color:var(--dn2)">' + fc(resgateMes) + '</span></div>';
+  mh += '<div class="rm-ln" onclick="nav(\'investimentos\')"><span class="rm-ic">\ud83d\udcb3</span><span class="rm-lb">Saldo Fechamento</span><span class="rm-vl" style="color:var(--pri2)">' + fc(saldoFechamento) + '</span></div>';
+  mh += '</div>';
+
+  el.innerHTML = dh + mh;
+};
+
 // Auto re-render ao carregar: garante layout enhanced mesmo no primeiro render (antes do initCloud)
 if (document.body.classList.contains('page-resumo')) {
   window.renderResumo();
 }
 
-console.log('[Financeiro Pro] Resumo Enhanced v6.2 \u2014 auto re-render + invest segue m\u00eas.');
+console.log('[Financeiro Pro] Resumo Enhanced v6.3 \u2014 invest por m\u00eas + mobile list.');
 })();
