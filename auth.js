@@ -61,17 +61,16 @@ function deepMergeState(local,remote){
   if(!local||(!local.lancamentos&&!local.contratos&&!local.cartoes))
     return ensureArrays(JSON.parse(JSON.stringify(remote)));
   var r=JSON.parse(JSON.stringify(remote)),l=JSON.parse(JSON.stringify(local));
+  // Last-write-wins: o lado que foi salvo mais recentemente vence para todos os arrays.
+  // Isso garante que exclusões propagam corretamente (o Gist não restaura itens deletados).
+  var lTs=l._stateTs||0, rTs=r._stateTs||0;
   ['lancamentos','cartoes','comprasCartao','assinaturas','contratos','investimentos','caixa'].forEach(function(k){
-    var ra=Array.isArray(r[k])?r[k]:[],la=Array.isArray(l[k])?l[k]:[];
-    var map={};
-    ra.forEach(function(i){if(i.id)map[i.id]=i;});
-    la.forEach(function(i){
-      if(!i.id)return;
-      if(map[i.id]){var rts=map[i.id]._ts||0,lts=i._ts||0;if(lts>rts)map[i.id]=i;}
-      else map[i.id]=i;
-    });
-    r[k]=Object.values(map);
+    if(lTs>=rTs){
+      r[k]=Array.isArray(l[k])?l[k]:[];
+    }
+    // else: r[k] já está com os dados remotos (mais recentes)
   });
+  r._stateTs=Math.max(lTs,rTs);
   if(!r.planejamento||Array.isArray(r.planejamento))r.planejamento={};
   if(l.planejamento&&typeof l.planejamento==='object'&&!Array.isArray(l.planejamento))
     Object.keys(l.planejamento).forEach(function(k){
@@ -510,6 +509,7 @@ function switchToUserData(user){
 
   window.salvar=function(){
     if(!window._userSK)return;
+    S._stateTs=Date.now(); // marca quando este estado foi salvo — usado no merge para last-write-wins
     localStorage.setItem(window._userSK,JSON.stringify(S));
     window.scheduleSync();
   };
