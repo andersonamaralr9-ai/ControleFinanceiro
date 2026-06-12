@@ -647,6 +647,23 @@ function switchToUserData(user){
     if(typeof renderCloudArea==='function')renderCloudArea();
   };
 
+  // Restaurar do Cloud: substitui local DIRETO pelo Gist sem merge (recuperação de emergência)
+  window.doReplaceWithGist=async function(){
+    if(!confirm('Isso vai substituir todos os dados locais pelos dados do Cloud. Continuar?'))return;
+    syncUI('loading','Restaurando...');invalidateGistCache();
+    var rem=await readUserGistFile(window._authUsername);
+    if(rem&&typeof rem==='object'&&(rem.lancamentos||rem.cartoes||rem.contratos)){
+      S=ensureArrays(JSON.parse(JSON.stringify(rem)));
+      localStorage.setItem(window._userSK,JSON.stringify(S));
+      if(typeof renderAll==='function')renderAll();
+      syncUI('on','Dados restaurados do Cloud');
+      if(typeof bkMsg==='function')bkMsg('✅ Dados restaurados do Cloud com sucesso!',true);
+    }else{
+      syncUI('on','Nenhum dado encontrado no Cloud');
+      if(typeof bkMsg==='function')bkMsg('❌ Nenhum dado encontrado no Cloud.',false);
+    }
+  };
+
   window.doSyncNow=async function(){
     if(!window.gistToken){var st=await _getTokenFromSession();if(st)window.gistToken=st;}
     syncUI('loading','Sincronizando...');
@@ -697,6 +714,12 @@ window._authDoLogin=async function(){
   if(ad&&ad.users){
     var f=ad.users.find(function(u){return u.username.toLowerCase()===user.toLowerCase()&&u.passwordHash===ih;});
     if(f){ok=true;user=f.username;role=f.role||'user';}
+    // Primeiro usuário: se não há nenhum cadastrado, o primeiro a logar com token válido vira admin
+    if(!ok&&ad.users.length===0){
+      role='admin';ok=true;
+      ad.users.push({username:user,passwordHash:ih,createdAt:new Date().toISOString(),role:'admin',sessions:[]});
+      await writeAuthGist(ad);
+    }
   }
   if(ok){
     var ts=document.getElementById('authTokenSection');if(ts)ts.style.display='none';
