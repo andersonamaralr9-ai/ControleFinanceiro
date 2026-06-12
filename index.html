@@ -614,7 +614,7 @@ function updateSidebarStats(){}
 function renderResumoInvest(){
   var el=g('resumoInvest');if(!el)return;
   var invs=S.investimentos||[];if(!invs.length){el.innerHTML='';return;}
-  var ma=mesAtual();
+  var ma=(typeof curMes!=='undefined'&&curMes)?curMes:mesAtual();
   var totalCap=0,totalRentAcum=0,rentMes=0;
   invs.forEach(function(inv){
     var cap=Number(inv.valor)||0;

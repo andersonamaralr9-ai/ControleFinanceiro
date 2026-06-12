@@ -30,7 +30,8 @@ sty.textContent = `
 .rc6:hover { transform: translateY(-3px); }
 .rc6-lbl { font-size: .66em; color: var(--tx3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
 .rc6-ico { margin-right: 4px; }
-.rc6-val { font-size: 1.25em; font-weight: 700; margin-bottom: 6px; word-break: break-all; }
+.rc6-val { font-size: 1.25em; font-weight: 700; margin-bottom: 6px; word-break: normal; }
+#resumoInvest .rc6-val { font-size: 1.1em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .rc6-row { display: flex; justify-content: space-between; align-items: center; font-size: .74em; padding: 3px 0; border-top: 1px solid var(--bg3); gap: 4px; }
 .rc6-rl { color: var(--tx3); flex-shrink: 0; }
 .rc6-rv { font-weight: 600; text-align: right; }
@@ -386,6 +387,9 @@ window.renderResumo = function() {
   }).join('') : '<p style="color:var(--tx3)">Sem despesas</p>';
 
   window._resData = { rI: rI, dI: dI, fI: fI, fT: fT };
+
+  // Atualiza cards de investimento com o mês navegado
+  setTimeout(function(){ if(typeof renderResumoInvest==='function') renderResumoInvest(); }, 10);
 };
 
 // ================================================================
@@ -415,5 +419,10 @@ window._resFat = function() {
   openM('modalResDet');
 };
 
-console.log('[Financeiro Pro] Resumo Enhanced v6.1 \u2014 Fix gr\u00e1fico: barras n\u00e3o cobrem r\u00f3tulos.');
+// Auto re-render ao carregar: garante layout enhanced mesmo no primeiro render (antes do initCloud)
+if (document.body.classList.contains('page-resumo')) {
+  window.renderResumo();
+}
+
+console.log('[Financeiro Pro] Resumo Enhanced v6.2 \u2014 auto re-render + invest segue m\u00eas.');
 })();
