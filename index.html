@@ -739,19 +739,18 @@ g('balDe').value=addMes(mesAtual(),-5);g('balAte').value=mesAtual();
 let _ed=new Date();_ed.setMonth(_ed.getMonth()-1);
 g('extDe').value=_ed.getFullYear()+'-'+String(_ed.getMonth()+1).padStart(2,'0')+'-01';
 g('extAte').value=hojeStr();
-renderAll();
-initCloud();
+// renderAll() e initCloud() removidos — auth.js gerencia render e sync
 </script>
 <script src="auth.js"></script>
 <script src="mobile-cards.js"></script>
-<script src="antecipacao.js"></script>
+<script src="antecipacao.js?v=4"></script>
 <script src="melhorias.js"></script>
 <script src="checkpagamentos.js"></script>
 <script src="investimentos.js"></script>
 <script src="investimentos-integra.js"></script>
 <script src="rent-saldo.js"></script> <!-- NOVO -->
 <script src="investimentos-enhanced.js"></script> <!-- NOVO -->
-<script src="compras-filtro.js"></script>
+<script src="compras-filtro.js?v=5"></script>
 <script src="planejamento.js"></script>
 <script src="cartoes-fix.js"></script>  <!-- NOVO -->
 <script src="design-packs.js"></script>

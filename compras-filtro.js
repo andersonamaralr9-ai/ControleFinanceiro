@@ -1,4 +1,4 @@
-// compras-filtro.js v4 — Resumo no topo, form no meio, compras embaixo
+// compras-filtro.js v5 — respeita antecipações na filtragem por competência
 (function(){
 'use strict';
 
@@ -204,15 +204,20 @@ window._cpApplyFilter = function(){
     var antInfo = _cpCountAntecipadas(c);
 
     for(var i = 0; i < p; i++){
-      var mesParcela = addMes(mCompra, i);
-      if(mesParcela === mes){
+      var parcelaNum = i + 1;
+      var mesOriginal = addMes(mCompra, i);
+      var mesDestino = (typeof window._getAntecipacaoDestino === 'function')
+        ? window._getAntecipacaoDestino(c, parcelaNum) : null;
+      var mesEfetivo = mesDestino || mesOriginal;
+      if(mesEfetivo === mes){
         itens.push({
           id: c.id, cartaoId: c.cartaoId, cartNome: cartNome,
           desc: c.desc, cat: c.categoria || '-',
           valorTotal: valorTotal, valorParcela: valorParcela,
-          data: c.data, parcelas: p, parcelaAtual: i + 1,
+          data: c.data, parcelas: p, parcelaAtual: parcelaNum,
           isParcelada: p > 1, isCompetenciaOriginal: mCompra === mes,
-          isUltimaParcela: (i + 1) === p,
+          isUltimaParcela: parcelaNum === p,
+          isAntecipada: !!mesDestino,
           temAntecipacao: _cpTemAntecipacao(c),
           antCount: antInfo.count, antValor: antInfo.valor
         });

@@ -1,4 +1,4 @@
-// antecipacao.js v3 — Antecipação de parcelas + Correção dos cálculos de fatura/extrato/resumo
+// antecipacao.js v4 — Antecipação + Liquidar compra + Correção dos cálculos de fatura/extrato/resumo
 (function(){
 
   // ============================================
@@ -115,28 +115,18 @@
   // Calcular parcelas e em qual fatura cada uma cai
   // ============================================
   function calcularParcelas(compra){
-    var cart = S.cartoes.find(function(c){return c.id===compra.cartaoId;});
-    var fechamento = cart ? (Number(cart.fechamento)||1) : 1;
-    var dataCompra = new Date(compra.data+'T12:00:00');
-    var diaCompra = dataCompra.getDate();
-    var mesCompra = dataCompra.getMonth()+1;
-    var anoCompra = dataCompra.getFullYear();
-
-    var mesBase, anoBase;
-    if(diaCompra > fechamento){
-      var ns = mesSeguinte(anoCompra, mesCompra);
-      anoBase = ns.y; mesBase = ns.m;
-    } else {
-      anoBase = anoCompra; mesBase = mesCompra;
-    }
-
+    // Usa getMes (AAAA-MM da data da compra) como base — igual ao allEntries
+    // para garantir que parcelasNums armazenados correspondam aos mesmos meses em ambos
+    var mC = getMes(compra.data);
     var totalParc = compra.parcelas || 1;
     var valorParc = (Number(compra.valor)||0) / totalParc;
     var antecipacoes = compra.antecipacoes || [];
 
     var resultado = [];
-    var y = anoBase, m = mesBase;
     for(var i=1; i<=totalParc; i++){
+      var mesAno = addMes(mC, i-1);
+      var parts = mesAno.split('-');
+      var y = parseInt(parts[0]), m = parseInt(parts[1]);
       var status = 'normal';
       var foiAntecipada = antecipacoes.some(function(a){
         return a.parcelasNums && a.parcelasNums.indexOf(i) >= 0;
@@ -145,7 +135,7 @@
 
       resultado.push({
         num: i,
-        mesAno: y+'-'+(m<10?'0':'')+m,
+        mesAno: mesAno,
         mesNum: y*100+m,
         mesLabel: nomeMes(y,m),
         valor: valorParc,
@@ -153,8 +143,6 @@
         disponivel: false,
         selected: false
       });
-      var ns2 = mesSeguinte(y,m);
-      y=ns2.y; m=ns2.m;
     }
     return resultado;
   }
@@ -403,27 +391,25 @@
         var compraId = match[1];
         var compra = S.comprasCartao.find(function(c){return c.id===compraId;});
         if(!compra || (compra.parcelas||1) <= 1) return;
+        if(lastTd.querySelector('.btn-antecipar')) return;
+
         var parcelas = calcularParcelas(compra);
         var naoAntecipadas = parcelas.filter(function(p){return p.status!=='antecipada';});
         if(naoAntecipadas.length <= 1) return;
-        if(lastTd.querySelector('.btn-antecipar')) return;
 
         var btn = document.createElement('button');
         btn.className = 'btn btn-sm btn-warning btn-antecipar';
         btn.innerHTML = '&#9889;';
         btn.title = 'Antecipar parcelas';
-        btn.onclick = function(){ abrirAntecipacao(compraId); };
+        btn.onclick = (function(id){ return function(){ abrirAntecipacao(id); }; })(compraId);
         lastTd.insertBefore(btn, lastTd.firstChild);
 
         if(compra.antecipacoes && compra.antecipacoes.length > 0){
           var totalAnt = compra.antecipacoes.reduce(function(a,b){return a+b.valorTotal;},0);
           var parcAnt = compra.antecipacoes.reduce(function(a,b){return a+(b.parcelasNums?b.parcelasNums.length:0);},0);
           var tds = row.querySelectorAll('td');
-          if(tds.length >= 6){
-            var parcTd = tds[5];
-            if(!parcTd.querySelector('.badge-purple')){
-              parcTd.innerHTML += ' <span class="badge badge-purple" title="'+parcAnt+' parcela(s) antecipada(s) - '+fmtV(totalAnt)+'">&#9889; '+parcAnt+' ant.</span>';
-            }
+          if(tds.length >= 6 && !tds[5].querySelector('.badge-purple')){
+            tds[5].innerHTML += ' <span class="badge badge-purple" title="'+parcAnt+' parcela(s) antecipada(s) - '+fmtV(totalAnt)+'">&#9889; '+parcAnt+' ant.</span>';
           }
         }
       });
@@ -439,17 +425,19 @@
         var compraId = match[1];
         var compra = S.comprasCartao.find(function(c){return c.id===compraId;});
         if(!compra || (compra.parcelas||1) <= 1) return;
-        var parcelas = calcularParcelas(compra);
-        var naoAntecipadas = parcelas.filter(function(p){return p.status!=='antecipada';});
-        if(naoAntecipadas.length <= 1) return;
         if(mc.querySelector('.btn-antecipar')) return;
         var acts = mc.querySelector('.mc-acts');
         if(!acts) return;
-        var btn = document.createElement('button');
-        btn.className = 'btn btn-sm btn-warning btn-antecipar';
-        btn.innerHTML = '&#9889; Antecipar';
-        btn.onclick = function(){ abrirAntecipacao(compraId); };
-        acts.insertBefore(btn, acts.firstChild);
+
+        var parcelas = calcularParcelas(compra);
+        var naoAntecipadas = parcelas.filter(function(p){return p.status!=='antecipada';});
+        if(naoAntecipadas.length <= 1) return;
+
+        var btnA = document.createElement('button');
+        btnA.className = 'btn btn-sm btn-warning btn-antecipar';
+        btnA.innerHTML = '&#9889; Antecipar';
+        btnA.onclick = (function(id){ return function(){ abrirAntecipacao(id); }; })(compraId);
+        acts.insertBefore(btnA, acts.firstChild);
       });
     }
   };
@@ -693,5 +681,5 @@
     return calcSaldoDevedor(cid) + assinaturas;
   };
 
-  console.log('[Financeiro Pro] Antecipa\u00e7\u00e3o v3 — save fix + allEntries/faturaCC/calcFatura respeitam antecipa\u00e7\u00f5es.');
+  console.log('[Financeiro Pro] Antecipação v4 — calcularParcelas usa getMes (alinhado com allEntries).');
 })();
