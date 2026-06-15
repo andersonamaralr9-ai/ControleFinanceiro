@@ -454,8 +454,8 @@ window.renderResumoInvest = function() {
   var rentColor = rentMes > 0 ? 'var(--ok)' : (rentMes < 0 ? 'var(--dn2)' : 'var(--tx3)');
   var salColor = diff >= 0 ? 'var(--ok)' : 'var(--dn2)';
 
-  // \u2500\u2500\u2500 DESKTOP: .rc6 cards \u2500\u2500\u2500
-  var dh = '<div style="margin-bottom:14px">';
+  // \u2500\u2500\u2500 DESKTOP: .rc6 cards (rg-sec \u00e9 oculto no mobile via CSS) \u2500\u2500\u2500
+  var dh = '<div class="rg-sec" style="margin-bottom:14px">';
   dh += '<div style="font-size:.68em;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--tx3);margin-bottom:10px">Investimentos</div>';
   dh += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">';
   dh += '<div class="rc6" style="border-left-color:var(--inf2)!important">';
