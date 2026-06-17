@@ -359,6 +359,7 @@ tr:hover td{background:rgba(255,255,255,.025);}
   <div class="group-label">Planejamento</div>
   <a onclick="nav('planejamento')" id="nav-planejamento"><span>&#127919; Planejamento</span></a>
   <a onclick="nav('investimentos')" id="nav-investimentos"><span>&#128184; Investimentos</span></a>
+  <a onclick="nav('patrimonio')" id="nav-patrimonio"><span>&#127968; Patrim&ocirc;nio</span></a>
 <div class="sep"></div>
   <div class="group-label">Sistema</div>
   <a onclick="nav('config')" id="nav-config"><span>&#9881; Configura&ccedil;&otilde;es</span></a>
@@ -483,6 +484,34 @@ tr:hover td{background:rgba(255,255,255,.025);}
   <div class="table-wrap"><table><thead><tr><th>Categoria</th><th>Limite</th><th>Gasto</th><th>Dispon&iacute;vel</th><th>%</th><th>A&ccedil;&otilde;es</th></tr></thead><tbody id="tbPlan"></tbody></table></div>
 </div>
 
+<div class="page" id="pg-patrimonio">
+  <h2 class="page-title">&#127968; Patrim&ocirc;nio</h2>
+  <div class="form-section">
+    <div class="form-grid">
+      <div class="form-group"><label>Nome</label><input id="patNome" class="form-control" placeholder="Ex: Apartamento Centro"></div>
+      <div class="form-group"><label>Tipo</label><select id="patTipo" class="form-control"><option value="imovel">&#127968; Im&oacute;vel</option><option value="veiculo">&#128663; Ve&iacute;culo</option><option value="outro">&#128230; Outro</option></select></div>
+      <div class="form-group"><label>Valor de aquisi&ccedil;&atilde;o (R$)</label><input id="patValor" class="form-control" placeholder="0,00"></div>
+      <div class="form-group"><label>M&ecirc;s de aquisi&ccedil;&atilde;o</label><input id="patData" class="form-control" type="month"></div>
+      <div class="form-group"><label>Financiado?</label><select id="patFin" class="form-control"><option value="nao">N&atilde;o</option><option value="sim">Sim</option></select></div>
+      <div class="form-group"><label>Observa&ccedil;&otilde;es</label><input id="patObs" class="form-control" placeholder="Opcional"></div>
+    </div>
+    <button class="btn btn-primary" onclick="addPatrimonio()">Adicionar</button>
+  </div>
+  <div id="patGrid"></div>
+</div>
+
+<!-- Modal: vincular contratos ao patrimônio -->
+<div class="modal" id="modalPatContr">
+  <div class="modal-content" style="max-width:520px">
+    <div class="modal-header"><h3>Vincular Contratos</h3><span class="modal-close" onclick="closeM('modalPatContr')">&times;</span></div>
+    <div class="modal-body">
+      <p style="font-size:.82em;color:var(--tx3);margin-bottom:12px">Selecione os contratos que pertencem a este ativo. Um contrato pode ser vinculado a apenas um patrim&ocirc;nio.</p>
+      <div id="patContrList"></div>
+      <div style="margin-top:16px;text-align:right"><button class="btn btn-primary" onclick="salvarVinculoContr()">Salvar</button></div>
+    </div>
+  </div>
+</div>
+
 <div class="page" id="pg-investimentos">
   <h2 class="page-title">&#128184; Investimentos</h2>
   <div class="form-section"><div class="form-grid">
@@ -588,19 +617,19 @@ function scheduleSync(){if(!cloudOk)return;clearTimeout(syncTimer);syncTimer=set
 async function connectCloud(){let t=g('inputToken').value.trim();if(!t){alert('Informe o token.');return;}gistToken=t;localStorage.setItem(TOKEN_KEY,t);syncUI('loading','Conectando...');closeM('modalToken');let data=await gistRead();if(data===null){cloudOk=true;await gistWrite(S);syncUI('on','Cloud conectado');}else if(data&&typeof data==='object'){if(data.lancamentos||data.cartoes||data.contratos){S=mergeState(data);localStorage.setItem(SK,JSON.stringify(S));renderAll();}cloudOk=true;syncUI('on','Cloud conectado');}else{cloudOk=true;syncUI('on','Cloud conectado');}renderCloudArea();}
 function skipCloud(){closeM('modalToken');cloudOk=false;syncUI('off','Offline');renderCloudArea();}
 async function initCloud(){if(!gistToken){openM('modalToken');return;}syncUI('loading','Conectando...');let data=await gistRead();if(data&&typeof data==='object'&&(data.lancamentos||data.cartoes||data.contratos)){S=mergeState(data);localStorage.setItem(SK,JSON.stringify(S));renderAll();}cloudOk=true;syncUI('on','Cloud conectado');}
-function mergeState(d){let st=JSON.parse(JSON.stringify(d));['lancamentos','cartoes','comprasCartao','assinaturas','contratos','investimentos','caixa'].forEach(k=>{if(!Array.isArray(st[k]))st[k]=[];});if(!st.planejamento||Array.isArray(st.planejamento))st.planejamento={};if(!st.cats)st.cats=JSON.parse(JSON.stringify(defCats));Object.keys(defCats).forEach(k=>{if(!Array.isArray(st.cats[k]))st.cats[k]=defCats[k].slice();});if(!st.config)st.config={theme:'dark'};return st;}
+function mergeState(d){let st=JSON.parse(JSON.stringify(d));['lancamentos','cartoes','comprasCartao','assinaturas','contratos','investimentos','caixa','patrimonios'].forEach(k=>{if(!Array.isArray(st[k]))st[k]=[];});if(!st.planejamento||Array.isArray(st.planejamento))st.planejamento={};if(!st.cats)st.cats=JSON.parse(JSON.stringify(defCats));Object.keys(defCats).forEach(k=>{if(!Array.isArray(st.cats[k]))st.cats[k]=defCats[k].slice();});if(!st.config)st.config={theme:'dark'};return st;}
 
 const SK='finApp_v5';let S;
 const defCats={receita:['Sal\u00e1rio','Vendas','Rendimentos','B\u00f4nus','Outros'],despesa:['Alimenta\u00e7\u00e3o','Moradia','Transporte','Sa\u00fade','Educa\u00e7\u00e3o','Lazer','Roupas','Servi\u00e7os','Impostos','Cart\u00e3o de Cr\u00e9dito','Outros'],investimento:['Renda Fixa','A\u00e7\u00f5es','FIIs','Criptomoedas','Poupan\u00e7a','Tesouro Direto','CDB','Outro'],compra:['Alimenta\u00e7\u00e3o','Moradia','Transporte','Sa\u00fade','Educa\u00e7\u00e3o','Lazer','Roupas','Eletr\u00f4nicos','Servi\u00e7os','Assinaturas','Outros'],assinatura:['Streaming','M\u00fasica','Software','Cloud/Armazenamento','Jogos','Educa\u00e7\u00e3o','Sa\u00fade/Academia','Not\u00edcias','Delivery','Outros'],transferencia:['Dep\u00f3sito Caixa','Retirada Caixa']};
 const catLabels={receita:'Categorias de Receita',despesa:'Categorias de Despesa',investimento:'Categorias de Investimento',compra:'Categorias de Compra (Cart\u00e3o)',assinatura:'Categorias de Assinatura',transferencia:'Categorias de Transfer\u00eancia'};
-function defState(){return{lancamentos:[],cartoes:[],comprasCartao:[],assinaturas:[],contratos:[],investimentos:[],planejamento:{},caixa:[],cats:JSON.parse(JSON.stringify(defCats)),config:{theme:'dark'},_deletedIds:{}};}
+function defState(){return{lancamentos:[],cartoes:[],comprasCartao:[],assinaturas:[],contratos:[],investimentos:[],planejamento:{},caixa:[],patrimonios:[],cats:JSON.parse(JSON.stringify(defCats)),config:{theme:'dark'},_deletedIds:{}};}
 function markDeleted(id){if(!id)return;if(!S._deletedIds)S._deletedIds={};S._deletedIds[id]=Date.now();}
 function load(){try{let d=JSON.parse(localStorage.getItem(SK));if(d){S=d;['lancamentos','cartoes','comprasCartao','assinaturas','contratos','investimentos','caixa'].forEach(k=>{if(!Array.isArray(S[k]))S[k]=[];});if(!S.planejamento||Array.isArray(S.planejamento))S.planejamento={};if(!S.cats)S.cats=JSON.parse(JSON.stringify(defCats));Object.keys(defCats).forEach(k=>{if(!Array.isArray(S.cats[k]))S.cats[k]=defCats[k].slice();});if(!S.config)S.config={theme:'dark'};}else S=defState();}catch(e){S=defState();}}
 function salvar(){localStorage.setItem(SK,JSON.stringify(S));scheduleSync();}
 
 let curPage='resumo',curMes=mesAtual(),lancMes=mesAtual(),planMes=mesAtual();
 function nav(p){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.sidebar a').forEach(x=>x.classList.remove('active'));g('pg-'+p).classList.add('active');let n=g('nav-'+p);if(n)n.classList.add('active');curPage=p;document.body.className=document.body.className.replace(/\bpage-\w+/g,'').trim()+' page-'+p;ren(p);closeSidebar();}
-function ren(p){({resumo:renderResumo,lancs:renderLancs,contratos:renderContratos,extrato:renderExtrato,balancete:renderBalancete,cartoes:renderCartoes,compras:renderCompras,assinaturas:renderAssinaturas,planejamento:renderPlan,investimentos:renderInvest,config:renderConfig,backup:renderBackupPage}[p]||function(){})();}
+function ren(p){({resumo:renderResumo,lancs:renderLancs,contratos:renderContratos,extrato:renderExtrato,balancete:renderBalancete,cartoes:renderCartoes,compras:renderCompras,assinaturas:renderAssinaturas,planejamento:renderPlan,investimentos:renderInvest,patrimonio:renderPatrimonio,config:renderConfig,backup:renderBackupPage}[p]||function(){})();}
 function chgM(n){curMes=addMes(curMes,n);renderResumo();}
 function chgLM(n){lancMes=addMes(lancMes,n);renderLancs();}
 function chgPM(n){planMes=addMes(planMes,n);renderPlan();}
@@ -752,6 +781,7 @@ g('extAte').value=hojeStr();
 <script src="investimentos-enhanced.js"></script> <!-- NOVO -->
 <script src="compras-filtro.js?v=5"></script>
 <script src="planejamento.js"></script>
+<script src="patrimonio.js?v=1"></script>
 <script src="cartoes-fix.js"></script>  <!-- NOVO -->
 <script src="design-packs.js"></script>
 <script src="resumo-enhanced.js?v=8"></script>
