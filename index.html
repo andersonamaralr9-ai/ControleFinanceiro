@@ -359,8 +359,7 @@ tr:hover td{background:rgba(255,255,255,.025);}
   <div class="group-label">Planejamento</div>
   <a onclick="nav('planejamento')" id="nav-planejamento"><span>&#127919; Planejamento</span></a>
   <a onclick="nav('investimentos')" id="nav-investimentos"><span>&#128184; Investimentos</span></a>
-  <a onclick="nav('analise')" id="nav-analise"><span>&#129302; An&aacute;lise com IA</span></a>
-  <div class="sep"></div>
+<div class="sep"></div>
   <div class="group-label">Sistema</div>
   <a onclick="nav('config')" id="nav-config"><span>&#9881; Configura&ccedil;&otilde;es</span></a>
   <a onclick="nav('backup')" id="nav-backup"><span>&#9729; Backup / Cloud</span></a>
@@ -484,38 +483,6 @@ tr:hover td{background:rgba(255,255,255,.025);}
   <div class="table-wrap"><table><thead><tr><th>Categoria</th><th>Limite</th><th>Gasto</th><th>Dispon&iacute;vel</th><th>%</th><th>A&ccedil;&otilde;es</th></tr></thead><tbody id="tbPlan"></tbody></table></div>
 </div>
 
-<div class="page" id="pg-analise">
-  <h2 class="page-title">&#129302; An&aacute;lise com IA</h2>
-  <p style="color:var(--tx3);font-size:.85em;margin-bottom:16px">Gera um prompt completo com seus dados financeiros para colar em qualquer IA (ChatGPT, Claude, etc.).</p>
-  <div class="form-section">
-    <div class="form-grid">
-      <div class="form-group">
-        <label>M&ecirc;s base</label>
-        <select id="aiMesBase" class="form-control" onchange=""></select>
-      </div>
-      <div class="form-group">
-        <label>Incluir investimentos?</label>
-        <select id="aiIncluirInv" class="form-control">
-          <option value="nao">N&atilde;o</option>
-          <option value="sim">Sim</option>
-        </select>
-      </div>
-    </div>
-    <div class="form-group" style="margin-top:10px">
-      <label>Objetivos / contexto adicional <span style="color:var(--tx3)">(opcional)</span></label>
-      <textarea id="aiObjetivos" class="form-control" rows="3" placeholder="Ex: quero comprar um carro em 18 meses, reduzir gastos com lazer, aumentar reserva de emerg&ecirc;ncia..."></textarea>
-    </div>
-    <button class="btn btn-primary" style="margin-top:12px" onclick="gerarPromptIA()">&#129302; Gerar Prompt</button>
-  </div>
-  <div id="aiResultado" style="display:none;margin-top:16px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-      <strong style="font-size:.9em">Prompt gerado — copie e cole em qualquer IA</strong>
-      <button class="btn btn-outline btn-copy" onclick="copiarPromptIA()">&#128203; Copiar</button>
-    </div>
-    <textarea id="aiPrompt" class="form-control" rows="22" readonly style="font-size:.78em;font-family:monospace;line-height:1.5"></textarea>
-  </div>
-</div>
-
 <div class="page" id="pg-investimentos">
   <h2 class="page-title">&#128184; Investimentos</h2>
   <div class="form-section"><div class="form-grid">
@@ -633,7 +600,7 @@ function salvar(){localStorage.setItem(SK,JSON.stringify(S));scheduleSync();}
 
 let curPage='resumo',curMes=mesAtual(),lancMes=mesAtual(),planMes=mesAtual();
 function nav(p){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.sidebar a').forEach(x=>x.classList.remove('active'));g('pg-'+p).classList.add('active');let n=g('nav-'+p);if(n)n.classList.add('active');curPage=p;document.body.className=document.body.className.replace(/\bpage-\w+/g,'').trim()+' page-'+p;ren(p);closeSidebar();}
-function ren(p){({resumo:renderResumo,lancs:renderLancs,contratos:renderContratos,extrato:renderExtrato,balancete:renderBalancete,cartoes:renderCartoes,compras:renderCompras,assinaturas:renderAssinaturas,planejamento:renderPlan,investimentos:renderInvest,analise:initAnalise,config:renderConfig,backup:renderBackupPage}[p]||function(){})();}
+function ren(p){({resumo:renderResumo,lancs:renderLancs,contratos:renderContratos,extrato:renderExtrato,balancete:renderBalancete,cartoes:renderCartoes,compras:renderCompras,assinaturas:renderAssinaturas,planejamento:renderPlan,investimentos:renderInvest,config:renderConfig,backup:renderBackupPage}[p]||function(){})();}
 function chgM(n){curMes=addMes(curMes,n);renderResumo();}
 function chgLM(n){lancMes=addMes(lancMes,n);renderLancs();}
 function chgPM(n){planMes=addMes(planMes,n);renderPlan();}
@@ -785,7 +752,6 @@ g('extAte').value=hojeStr();
 <script src="investimentos-enhanced.js"></script> <!-- NOVO -->
 <script src="compras-filtro.js?v=5"></script>
 <script src="planejamento.js"></script>
-<script src="analise-ia.js?v=3"></script>
 <script src="cartoes-fix.js"></script>  <!-- NOVO -->
 <script src="design-packs.js"></script>
 <script src="resumo-enhanced.js?v=8"></script>
