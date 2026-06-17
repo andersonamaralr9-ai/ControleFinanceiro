@@ -103,6 +103,36 @@ window.addPatrimonio = function() {
   renderPatrimonio();
 };
 
+window.editPatrimonio = function(id) {
+  var pat = (S.patrimonios || []).find(function(p) { return p.id === id; });
+  if (!pat) return;
+  g('epId').value = id;
+  g('epNome').value = pat.nome || '';
+  g('epTipo').value = pat.tipo || 'imovel';
+  g('epValor').value = pat.valorAquisicao ? pat.valorAquisicao.toFixed(2).replace('.', ',') : '';
+  g('epData').value = pat.dataAquisicao || '';
+  g('epFin').value = pat.financiado ? 'sim' : 'nao';
+  g('epObs').value = pat.obs || '';
+  openM('modalEditPat');
+};
+
+window.salvarEditPat = function() {
+  var id = g('epId').value;
+  var pat = (S.patrimonios || []).find(function(p) { return p.id === id; });
+  if (!pat) return;
+  var nome = g('epNome').value.trim();
+  if (!nome) return alert('Informe o nome do ativo.');
+  pat.nome = nome;
+  pat.tipo = g('epTipo').value;
+  pat.valorAquisicao = _patN(g('epValor').value);
+  pat.dataAquisicao = g('epData').value || '';
+  pat.financiado = g('epFin').value === 'sim';
+  pat.obs = g('epObs').value.trim();
+  salvar();
+  closeM('modalEditPat');
+  renderPatrimonio();
+};
+
 window.delPatrimonio = function(id) {
   if (!confirm('Remover este ativo?')) return;
   S.patrimonios = (S.patrimonios || []).filter(function(p) { return p.id !== id; });
@@ -303,7 +333,10 @@ window.renderPatrimonio = function() {
     c += '<div><strong>' + pat.nome + '</strong> <span style="font-size:.72em;color:var(--tx3)">' + (_patTipoLabel[pat.tipo] || pat.tipo) + '</span>';
     if (pat.financiado) c += ' <span class="badge badge-warning" style="font-size:.65em">Financiado</span>';
     c += '</div>';
+    c += '<div style="display:flex;gap:6px">';
+    c += '<button class="btn btn-sm btn-outline" onclick="editPatrimonio(\'' + pat.id + '\')">✏️</button>';
     c += '<button class="btn btn-sm btn-danger" onclick="delPatrimonio(\'' + pat.id + '\')">🗑</button>';
+    c += '</div>';
     c += '</div>';
 
     c += '<div class="sub-box-body" style="padding-bottom:4px">';

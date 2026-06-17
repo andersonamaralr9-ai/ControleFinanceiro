@@ -512,6 +512,25 @@ tr:hover td{background:rgba(255,255,255,.025);}
   </div>
 </div>
 
+<!-- Modal: editar patrimônio -->
+<div class="modal" id="modalEditPat">
+  <div class="modal-content" style="max-width:520px">
+    <div class="modal-header"><h3>Editar Ativo</h3><span class="modal-close" onclick="closeM('modalEditPat')">&times;</span></div>
+    <div class="modal-body">
+      <input type="hidden" id="epId">
+      <div class="form-grid">
+        <div class="form-group"><label>Nome</label><input id="epNome" class="form-control"></div>
+        <div class="form-group"><label>Tipo</label><select id="epTipo" class="form-control"><option value="imovel">&#127968; Im&oacute;vel</option><option value="veiculo">&#128663; Ve&iacute;culo</option><option value="outro">&#128230; Outro</option></select></div>
+        <div class="form-group"><label>Valor de aquisi&ccedil;&atilde;o (R$)</label><input id="epValor" class="form-control" placeholder="0,00"></div>
+        <div class="form-group"><label>M&ecirc;s de aquisi&ccedil;&atilde;o</label><input id="epData" class="form-control" type="month"></div>
+        <div class="form-group"><label>Financiado?</label><select id="epFin" class="form-control"><option value="nao">N&atilde;o</option><option value="sim">Sim</option></select></div>
+        <div class="form-group"><label>Observa&ccedil;&otilde;es</label><input id="epObs" class="form-control"></div>
+      </div>
+      <div style="text-align:right;margin-top:12px"><button class="btn btn-primary" onclick="salvarEditPat()">Salvar</button></div>
+    </div>
+  </div>
+</div>
+
 <!-- Modal: saldo devedor -->
 <div class="modal" id="modalSaldo">
   <div class="modal-content" style="max-width:420px">
@@ -796,7 +815,7 @@ g('extAte').value=hojeStr();
 <script src="investimentos-enhanced.js"></script> <!-- NOVO -->
 <script src="compras-filtro.js?v=5"></script>
 <script src="planejamento.js"></script>
-<script src="patrimonio.js?v=2"></script>
+<script src="patrimonio.js?v=3"></script>
 <script src="cartoes-fix.js"></script>  <!-- NOVO -->
 <script src="design-packs.js"></script>
 <script src="resumo-enhanced.js?v=8"></script>
