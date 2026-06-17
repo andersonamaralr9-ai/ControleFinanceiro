@@ -1,4 +1,4 @@
-// analise-ia.js v2.0
+// analise-ia.js v3.0
 (function () {
 'use strict';
 
@@ -38,7 +38,7 @@ function _pct (v, total) {
 }
 
 function _delta (atual, media) {
-  if (!media) return '';
+  if (!media) return null;
   var d = ((atual - media) / media) * 100;
   return (d >= 0 ? '+' : '') + d.toFixed(1) + '%';
 }
@@ -115,8 +115,6 @@ function _parcelasAtivas (mes) {
     var cartNome = cart ? cart.nome : 'Cartão';
     for (var i = 0; i < p; i++) {
       if (addMes(mC, i) === mes) {
-        var restantes = p - (i + 1);
-        var mesTermino = addMes(mC, p - 1);
         var vp = (Number(c.valor) || 0) / p;
         lista.push({
           desc: c.desc,
@@ -124,8 +122,8 @@ function _parcelasAtivas (mes) {
           parcelaAtual: i + 1,
           totalParcelas: p,
           valorParcela: vp,
-          mesTermino: mesTermino,
-          restantes: restantes
+          mesTermino: addMes(mC, p - 1),
+          restantes: p - (i + 1)
         });
         break;
       }
@@ -134,13 +132,13 @@ function _parcelasAtivas (mes) {
   return lista.sort(function (a, b) { return b.valorParcela - a.valorParcela; });
 }
 
-function _tendencia (hist) {
-  if (hist.length < 2) return 'sem dados suficientes';
-  var despesas = hist.map(function (h) { return h.desp; });
+function _tendencia (histValido) {
+  if (histValido.length < 2) return 'poucos dados (menos de 2 meses com registros)';
+  var despesas = histValido.map(function (h) { return h.desp; });
   var diffs = [];
   for (var i = 1; i < despesas.length; i++) diffs.push(despesas[i] - despesas[i - 1]);
   var media = diffs.reduce(function (s, v) { return s + v; }, 0) / diffs.length;
-  if (Math.abs(media) < 100) return 'estável';
+  if (Math.abs(media) < 150) return 'estável';
   return media > 0 ? 'crescente (↑)' : 'decrescente (↓)';
 }
 
@@ -153,43 +151,49 @@ window.gerarPromptIA = function () {
   var atual = _mesStats(mes);
   var chk = _checkStatus(mes);
 
-  var hist = [];
+  // Histórico: últimos 3 meses, ignorando meses sem dados
+  var histTodos = [];
   for (var i = -3; i <= -1; i++) {
     var hm = addMes(mes, i);
     var hs = _mesStats(hm);
-    hist.push({ label: mesNomeFull(hm), mes: hm, rec: hs.rec, desp: hs.desp, sal: hs.sal, entries: hs.entries });
+    histTodos.push({ label: mesNomeFull(hm), mes: hm, rec: hs.rec, desp: hs.desp, sal: hs.sal, entries: hs.entries });
   }
+  // Apenas meses com dados reais
+  var hist = histTodos.filter(function (h) { return h.rec > 0 || h.desp > 0; });
+  var nHist = hist.length || 1;
 
-  var mediaRec  = hist.reduce(function (s, h) { return s + h.rec; }, 0) / 3;
-  var mediaDesp = hist.reduce(function (s, h) { return s + h.desp; }, 0) / 3;
+  var mediaRec  = hist.reduce(function (s, h) { return s + h.rec; }, 0) / nHist;
+  var mediaDesp = hist.reduce(function (s, h) { return s + h.desp; }, 0) / nHist;
   var mediaSal  = mediaRec - mediaDesp;
   var taxaPoupanca = mediaRec > 0 ? ((mediaSal / mediaRec) * 100).toFixed(1) : '0';
   var tendencia = _tendencia(hist);
+  var aviso3Meses = nHist < 3 ? ' (base: ' + nHist + ' mês' + (nHist > 1 ? 'es' : '') + ' com dados — meses sem registros foram excluídos da média)' : '';
 
-  // Categorias com comparativo histórico
-  var catHist = {};
+  // Categorias: média apenas sobre meses com dados (mesmo nHist)
+  var catHistSoma = {};
   hist.forEach(function (h) {
     var cm = _catMap(h.entries);
-    Object.keys(cm).forEach(function (k) { catHist[k] = (catHist[k] || 0) + cm[k]; });
+    Object.keys(cm).forEach(function (k) { catHistSoma[k] = (catHistSoma[k] || 0) + cm[k]; });
   });
   var catMediaMap = {};
-  Object.keys(catHist).forEach(function (k) { catMediaMap[k] = catHist[k] / 3; });
+  Object.keys(catHistSoma).forEach(function (k) { catMediaMap[k] = catHistSoma[k] / nHist; });
   var catAtual = _catMap(atual.entries);
   var todasCats = Object.keys(Object.assign({}, catAtual, catMediaMap))
     .map(function (k) { return { cat: k, atual: catAtual[k] || 0, media: catMediaMap[k] || 0 }; })
     .sort(function (a, b) { return b.atual - a.atual; }).slice(0, 10);
 
-  // Fixos
-  var contrAtivos = (S.contratos || []).filter(function (c) { return !c.encerradoEm; });
-  var assAtivas   = (S.assinaturas || []).filter(function (s) { return !s.encerradaEm; });
-  var totalCont = contrAtivos.reduce(function (s, c) { return s + (Number(c.valor) || 0); }, 0);
+  // Fixos — somente contratos de despesa (excluir receita-contratos como salário)
+  var contrDesp = (S.contratos || []).filter(function (c) { return !c.encerradoEm && c.tipo !== 'receita'; });
+  var contrRec  = (S.contratos || []).filter(function (c) { return !c.encerradoEm && c.tipo === 'receita'; });
+  var assAtivas = (S.assinaturas || []).filter(function (s) { return !s.encerradaEm; });
+  var totalCont = contrDesp.reduce(function (s, c) { return s + (Number(c.valor) || 0); }, 0);
   var totalAss  = assAtivas.reduce(function (s, a) { return s + (Number(a.valor) || 0); }, 0);
   var totalFixo = totalCont + totalAss;
-  var pctFixo = mediaRec > 0 ? ((totalFixo / mediaRec) * 100).toFixed(1) : '0';
+  var pctFixo   = mediaRec > 0 ? ((totalFixo / mediaRec) * 100).toFixed(1) : '0';
 
-  // Parcelas ativas no mês
+  // Parcelas
   var parcelas = _parcelasAtivas(mes);
-  var totalParcelas = parcelas.reduce(function (s, p) { return s + p.valorParcela; }, 0);
+  var totalParcelas = parcelas.reduce(function (s, pc) { return s + pc.valorParcela; }, 0);
   var pctParc = mediaRec > 0 ? ((totalParcelas / mediaRec) * 100).toFixed(1) : '0';
   var pctComprometido = mediaRec > 0 ? (((totalFixo + totalParcelas) / mediaRec) * 100).toFixed(1) : '0';
 
@@ -214,15 +218,22 @@ window.gerarPromptIA = function () {
   p += L + SEP;
 
   // 1. Perfil
-  p += '## 1. PERFIL FINANCEIRO — ' + mesNomeFull(mes) + L + L;
-  p += 'Renda média mensal (últimos 3 meses): ' + _fmtI(mediaRec) + L;
-  p += 'Gasto médio mensal (últimos 3 meses): ' + _fmtI(mediaDesp) + L;
+  p += '## 1. PERFIL FINANCEIRO — ' + mesNomeFull(mes) + L;
+  if (aviso3Meses) p += '⚠️ Nota: ' + aviso3Meses.trim() + L;
+  p += L;
+  p += 'Renda média mensal: ' + _fmtI(mediaRec) + L;
+  p += 'Gasto médio mensal: ' + _fmtI(mediaDesp) + L;
   p += 'Saldo médio mensal: ' + _fmtI(mediaSal) + L;
-  p += 'Taxa de poupança média: ' + taxaPoupanca + '% (sobram ' + _fmtI(mediaSal) + ' de cada ' + _fmtI(mediaRec) + ' recebidos)' + L;
-  p += 'Tendência de gastos (últimos 3 meses): ' + tendencia + L;
-  p += 'Comprometimento fixo (contratos + assinaturas): ' + _fmtI(totalFixo) + '/mês = ' + pctFixo + '% da renda' + L;
-  p += 'Comprometimento com parcelas de cartão: ' + _fmtI(totalParcelas) + '/mês = ' + pctParc + '% da renda' + L;
-  p += 'Total comprometido (fixo + parcelas): ' + _fmtI(totalFixo + totalParcelas) + '/mês = ' + pctComprometido + '% da renda' + L;
+  p += 'Taxa de poupança média: ' + taxaPoupanca + '%' + L;
+  p += 'Tendência de gastos: ' + tendencia + L;
+  p += L;
+  p += 'Comprometimento fixo mensal (contratos despesa + assinaturas): ' + _fmtI(totalFixo) + '/mês = ' + pctFixo + '% da renda média' + L;
+  p += 'Comprometimento com parcelas de cartão: ' + _fmtI(totalParcelas) + '/mês = ' + pctParc + '% da renda média' + L;
+  p += 'Total comprometido: ' + _fmtI(totalFixo + totalParcelas) + '/mês = ' + pctComprometido + '% da renda média' + L;
+  if (contrRec.length) {
+    var totalContRec = contrRec.reduce(function (s, c) { return s + (Number(c.valor) || 0); }, 0);
+    p += '(Contratos de receita fixa — não incluídos no comprometimento: ' + _fmtI(totalContRec) + '/mês)' + L;
+  }
   p += L;
 
   // 2. Situação do mês
@@ -233,34 +244,41 @@ window.gerarPromptIA = function () {
   p += 'Despesas previstas: ' + _fmt(atual.desp) + L;
   p += '  → Pago: ' + _fmt(chk.despPago) + ' (' + _pct(chk.despPago, atual.desp) + ') | A pagar: ' + _fmt(chk.despPend) + L;
   p += 'Saldo projetado: ' + _fmt(atual.sal) + L;
-  p += 'Comparativo com média histórica: receita ' + _delta(atual.rec, mediaRec) + ' | despesa ' + _delta(atual.desp, mediaDesp) + L;
+  if (nHist >= 1) {
+    p += 'vs. média histórica: receita ' + (_delta(atual.rec, mediaRec) || '-') + ' | despesa ' + (_delta(atual.desp, mediaDesp) || '-') + L;
+  }
   p += L;
 
   // 3. Histórico
   p += SEP;
-  p += '## 3. HISTÓRICO — últimos 3 meses' + L + L;
-  hist.forEach(function (h) {
-    var tx = h.rec > 0 ? ((h.sal / h.rec) * 100).toFixed(1) + '%' : '-';
-    p += h.label + ': Receita ' + _fmtI(h.rec) + ' | Despesa ' + _fmtI(h.desp) + ' | Saldo ' + _fmtI(h.sal) + ' | Poupança ' + tx + L;
-  });
+  p += '## 3. HISTÓRICO — meses com registros (até 3 meses anteriores)' + L + L;
+  if (hist.length === 0) {
+    p += 'Nenhum mês anterior com dados registrados.' + L;
+  } else {
+    hist.forEach(function (h) {
+      var tx = h.rec > 0 ? ((h.sal / h.rec) * 100).toFixed(1) + '%' : '-';
+      p += h.label + ': Receita ' + _fmtI(h.rec) + ' | Despesa ' + _fmtI(h.desp) + ' | Saldo ' + _fmtI(h.sal) + ' | Poupança ' + tx + L;
+    });
+  }
   p += L;
 
   // 4. Categorias
   p += SEP;
-  p += '## 4. GASTOS POR CATEGORIA — mês atual vs média histórica' + L + L;
+  p += '## 4. GASTOS POR CATEGORIA — mês atual vs média histórica' + (nHist < 3 ? ' (' + nHist + ' mês(es) de histórico)' : '') + L + L;
   todasCats.forEach(function (c) {
-    var d = c.media > 0 ? ' | Δ ' + _delta(c.atual, c.media) : ' | (sem histórico)';
-    p += '• ' + c.cat + ': ' + _fmtI(c.atual) + ' no mês | Média ' + _fmtI(c.media) + d + L;
+    var dStr = nHist > 0 && c.media > 0 ? ' | Δ ' + _delta(c.atual, c.media) : '';
+    var mediaStr = nHist > 0 ? ' | Média ' + _fmtI(c.media) : ' | sem histórico';
+    p += '• ' + c.cat + ': ' + _fmtI(c.atual) + ' no mês' + mediaStr + dStr + L;
   });
   p += L;
 
   // 5. Comprometimentos fixos
   p += SEP;
   p += '## 5. COMPROMETIMENTOS FIXOS (' + _fmtI(totalFixo) + '/mês)' + L + L;
-  if (contrAtivos.length) {
-    p += 'Contratos ativos (' + contrAtivos.length + ') — ' + _fmtI(totalCont) + '/mês:' + L;
-    contrAtivos.forEach(function (c) {
-      p += '  • ' + c.desc + ' (' + (c.tipo === 'receita' ? 'receita' : 'despesa') + '): ' + _fmt(c.valor) + '/mês' + L;
+  if (contrDesp.length) {
+    p += 'Contratos de despesa (' + contrDesp.length + ') — ' + _fmtI(totalCont) + '/mês:' + L;
+    contrDesp.forEach(function (c) {
+      p += '  • ' + c.desc + ': ' + _fmt(c.valor) + '/mês' + L;
     });
     p += L;
   }
@@ -271,6 +289,9 @@ window.gerarPromptIA = function () {
     });
     p += L;
   }
+  if (!contrDesp.length && !assAtivas.length) {
+    p += 'Nenhum comprometimento fixo registrado.' + L + L;
+  }
 
   // 6. Parcelas
   p += SEP;
@@ -280,7 +301,7 @@ window.gerarPromptIA = function () {
       p += '• ' + pc.desc + ' [' + pc.cartao + ']: ' + _fmt(pc.valorParcela) + '/mês';
       p += ' — parcela ' + pc.parcelaAtual + '/' + pc.totalParcelas;
       p += ' — término em ' + mesNomeFull(pc.mesTermino);
-      if (pc.restantes > 0) p += ' (' + pc.restantes + ' restantes)';
+      if (pc.restantes > 0) p += ' (' + pc.restantes + ' restante' + (pc.restantes > 1 ? 's' : '') + ')';
       p += L;
     });
   } else {
@@ -295,7 +316,7 @@ window.gerarPromptIA = function () {
     var alerta = f.sal < 0 ? ' ⚠️ SALDO NEGATIVO' : '';
     p += f.label + ': Receita ' + _fmtI(f.rec) + ' | Despesa prevista ' + _fmtI(f.desp) + ' | Saldo ' + _fmtI(f.sal) + alerta + L;
   });
-  p += '(Nota: despesas variáveis como lazer, mercado e alimentação são lançadas ao longo do mês — os valores futuros refletem apenas compromissos já conhecidos.)' + L;
+  p += '(Despesas variáveis como lazer, mercado e alimentação são lançadas ao longo do mês — valores futuros refletem apenas compromissos já conhecidos.)' + L;
   p += L;
 
   // 8. Investimentos
@@ -304,13 +325,11 @@ window.gerarPromptIA = function () {
     p += '## 8. INVESTIMENTOS — ' + mesNomeFull(mes) + L + L;
     p += 'Número de ativos: ' + inv.count + L;
     p += 'Saldo de abertura do mês: ' + _fmt(inv.saldoInicial) + L;
-    p += 'Aportes no mês: ' + _fmt(inv.aporte) + L;
+    p += 'Aportes no mês: ' + _fmt(inv.aporte) + (mediaRec > 0 ? ' (' + _pct(inv.aporte, mediaRec) + ' da renda)' : '') + L;
     p += 'Resgates no mês: ' + _fmt(inv.resgate) + L;
     p += 'Rentabilidade no mês: ' + _fmt(inv.rent) + (inv.saldoInicial > 0 ? ' (' + _pct(inv.rent, inv.saldoInicial) + ' do saldo)' : '') + L;
     p += 'Saldo de fechamento: ' + _fmt(inv.saldoFechamento) + L;
     p += 'Rentabilidade acumulada total: ' + _fmt(inv.rentAcum) + L;
-    var relInvRec = mediaRec > 0 ? ((inv.aporte / mediaRec) * 100).toFixed(1) : '0';
-    p += 'Taxa de investimento no mês: ' + relInvRec + '% da renda' + L;
     p += L;
   }
 
@@ -322,7 +341,7 @@ window.gerarPromptIA = function () {
     p += L;
   }
 
-  // 10. Análise solicitada
+  // Análise solicitada
   p += SEP;
   p += '## ANÁLISE SOLICITADA' + L + L;
   p += 'Com base em todos os dados acima, por favor:' + L + L;
@@ -332,13 +351,14 @@ window.gerarPromptIA = function () {
   p += '4. O comprometimento de ' + pctComprometido + '% da renda com fixos + parcelas está em nível saudável? Qual o limite recomendado?' + L;
   p += '5. Com base na projeção dos próximos 3 meses, há risco de aperto financeiro? Em qual mês?' + L;
   if (inv) {
-    p += '6. A relação entre o saldo investido e a renda mensal está adequada? A estratégia de aportes faz sentido?' + L;
+    p += '6. A relação entre saldo investido e renda mensal está adequada? A estratégia de aportes faz sentido?' + L;
   }
   if (objetivos) {
-    p += (inv ? '7' : '6') + '. Considerando meus objetivos declarados, o que preciso ajustar para alcançá-los? Em quanto tempo é realista?' + L;
+    var qn = inv ? '7' : '6';
+    p += qn + '. Considerando meus objetivos, o que preciso ajustar para alcançá-los? Em quanto tempo é realista?' + L;
   }
   p += L;
-  p += 'Finalize com 3 ações práticas e prioritárias que posso tomar nos próximos 30 dias, ordenadas por impacto.' + L;
+  p += 'Finalize com 3 ações práticas e prioritárias para os próximos 30 dias, ordenadas por impacto.' + L;
   p += L + SEP;
 
   g('aiPrompt').value = p;
@@ -351,13 +371,14 @@ window.copiarPromptIA = function () {
   ta.select();
   ta.setSelectionRange(0, 99999);
   var btn = document.querySelector('#aiResultado .btn-copy');
+  var feedback = function () {
+    if (btn) { var o = btn.textContent; btn.textContent = '✓ Copiado!'; setTimeout(function () { btn.textContent = o; }, 2000); }
+  };
   if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(ta.value).then(function () {
-      if (btn) { var o = btn.textContent; btn.textContent = '✓ Copiado!'; setTimeout(function () { btn.textContent = o; }, 2000); }
-    });
+    navigator.clipboard.writeText(ta.value).then(feedback);
   } else {
     document.execCommand('copy');
-    if (btn) { var o2 = btn.textContent; btn.textContent = '✓ Copiado!'; setTimeout(function () { btn.textContent = o2; }, 2000); }
+    feedback();
   }
 };
 
