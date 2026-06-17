@@ -512,6 +512,21 @@ tr:hover td{background:rgba(255,255,255,.025);}
   </div>
 </div>
 
+<!-- Modal: saldo devedor -->
+<div class="modal" id="modalSaldo">
+  <div class="modal-content" style="max-width:420px">
+    <div class="modal-header"><h3>Saldo Devedor</h3><span class="modal-close" onclick="closeM('modalSaldo')">&times;</span></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>M&ecirc;s de refer&ecirc;ncia</label><input id="sdMes" class="form-control" type="month"></div>
+        <div class="form-group"><label>Saldo devedor (R$)</label><input id="sdValor" class="form-control" placeholder="0,00"></div>
+      </div>
+      <div style="text-align:right;margin-top:8px"><button class="btn btn-primary" onclick="salvarSaldo()">Salvar</button></div>
+      <div id="sdHistorico"></div>
+    </div>
+  </div>
+</div>
+
 <div class="page" id="pg-investimentos">
   <h2 class="page-title">&#128184; Investimentos</h2>
   <div class="form-section"><div class="form-grid">
@@ -781,7 +796,7 @@ g('extAte').value=hojeStr();
 <script src="investimentos-enhanced.js"></script> <!-- NOVO -->
 <script src="compras-filtro.js?v=5"></script>
 <script src="planejamento.js"></script>
-<script src="patrimonio.js?v=1"></script>
+<script src="patrimonio.js?v=2"></script>
 <script src="cartoes-fix.js"></script>  <!-- NOVO -->
 <script src="design-packs.js"></script>
 <script src="resumo-enhanced.js?v=8"></script>
