@@ -130,6 +130,16 @@ window.renderCompras = function(){
           '<select id="cpFiltroStatus" class="form-control" onchange="window._cpApplyFilter()">' +
             '<option value="">Todos</option><option value="ativa">Parcela ativa</option><option value="parcelada">Parceladas</option><option value="avista">&Agrave; vista</option>' +
           '</select></div>' +
+        '<div class="form-group"><label>Ordenar</label>' +
+          '<select id="cpFiltroSort" class="form-control" onchange="window._cpApplyFilter()">' +
+            '<option value="valor_desc">Valor Parc. &#8595;</option>' +
+            '<option value="valor_asc">Valor Parc. &#8593;</option>' +
+            '<option value="data_desc">Data &#8595;</option>' +
+            '<option value="data_asc">Data &#8593;</option>' +
+            '<option value="total_desc">Total &#8595;</option>' +
+            '<option value="desc_asc">Descri&ccedil;&atilde;o A-Z</option>' +
+            '<option value="parc_desc">Parcelas &#8595;</option>' +
+          '</select></div>' +
       '</div></div>' +
     '<div class="cp-totais-grid" id="cpTotaisGrid"></div>' +
     '<div class="cp-section">' +
@@ -233,9 +243,15 @@ window._cpApplyFilter = function(){
   else if(filtroStatus === 'parcelada') itens = itens.filter(function(it){ return it.isParcelada; });
   else if(filtroStatus === 'avista') itens = itens.filter(function(it){ return !it.isParcelada; });
 
+  var sort = (document.getElementById('cpFiltroSort') || {}).value || 'valor_desc';
   itens.sort(function(a, b){
-    if(a.isCompetenciaOriginal !== b.isCompetenciaOriginal) return a.isCompetenciaOriginal ? -1 : 1;
-    return b.valorParcela - a.valorParcela;
+    if(sort === 'data_desc') return b.data.localeCompare(a.data);
+    if(sort === 'data_asc') return a.data.localeCompare(b.data);
+    if(sort === 'valor_asc') return a.valorParcela - b.valorParcela;
+    if(sort === 'total_desc') return b.valorTotal - a.valorTotal;
+    if(sort === 'desc_asc') return (a.desc||'').localeCompare(b.desc||'');
+    if(sort === 'parc_desc') return b.parcelas - a.parcelas;
+    return b.valorParcela - a.valorParcela; // valor_desc (padrão)
   });
 
   var totalCompras = itens.length;
