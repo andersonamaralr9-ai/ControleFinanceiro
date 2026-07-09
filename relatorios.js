@@ -135,7 +135,8 @@ window.renderRelatorios = function(){
     {id:'orcamento',icon:'&#127919;',title:'Or&ccedil;amento',desc:'Planejado vs realizado com navega&ccedil;&atilde;o mensal.'},
     {id:'anual',icon:'&#128197;',title:'Resumo Anual',desc:'Vis&atilde;o consolidada do ano corrente.'},
     {id:'inadimplencia',icon:'&#9888;',title:'Alertas',desc:'Vencimentos, parcelas e compromissos futuros.'},
-    {id:'detalhado',icon:'&#128203;',title:'Extrato Detalhado (Excel)',desc:'Todos os lan&ccedil;amentos por categoria, data e compet&ecirc;ncia para an&aacute;lise em Excel.'}
+    {id:'detalhado',icon:'&#128203;',title:'Extrato Detalhado (Excel)',desc:'Todos os lan&ccedil;amentos por categoria, data e compet&ecirc;ncia para an&aacute;lise em Excel.'},
+    {id:'invest',icon:'&#128184;',title:'Investimentos',desc:'Evolu&ccedil;&atilde;o do saldo, aportes, resgates e rentabilidade por m&ecirc;s e por ativo.'}
   ];
 
   var h = '<div class="rel-opts">';
@@ -167,6 +168,7 @@ window.openReport = function(id){
     case 'anual': el.innerHTML = back + buildAnual(); break;
     case 'inadimplencia': el.innerHTML = back + buildAlertas(); break;
     case 'detalhado': el.innerHTML = back + buildDetalhado(); break;
+    case 'invest': el.innerHTML = back + buildInvest(); break;
   }
 };
 
@@ -546,6 +548,97 @@ window._relDetExportXLS = function(){
 
   if(typeof toast === 'function') toast('Excel exportado com sucesso!', 'success');
 };
+
+// ================================================================
+// 10. INVESTIMENTOS
+// ================================================================
+function buildInvest(){
+  var invs = S.investimentos || [];
+  if(!invs.length) return '<div class="rel-area"><h3>&#128184; Investimentos</h3><p style="color:var(--tx3)">Nenhum investimento cadastrado.</p></div>';
+
+  var meses12 = getLast12();
+  function getMes(d){ return d ? d.substring(0,7) : ''; }
+
+  // Por mês: saldo inicial, aporte, resgate, rentabilidade, saldo fechamento
+  var porMes = meses12.map(function(ma){
+    var saldoInicial = 0, aporte = 0, resgate = 0, rent = 0;
+    invs.forEach(function(inv){
+      var cap = Number(inv.valor) || 0;
+      (inv.movimentacoes || []).forEach(function(m){
+        var mm = getMes(m.data); var v = Number(m.valor) || 0;
+        if(mm < ma) cap += m.tipo === 'resgate' ? -v : v;
+        else if(mm === ma){ if(m.tipo === 'aporte') aporte += v; else resgate += v; }
+      });
+      (inv.rentabilidade || []).forEach(function(r){
+        var v = Number(r.valor) || 0;
+        if(r.mes < ma) cap += v;
+        else if(r.mes === ma) rent += v;
+      });
+      saldoInicial += cap;
+    });
+    return { mes: ma, saldoInicial: saldoInicial, aporte: aporte, resgate: resgate, rent: rent, fechamento: saldoInicial + aporte - resgate + rent };
+  });
+
+  // Totais
+  var totAporte = porMes.reduce(function(s,m){return s+m.aporte;},0);
+  var totResgate = porMes.reduce(function(s,m){return s+m.resgate;},0);
+  var totRent = porMes.reduce(function(s,m){return s+m.rent;},0);
+  var saldoAtual = porMes[porMes.length-1].fechamento;
+
+  var h = '<div class="rel-area"><h3>&#128184; Investimentos &mdash; &Uacute;ltimos 12 Meses</h3>';
+
+  // Cards resumo
+  h += '<div class="rel-mini-cards">';
+  h += '<div class="rel-mc"><div class="rmc-label">Saldo Atual</div><div class="rmc-val rt-green">' + fmtV(saldoAtual) + '</div></div>';
+  h += '<div class="rel-mc"><div class="rmc-label">Aportes (12m)</div><div class="rmc-val rt-blue">' + fmtV(totAporte) + '</div></div>';
+  h += '<div class="rel-mc"><div class="rmc-label">Resgates (12m)</div><div class="rmc-val rt-red">' + fmtV(totResgate) + '</div></div>';
+  h += '<div class="rel-mc"><div class="rmc-label">Rentabilidade (12m)</div><div class="rmc-val rt-purple">' + fmtV(totRent) + '</div></div>';
+  h += '</div>';
+
+  // Tabela evolução mensal
+  h += '<h4 style="font-size:.9em;margin-bottom:10px;color:var(--tx2)">Evolu&ccedil;&atilde;o Mensal</h4>';
+  h += '<div style="overflow-x:auto"><table class="rel-table"><thead><tr><th>M&ecirc;s</th><th>Saldo Inicial</th><th>Aporte</th><th>Resgate</th><th>Rentabilidade</th><th>Saldo Fechamento</th></tr></thead><tbody>';
+  porMes.forEach(function(m){
+    var varPct = m.saldoInicial > 0 ? ((m.fechamento - m.saldoInicial) / m.saldoInicial * 100).toFixed(2) : null;
+    h += '<tr>';
+    h += '<td style="font-weight:600">' + mesNome(m.mes) + '</td>';
+    h += '<td>' + (m.saldoInicial ? fmtV(m.saldoInicial) : '-') + '</td>';
+    h += '<td class="rt-blue">' + (m.aporte ? fmtV(m.aporte) : '-') + '</td>';
+    h += '<td class="rt-red">' + (m.resgate ? fmtV(m.resgate) : '-') + '</td>';
+    h += '<td class="rt-purple">' + (m.rent ? fmtV(m.rent) : '-') + '</td>';
+    h += '<td style="font-weight:700" class="' + (m.fechamento >= m.saldoInicial ? 'rt-green' : 'rt-red') + '">' + fmtV(m.fechamento) + (varPct !== null ? ' <span style="font-size:.72em;font-weight:400">(' + (m.fechamento >= m.saldoInicial ? '+' : '') + varPct + '%)</span>' : '') + '</td>';
+    h += '</tr>';
+  });
+  h += '</tbody></table></div>';
+
+  // Por ativo
+  h += '<h4 style="font-size:.9em;margin:18px 0 10px;color:var(--tx2)">Por Ativo</h4>';
+  h += '<div style="overflow-x:auto"><table class="rel-table"><thead><tr><th>Nome</th><th>Tipo</th><th>Saldo Atual</th><th>Aportes</th><th>Resgates</th><th>Rentabilidade</th></tr></thead><tbody>';
+  invs.forEach(function(inv){
+    var cap = Number(inv.valor) || 0;
+    var ma = mesAtual();
+    var totA = 0, totR = 0, totRent = 0;
+    (inv.movimentacoes || []).forEach(function(m){
+      var v = Number(m.valor) || 0;
+      if(m.tipo === 'aporte'){ cap += v; totA += v; } else { cap -= v; totR += v; }
+    });
+    (inv.rentabilidade || []).forEach(function(r){
+      var v = Number(r.valor) || 0;
+      cap += v; totRent += v;
+    });
+    h += '<tr>';
+    h += '<td style="font-weight:600">' + inv.nome + '</td>';
+    h += '<td><span class="badge badge-info" style="font-size:.7em">' + (inv.tipo || 'Outro') + '</span></td>';
+    h += '<td class="rt-green" style="font-weight:700">' + fmtV(cap) + '</td>';
+    h += '<td class="rt-blue">' + (totA ? fmtV(totA) : '-') + '</td>';
+    h += '<td class="rt-red">' + (totR ? fmtV(totR) : '-') + '</td>';
+    h += '<td class="rt-purple">' + (totRent ? fmtV(totRent) : '-') + '</td>';
+    h += '</tr>';
+  });
+  h += '</tbody></table></div>';
+  h += '</div>';
+  return h;
+}
 
 // ================================================================
 // Init
