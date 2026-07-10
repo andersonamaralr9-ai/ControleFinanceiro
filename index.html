@@ -389,7 +389,7 @@ tr:hover td{background:rgba(255,255,255,.025);}
     <div class="form-group"><label>Tipo</label><select id="lTipo" class="form-control" onchange="updLCats()"><option value="despesa">Despesa</option><option value="receita">Receita</option></select></div>
     <div class="form-group"><label>Descri&ccedil;&atilde;o</label><input id="lDesc" class="form-control"></div>
     <div class="form-group"><label>Categoria</label><select id="lCat" class="form-control"></select></div>
-    <div class="form-group"><label>Valor (R$)</label><input id="lValor" class="form-control" placeholder="0,00"></div>
+    <div class="form-group"><label>Valor (R$)</label><input id="lValor" class="form-control" placeholder="0,00" inputmode="decimal"></div>
     <div class="form-group"><label>Data</label><input type="date" id="lData" class="form-control"></div>
     <div class="form-group"><label>Observa&ccedil;&atilde;o</label><input id="lObs" class="form-control"></div>
     <div class="form-group"><label>&nbsp;</label><button class="btn btn-primary" onclick="addLanc()">Adicionar</button></div>
@@ -409,7 +409,7 @@ tr:hover td{background:rgba(255,255,255,.025);}
     <div class="form-group"><label>Tipo</label><select id="contTipo" class="form-control" onchange="updContCats()"><option value="despesa">Despesa</option><option value="receita">Receita</option></select></div>
     <div class="form-group"><label>Descri&ccedil;&atilde;o</label><input id="contDesc" class="form-control"></div>
     <div class="form-group"><label>Categoria</label><select id="contCat" class="form-control"></select></div>
-    <div class="form-group"><label>Valor Mensal (R$)</label><input id="contValor" class="form-control" placeholder="0,00"></div>
+    <div class="form-group"><label>Valor Mensal (R$)</label><input id="contValor" class="form-control" placeholder="0,00" inputmode="decimal"></div>
     <div class="form-group"><label>Dia Vencimento</label><input type="number" id="contDia" class="form-control" min="1" max="31" value="1"></div>
     <div class="form-group"><label>In&iacute;cio</label><input type="month" id="contInicio" class="form-control"></div>
     <div class="form-group"><label>Observa&ccedil;&atilde;o</label><input id="contObs" class="form-control"></div>
@@ -446,7 +446,7 @@ tr:hover td{background:rgba(255,255,255,.025);}
   <div class="form-section"><div class="form-grid">
     <div class="form-group"><label>Nome</label><input id="ccNome" class="form-control"></div>
     <div class="form-group"><label>Bandeira</label><select id="ccBand" class="form-control"><option>Mastercard</option><option>Visa</option><option>Elo</option><option>Amex</option><option>Outra</option></select></div>
-    <div class="form-group"><label>Limite (R$)</label><input id="ccLimite" class="form-control" placeholder="0,00"></div>
+    <div class="form-group"><label>Limite (R$)</label><input id="ccLimite" class="form-control" placeholder="0,00" inputmode="decimal"></div>
     <div class="form-group"><label>Fechamento</label><input type="number" id="ccFecha" class="form-control" min="1" max="31" value="1"></div>
     <div class="form-group"><label>Vencimento</label><input type="number" id="ccVence" class="form-control" min="1" max="31" value="10"></div>
     <div class="form-group"><label>&nbsp;</label><button class="btn btn-primary" onclick="addCartao()">Adicionar</button></div>
@@ -460,7 +460,7 @@ tr:hover td{background:rgba(255,255,255,.025);}
     <div class="form-group"><label>Cart&atilde;o</label><select id="cpCartao" class="form-control"></select></div>
     <div class="form-group"><label>Descri&ccedil;&atilde;o</label><input id="cpDesc" class="form-control"></div>
     <div class="form-group"><label>Categoria</label><select id="cpCat" class="form-control"></select></div>
-    <div class="form-group"><label>Valor Total (R$)</label><input id="cpValor" class="form-control" placeholder="0,00"></div>
+    <div class="form-group"><label>Valor Total (R$)</label><input id="cpValor" class="form-control" placeholder="0,00" inputmode="decimal"></div>
     <div class="form-group"><label>Data</label><input type="date" id="cpData" class="form-control"></div>
     <div class="form-group"><label>Parcelas</label><input type="number" id="cpParc" class="form-control" min="1" max="48" value="1"></div>
     <div class="form-group"><label>&nbsp;</label><button class="btn btn-primary" onclick="addCompra()">Adicionar</button></div>
@@ -472,7 +472,7 @@ tr:hover td{background:rgba(255,255,255,.025);}
   <h2 class="page-title">&#128257; Assinaturas</h2>
   <div class="form-section"><div class="form-grid">
     <div class="form-group"><label>Nome</label><input id="subNome" class="form-control"></div>
-    <div class="form-group"><label>Valor/m&ecirc;s (R$)</label><input id="subValor" class="form-control" placeholder="0,00"></div>
+    <div class="form-group"><label>Valor/m&ecirc;s (R$)</label><input id="subValor" class="form-control" placeholder="0,00" inputmode="decimal"></div>
     <div class="form-group"><label>Cart&atilde;o</label><select id="subCartao" class="form-control"></select></div>
     <div class="form-group"><label>Categoria</label><select id="subCat" class="form-control"></select></div>
     <div class="form-group"><label>In&iacute;cio</label><input type="month" id="subInicio" class="form-control"></div>
@@ -486,7 +486,7 @@ tr:hover td{background:rgba(255,255,255,.025);}
   <div class="month-nav"><button class="btn btn-outline" onclick="chgPM(-1)">&#9664;</button><span class="mes-label" id="planMesLabel"></span><button class="btn btn-outline" onclick="chgPM(1)">&#9654;</button></div>
   <div class="form-section"><div class="form-grid">
     <div class="form-group"><label>Categoria</label><select id="planCat" class="form-control"></select></div>
-    <div class="form-group"><label>Limite (R$)</label><input id="planVal" class="form-control" placeholder="0,00"></div>
+    <div class="form-group"><label>Limite (R$)</label><input id="planVal" class="form-control" placeholder="0,00" inputmode="decimal"></div>
     <div class="form-group"><label>&nbsp;</label><button class="btn btn-primary" onclick="addPlan()">Definir</button></div>
   </div></div>
   <div class="table-wrap"><table><thead><tr><th>Categoria</th><th>Limite</th><th>Gasto</th><th>Dispon&iacute;vel</th><th>%</th><th>A&ccedil;&otilde;es</th></tr></thead><tbody id="tbPlan"></tbody></table></div>
@@ -498,7 +498,7 @@ tr:hover td{background:rgba(255,255,255,.025);}
     <div class="form-grid">
       <div class="form-group"><label>Nome</label><input id="patNome" class="form-control" placeholder="Ex: Apartamento Centro"></div>
       <div class="form-group"><label>Tipo</label><select id="patTipo" class="form-control"><option value="imovel">&#127968; Im&oacute;vel</option><option value="veiculo">&#128663; Ve&iacute;culo</option><option value="outro">&#128230; Outro</option></select></div>
-      <div class="form-group"><label>Valor de aquisi&ccedil;&atilde;o (R$)</label><input id="patValor" class="form-control" placeholder="0,00"></div>
+      <div class="form-group"><label>Valor de aquisi&ccedil;&atilde;o (R$)</label><input id="patValor" class="form-control" placeholder="0,00" inputmode="decimal"></div>
       <div class="form-group"><label>M&ecirc;s de aquisi&ccedil;&atilde;o</label><input id="patData" class="form-control" type="month"></div>
       <div class="form-group"><label>Financiado?</label><select id="patFin" class="form-control"><option value="nao">N&atilde;o</option><option value="sim">Sim</option></select></div>
       <div class="form-group"><label>Observa&ccedil;&otilde;es</label><input id="patObs" class="form-control" placeholder="Opcional"></div>
@@ -529,7 +529,7 @@ tr:hover td{background:rgba(255,255,255,.025);}
       <div class="form-grid">
         <div class="form-group"><label>Nome</label><input id="epNome" class="form-control"></div>
         <div class="form-group"><label>Tipo</label><select id="epTipo" class="form-control"><option value="imovel">&#127968; Im&oacute;vel</option><option value="veiculo">&#128663; Ve&iacute;culo</option><option value="outro">&#128230; Outro</option></select></div>
-        <div class="form-group"><label>Valor de aquisi&ccedil;&atilde;o (R$)</label><input id="epValor" class="form-control" placeholder="0,00"></div>
+        <div class="form-group"><label>Valor de aquisi&ccedil;&atilde;o (R$)</label><input id="epValor" class="form-control" placeholder="0,00" inputmode="decimal"></div>
         <div class="form-group"><label>M&ecirc;s de aquisi&ccedil;&atilde;o</label><input id="epData" class="form-control" type="month"></div>
         <div class="form-group"><label>Financiado?</label><select id="epFin" class="form-control"><option value="nao">N&atilde;o</option><option value="sim">Sim</option></select></div>
         <div class="form-group"><label>Observa&ccedil;&otilde;es</label><input id="epObs" class="form-control"></div>
@@ -546,7 +546,7 @@ tr:hover td{background:rgba(255,255,255,.025);}
     <div class="modal-body">
       <div class="form-grid">
         <div class="form-group"><label>M&ecirc;s de refer&ecirc;ncia</label><input id="sdMes" class="form-control" type="month"></div>
-        <div class="form-group"><label>Saldo devedor (R$)</label><input id="sdValor" class="form-control" placeholder="0,00"></div>
+        <div class="form-group"><label>Saldo devedor (R$)</label><input id="sdValor" class="form-control" placeholder="0,00" inputmode="decimal"></div>
       </div>
       <div style="text-align:right;margin-top:8px"><button class="btn btn-primary" onclick="salvarSaldo()">Salvar</button></div>
       <div id="sdHistorico"></div>
@@ -559,7 +559,7 @@ tr:hover td{background:rgba(255,255,255,.025);}
   <div class="form-section"><div class="form-grid">
     <div class="form-group"><label>Nome</label><input id="invNome" class="form-control"></div>
     <div class="form-group"><label>Tipo</label><select id="invTipo" class="form-control"></select></div>
-    <div class="form-group"><label>Valor (R$)</label><input id="invValor" class="form-control" placeholder="0,00"></div>
+    <div class="form-group"><label>Valor (R$)</label><input id="invValor" class="form-control" placeholder="0,00" inputmode="decimal"></div>
     <div class="form-group"><label>Data</label><input type="date" id="invData" class="form-control"></div>
     <div class="form-group"><label>Observa&ccedil;&atilde;o</label><input id="invObs" class="form-control"></div>
     <div class="form-group"><label>&nbsp;</label><button class="btn btn-primary" onclick="addInvest()">Adicionar</button></div>
