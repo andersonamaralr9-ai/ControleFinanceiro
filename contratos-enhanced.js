@@ -41,6 +41,19 @@ sty.textContent = `
 .ce-ev-chip .ce-ev-dot.adj{background:var(--pri2);}
 .ce-ev-chip .ce-ev-dot.warn{background:var(--wn);}
 
+/* Histórico de valores */
+.ce-hist-section{border-top:1px solid var(--bg4);}
+.ce-hist-toggle{display:flex;justify-content:space-between;align-items:center;padding:9px 18px;cursor:pointer;user-select:none;transition:background .15s;}
+.ce-hist-toggle:hover{background:var(--bg3);}
+.ce-hist-title{font-size:.72em;color:var(--tx3);text-transform:uppercase;letter-spacing:1px;font-weight:600;}
+.ce-hist-badge{font-size:.65em;background:var(--pri2);color:#fff;border-radius:10px;padding:1px 7px;margin-left:8px;font-weight:700;}
+.ce-hist-icon{font-size:.72em;color:var(--tx3);transition:transform .25s;}
+.ce-hist-icon.open{transform:rotate(180deg);}
+.ce-hist-body{max-height:0;overflow:hidden;transition:max-height .3s ease;padding:0 18px;}
+.ce-hist-body.expanded{max-height:400px;padding:0 18px 10px;}
+.ce-hist-item{display:flex;justify-content:space-between;align-items:center;font-size:.78em;padding:5px 0;border-bottom:1px solid var(--bg3);}
+.ce-hist-item:last-child{border:none;}
+
 /* Nav mes */
 .ce-month-nav{display:flex;align-items:center;gap:12px;margin-bottom:16px;justify-content:center;}
 .ce-month-nav .ce-mes-label{font-size:1em;font-weight:600;min-width:160px;text-align:center;}
@@ -273,7 +286,7 @@ window.renderContratos = function(){
 
   existingResumo.innerHTML = html;
 
-  // ---- Grid de contratos (sub-box com dataFim) ----
+  // ---- Grid de contratos (sub-box com dataFim + histórico) ----
   contGrid.innerHTML = S.contratos.length ? S.contratos.map(function(c){
     var at = !c.encerradoEm;
     var vencido = c.dataFim && c.dataFim < mesAtual();
@@ -285,6 +298,28 @@ window.renderContratos = function(){
 
     var fimInfo = c.dataFim ? '<p>&#128197; Fim: ' + mesNome(c.dataFim) + '</p>' : '';
 
+    // histórico de valores
+    var hist = (c.historico || []).slice().sort(function(a,b){ return (a.de||'').localeCompare(b.de||''); });
+    var histHtml = '';
+    if(hist.length > 1){
+      var uid_h = 'hist-' + c.id;
+      histHtml += '<div class="ce-hist-section">' +
+        '<div class="ce-hist-toggle" onclick="ceTglHist(\'' + uid_h + '\', this)">' +
+          '<span class="ce-hist-title">&#128337; Hist&oacute;rico de valores <span class="ce-hist-badge">' + hist.length + '</span></span>' +
+          '<span class="ce-hist-icon">&#9660;</span>' +
+        '</div>' +
+        '<div class="ce-hist-body" id="' + uid_h + '">';
+      hist.forEach(function(h, i){
+        var isLast = i === hist.length - 1;
+        histHtml += '<div class="ce-hist-item">' +
+          '<span style="color:var(--tx2)">' + mesNome(h.de) + '</span>' +
+          (i > 0 ? '<span style="font-size:.68em;color:var(--tx3)">ajuste</span>' : '<span style="font-size:.68em;color:var(--tx3)">in&iacute;cio</span>') +
+          '<span style="font-weight:700;color:' + (isLast ? 'var(--pri2)' : 'var(--tx2)') + '">' + fmtV(Number(h.valor)||0) + '</span>' +
+        '</div>';
+      });
+      histHtml += '</div></div>';
+    }
+
     return '<div class="sub-box">' +
       '<div class="sub-box-header"><strong>' + c.desc + '</strong>' + bdHtml + '</div>' +
       '<div class="sub-box-body">' +
@@ -294,6 +329,7 @@ window.renderContratos = function(){
         fimInfo +
         (c.obs ? '<p class="sub-obs">' + c.obs + '</p>' : '') +
       '</div>' +
+      histHtml +
       '<div class="sub-box-actions">' +
         '<button class="btn btn-sm btn-outline" onclick="editCont(\'' + c.id + '\')">&#9998;</button>' +
         (at && !vencido ?
@@ -320,6 +356,15 @@ window.allEntries = function(mes){
     if(cont && cont.dataFim && mes > cont.dataFim) return false;
     return true;
   });
+};
+
+// toggle histórico colapsável
+window.ceTglHist = function(id, toggleEl){
+  var body = document.getElementById(id);
+  if(!body) return;
+  var icon = toggleEl ? toggleEl.querySelector('.ce-hist-icon') : null;
+  var expanded = body.classList.toggle('expanded');
+  if(icon) icon.classList.toggle('open', expanded);
 };
 
 console.log('[Financeiro Pro] Contratos Enhanced v2 carregado.');
