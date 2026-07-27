@@ -16,10 +16,41 @@ sty.textContent = `
 
 #resWrap { width: 100%; }
 
-/* ═══ QUICK ACTIONS ═══ */
-.rq-row { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
-.rq-btn { background: var(--bg2); border: 1px solid var(--bg4); border-radius: var(--rad); padding: 10px 16px; font-size: .78em; color: var(--tx2); cursor: pointer; transition: all .15s; display: flex; align-items: center; gap: 6px; font-weight: 600; white-space: nowrap; }
-.rq-btn:hover { border-color: var(--pri); color: var(--pri2); transform: translateY(-1px); }
+/* ═══ QUICK ACTIONS (discreet, right-aligned) ═══ */
+.rq-row { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; justify-content: flex-end; }
+.rq-btn { background: var(--bg2); border: 1px solid var(--bg4); border-radius: 7px; padding: 4px 10px; font-size: .64em; color: var(--tx3); cursor: pointer; transition: all .15s; display: flex; align-items: center; gap: 4px; font-weight: 600; white-space: nowrap; opacity: .85; }
+.rq-btn:hover { border-color: var(--pri); color: var(--pri2); opacity: 1; }
+
+/* ═══ INVESTMENT HERO CARD ═══ */
+.ih-card { background: var(--bg2); border: 1px solid var(--bg4); border-radius: var(--rad); padding: 16px 18px; box-shadow: var(--sh); border-top: 3px solid var(--inf2); margin-bottom: 16px; }
+.ih-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.ih-title { font-size: .68em; text-transform: uppercase; letter-spacing: 1px; color: var(--tx3); font-weight: 700; }
+.ih-link { font-size: .7em; color: var(--pri2); cursor: pointer; font-weight: 600; }
+.ih-link:hover { text-decoration: underline; }
+.ih-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.ih-item .ih-lbl { font-size: .62em; color: var(--tx3); margin-bottom: 3px; }
+.ih-item .ih-val { font-size: 1.1em; font-weight: 800; }
+.ih-item .ih-sub { font-size: .64em; color: var(--tx2); margin-top: 3px; }
+
+/* ═══ FEED CARD (fatura / contratos / assinaturas) ═══ */
+.rf-item { display: flex; align-items: center; gap: 10px; padding: 9px 0; }
+.rf-item + .rf-item { border-top: 1px solid var(--bg3); }
+.rf-ic { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: .82em; flex-shrink: 0; }
+.rf-mid { flex: 1; min-width: 0; cursor: pointer; }
+.rf-name { font-size: .76em; font-weight: 600; color: var(--tx); }
+.rf-sub { font-size: .64em; color: var(--tx3); margin-top: 1px; }
+.rf-val { font-size: .82em; font-weight: 800; text-align: right; flex-shrink: 0; }
+
+/* ═══ TOP CATEGORIES — icon rows ═══ */
+.rc-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; }
+.rc-item + .rc-item { border-top: 1px solid var(--bg3); }
+.rc-ic { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: .78em; flex-shrink: 0; }
+.rc-body { flex: 1; min-width: 0; }
+.rc-top { display: flex; justify-content: space-between; font-size: .74em; margin-bottom: 5px; }
+.rc-top .rc-name { color: var(--tx); font-weight: 600; }
+.rc-top .rc-val { font-weight: 700; }
+.rc-bar-bg { height: 5px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+.rc-bar-fill { height: 100%; border-radius: 3px; }
 
 /* ═══ DESKTOP GRIDS ═══ */
 .rg-main { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 16px; }
@@ -276,10 +307,9 @@ window.renderResumo = function() {
 
   var h = '<div id="resWrap">';
 
-  // Quick actions
+  // Quick actions (discreet)
   h += '<div class="rq-row">';
   h += '<div class="rq-btn" onclick="nav(\'checkpag\')">&#9989; Check</div>';
-  h += '<div class="rq-btn" onclick="nav(\'extratoCat\')">&#128202; Categorias</div>';
   h += '<div class="rq-btn" onclick="nav(\'lancs\')">&#128221; Lan\u00e7ar</div>';
   h += '</div>';
 
@@ -303,21 +333,7 @@ window.renderResumo = function() {
   h += '</div>';
   h += '</div>';
 
-  // ─── DESKTOP GRID: Sec ───
-  h += '<div class="rg-sec">';
-  h += '<div class="rc6 t-cc clk" onclick="window._resFat()">';
-  h += '<div class="rc6-lbl"><span class="rc6-ico">&#128179;</span>Fatura Cart\u00e3o</div>';
-  h += '<div class="rc6-val" style="color:#e65100">' + fmtV(fT) + '</div>';
-  h += '</div>';
-  h += '<div class="rc6 t-cont clk" onclick="nav(\'contratos\')">';
-  h += '<div class="rc6-lbl"><span class="rc6-ico">&#128196;</span>Contratos</div>';
-  h += '<div class="rc6-val" style="color:var(--pri2)">' + cA + ' <small style="font-size:.55em;font-weight:400">ativos</small></div>';
-  h += '</div>';
-  h += '<div class="rc6 t-ass clk" onclick="nav(\'assinaturas\')">';
-  h += '<div class="rc6-lbl"><span class="rc6-ico">&#128257;</span>Assinaturas</div>';
-  h += '<div class="rc6-val" style="color:var(--wn)">' + aA + ' <small style="font-size:.55em;font-weight:400">ativas</small></div>';
-  h += '</div>';
-  h += '</div>';
+  // fatura/contratos/assinaturas movidos para #resumoFeed (ver renderResumoFeed)
 
   // ─── MOBILE LIST ───
   h += '<div class="rm-list">';
@@ -377,14 +393,30 @@ window.renderResumo = function() {
     '</div>';
   }).join('');
 
-  // Top categorias
+  // Top categorias — linhas com ícone
+  var catIcons = { 'Moradia': '🏠', 'Alimentação': '🛒', 'Transporte': '🚗', 'Saúde': '❤️', 'Assinaturas': '📺', 'Lazer': '🎉', 'Educação': '📚' };
+  var catColors = ['#f87171', '#fbbf24', '#a78bfa', '#38bdf8', '#2dd4bf', '#e65100'];
   var cM = {};
   E.filter(function(e) { return e.tipo === 'despesa'; }).forEach(function(e) { cM[e.cat] = (cM[e.cat] || 0) + e.valor; });
   var tp = Object.entries(cM).sort(function(a, b) { return b[1] - a[1]; }).slice(0, 5);
   var mC = tp.length ? tp[0][1] : 1;
-  g('topCats').innerHTML = tp.length ? tp.map(function(t) {
-    return '<div class="top-cat-item"><div class="top-cat-hdr"><span>' + t[0] + '</span><span style="font-weight:700">' + fmtV(t[1]) + '</span></div><div class="top-cat-bar"><div class="top-cat-fill" style="width:' + (t[1] / mC) * 100 + '%"></div></div></div>';
+  g('topCats').innerHTML = tp.length ? tp.map(function(t, i) {
+    var ic = catIcons[t[0]] || '💸';
+    var cl = catColors[i % catColors.length];
+    return '<div class="rc-item"><div class="rc-ic" style="background:' + cl + '22">' + ic + '</div>' +
+      '<div class="rc-body"><div class="rc-top"><span class="rc-name">' + t[0] + '</span><span class="rc-val" style="color:' + cl + '">' + fmtV(t[1]) + '</span></div>' +
+      '<div class="rc-bar-bg"><div class="rc-bar-fill" style="background:' + cl + ';width:' + (t[1] / mC) * 100 + '%"></div></div></div></div>';
   }).join('') : '<p style="color:var(--tx3)">Sem despesas</p>';
+
+  // Feed: fatura / contratos / assinaturas
+  var feedEl = g('resumoFeed');
+  if (feedEl) {
+    var fh = '';
+    fh += '<div class="rf-item"><div class="rf-ic" style="background:#e6510022">💳</div><div class="rf-mid" onclick="window._resFat()"><div class="rf-name">Fatura Cartão</div><div class="rf-sub">' + fI.length + ' compra' + (fI.length === 1 ? '' : 's') + '</div></div><div class="rf-val" style="color:#e65100">' + fmtV(fT) + '</div></div>';
+    fh += '<div class="rf-item"><div class="rf-ic" style="background:rgba(108,92,231,.15)">📄</div><div class="rf-mid" onclick="nav(\'contratos\')"><div class="rf-name">Contratos</div><div class="rf-sub">receita ' + fmtV(cR) + ' · despesa ' + fmtV(cD) + '</div></div><div class="rf-val" style="color:var(--pri2)">' + cA + ' ativos</div></div>';
+    fh += '<div class="rf-item"><div class="rf-ic" style="background:rgba(253,203,110,.15)">🔁</div><div class="rf-mid" onclick="nav(\'assinaturas\')"><div class="rf-name">Assinaturas</div><div class="rf-sub">' + aA + ' ativa' + (aA === 1 ? '' : 's') + '</div></div><div class="rf-val" style="color:var(--wn)">' + fmtV(aT) + '</div></div>';
+    feedEl.innerHTML = fh;
+  }
 
   window._resData = { rI: rI, dI: dI, fI: fI, fT: fT };
 
@@ -454,26 +486,13 @@ window.renderResumoInvest = function() {
   var rentColor = rentMes > 0 ? 'var(--ok)' : (rentMes < 0 ? 'var(--dn2)' : 'var(--tx3)');
   var salColor = diff >= 0 ? 'var(--ok)' : 'var(--dn2)';
 
-  // \u2500\u2500\u2500 DESKTOP: .rc6 cards (ri-desk \u00e9 oculto no mobile via CSS) \u2500\u2500\u2500
-  var dh = '<div class="ri-desk" style="margin-bottom:14px">';
-  dh += '<div style="font-size:.68em;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--tx3);margin-bottom:10px">Investimentos</div>';
-  dh += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px">';
-  dh += '<div class="rc6" style="border-left-color:var(--inf2)!important">';
-  dh += '<div class="rc6-lbl">Saldo Inicial</div>';
-  dh += '<div class="rc6-val" style="color:var(--inf2)">' + fmtV(saldoInicial) + '</div>';
-  dh += '<div class="rc6-row"><span class="rc6-rl">Abertura de ' + mesNome(ma) + '</span></div>';
-  dh += '</div>';
-  dh += '<div class="rc6" style="border-left-color:' + rentColor + '!important">';
-  dh += '<div class="rc6-lbl">Rentabilidade</div>';
-  dh += '<div class="rc6-val" style="color:' + rentColor + '">' + (rentMes >= 0 ? '+' : '') + fmtV(rentMes) + '</div>';
-  dh += '<div class="rc6-row"><span class="rc6-rl" style="color:var(--ok)">Aportes: ' + fmtV(aporteMes) + '</span></div>';
-  dh += '<div class="rc6-row"><span class="rc6-rl" style="color:var(--dn2)">Resgates: ' + fmtV(resgateMes) + '</span></div>';
-  dh += '</div>';
-  dh += '<div class="rc6" style="border-left-color:var(--pri2)!important">';
-  dh += '<div class="rc6-lbl">Saldo Fechamento</div>';
-  dh += '<div class="rc6-val" style="color:var(--pri2)">' + fmtV(saldoFechamento) + '</div>';
-  dh += '<div class="rc6-row"><span class="rc6-rl" style="color:' + salColor + '">' + (diff >= 0 ? '+' : '') + fmtV(diff) + ' no m\u00eas</span><span class="rc6-rl" style="cursor:pointer;color:var(--pri2);float:right" onclick="nav(\'investimentos\')">Ver \u2192</span></div>';
-  dh += '</div>';
+  // --- DESKTOP: hero card unico (ri-desk oculto no mobile via CSS) ---
+  var dh = '<div class="ri-desk ih-card">';
+  dh += '<div class="ih-top"><div class="ih-title">Investimentos - ' + mesNome(ma) + '</div><div class="ih-link" onclick="nav(\'investimentos\')">Ver detalhes &rarr;</div></div>';
+  dh += '<div class="ih-grid">';
+  dh += '<div class="ih-item"><div class="ih-lbl">Saldo Inicial</div><div class="ih-val" style="color:var(--inf2)">' + fmtV(saldoInicial) + '</div><div class="ih-sub">Abertura de ' + mesNome(ma) + '</div></div>';
+  dh += '<div class="ih-item"><div class="ih-lbl">Rentabilidade</div><div class="ih-val" style="color:' + rentColor + '">' + (rentMes >= 0 ? '+' : '') + fmtV(rentMes) + '</div><div class="ih-sub">Aportes ' + fmtV(aporteMes) + ' &middot; Resgates ' + fmtV(resgateMes) + '</div></div>';
+  dh += '<div class="ih-item"><div class="ih-lbl">Saldo Fechamento</div><div class="ih-val" style="color:var(--pri2)">' + fmtV(saldoFechamento) + '</div><div class="ih-sub" style="color:' + salColor + '">' + (diff >= 0 ? '+' : '') + fmtV(diff) + ' no mes</div></div>';
   dh += '</div></div>';
 
   // \u2500\u2500\u2500 MOBILE: .rm-list (oculto no desktop via CSS .rm-list { display:none }) \u2500\u2500\u2500
