@@ -194,22 +194,21 @@ tr:hover td{background:rgba(255,255,255,.025);}
 .cat-tag{display:inline-flex;align-items:center;gap:6px;background:var(--bg3);padding:5px 12px;border-radius:20px;font-size:.79em;margin:3px;border:1px solid rgba(255,255,255,.07);}
 .cat-tag .x{cursor:pointer;color:var(--dn2);font-weight:700;}.cat-tag .x:hover{color:#fff;}
 .pdf-area{font-family:Arial,Helvetica,sans-serif;background:#fff;color:#222;padding:20px;}
-/* ── OVERRIDE resumo-enhanced rc6 cards ──────────── */
-.rc6{background:var(--bg2)!important;border:1px solid rgba(255,255,255,.08)!important;border-radius:12px!important;border-top:none!important;border-left:3px solid rgba(255,255,255,.05)!important;box-shadow:none!important;padding:16px 18px!important;}
-.rc6.t-rec{border-left-color:var(--ok)!important;}
-.rc6.t-desp{border-left-color:var(--dn2)!important;}
-.rc6.t-sal{border-left-color:var(--inf2)!important;}
-.rc6.t-cc{border-left-color:#f97316!important;}
-.rc6.t-cont{border-left-color:var(--pri2)!important;}
-.rc6.t-ass{border-left-color:var(--wn)!important;}
+/* ── OVERRIDE resumo-enhanced rc6 cards (borda no topo, como no layout aprovado) ──────────── */
+.rc6{background:var(--bg2)!important;border:1px solid rgba(255,255,255,.08)!important;border-radius:12px!important;border-left:none!important;border-top:3px solid rgba(255,255,255,.05)!important;box-shadow:none!important;padding:16px 18px!important;}
+.rc6.t-rec{border-top-color:var(--ok)!important;}
+.rc6.t-desp{border-top-color:var(--dn2)!important;}
+.rc6.t-sal{border-top-color:var(--inf2)!important;}
+.rc6.t-cc{border-top-color:#f97316!important;}
+.rc6.t-cont{border-top-color:var(--pri2)!important;}
+.rc6.t-ass{border-top-color:var(--wn)!important;}
 .rc6-lbl{font-size:.63em!important;letter-spacing:1px!important;font-weight:700!important;color:var(--tx3)!important;margin-bottom:8px!important;}
 .rc6-val{font-size:1.4em!important;font-weight:800!important;letter-spacing:-.5px!important;margin-bottom:10px!important;}
 .rc6-row{border-top:1px solid rgba(255,255,255,.05)!important;padding:5px 0!important;}
 .rc6-rl{color:var(--tx3)!important;font-size:.74em!important;}
 .rc6-rv{font-size:.74em!important;font-weight:700!important;}
 .rg-main,.rg-sec{gap:12px!important;margin-bottom:14px!important;}
-.rq-btn{background:var(--bg2)!important;border:1px solid rgba(255,255,255,.07)!important;border-radius:9px!important;font-size:.76em!important;color:var(--tx2)!important;font-weight:600!important;}
-.rq-btn:hover{border-color:var(--pri)!important;color:var(--pri2)!important;background:rgba(108,92,231,.06)!important;}
+/* .rq-btn não é mais sobrescrito aqui — estilo discreto definido em resumo-enhanced.js */
 
 .pdf-area h2{font-size:16px;margin-bottom:4px;color:#1a1a2e;}
 .pdf-area .pdf-sub{font-size:10px;color:#777;margin-bottom:14px;}
