@@ -365,14 +365,15 @@ window.renderResumo = function() {
   });
   var gM = Math.max.apply(null, dt.map(function(x) { return Math.max(x.r, x.d); }).concat([1]));
 
-  // *** FIX: altura máxima das barras proporcional ao espaço real ***
+  // *** FIX: no desktop as barras usam % (preenchem a altura real do container,
+  // que agora varia conforme o card lateral); no mobile mantém px fixo ***
   var isMob = window.innerWidth <= 768;
   var maxBarPx = isMob ? 55 : 160;
   if (window.innerWidth <= 380) maxBarPx = 40;
 
   g('barChart').innerHTML = dt.map(function(x) {
-    var rH = Math.max(Math.round((x.r / gM) * maxBarPx), 3);
-    var dH = Math.max(Math.round((x.d / gM) * maxBarPx), 3);
+    var rUnit = isMob ? Math.max(Math.round((x.r / gM) * maxBarPx), 3) + 'px' : Math.max((x.r / gM) * 100, 2) + '%';
+    var dUnit = isMob ? Math.max(Math.round((x.d / gM) * maxBarPx), 3) + 'px' : Math.max((x.d / gM) * 100, 2) + '%';
     // Mobile: formatar valores de forma mais curta
     var rv, dv;
     if (isMob) {
@@ -386,8 +387,8 @@ window.renderResumo = function() {
       '<div class="bar-top-val g">' + rv + '</div>' +
       '<div class="bar-top-val r">' + dv + '</div>' +
       '<div class="bar-bars">' +
-        '<div class="bar rec" style="height:' + rH + 'px"></div>' +
-        '<div class="bar desp" style="height:' + dH + 'px"></div>' +
+        '<div class="bar rec" style="height:' + rUnit + '"></div>' +
+        '<div class="bar desp" style="height:' + dUnit + '"></div>' +
       '</div>' +
       '<div class="bar-bottom"><div class="bar-label">' + mesNome(x.m) + '</div></div>' +
     '</div>';

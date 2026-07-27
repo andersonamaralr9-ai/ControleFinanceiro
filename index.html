@@ -97,6 +97,10 @@ body.page-resumo .sidebar-saldo,body.page-resumo .sidebar-stats{opacity:0;pointe
 .bar-top-val.g{color:var(--ok);}.bar-top-val.r{color:var(--dn2);}
 .bar-bars{display:flex;gap:4px;align-items:flex-end;flex:1;width:100%;justify-content:center;}
 .bar{width:42%;max-width:32px;border-radius:5px 5px 0 0;min-height:4px;transition:height .5s ease;}
+/* Gráfico principal do Resumo estica para preencher a altura da coluna (que cresce por causa do card lateral) */
+#pg-resumo .chart-row>.chart-box:first-child{display:flex;flex-direction:column;}
+#pg-resumo .chart-row>.chart-box:first-child .bar-chart{flex:1;height:auto;min-height:180px;}
+#pg-resumo .chart-row>.chart-box:first-child .bar-group{height:100%;}
 .bar.rec{background:var(--okG);}.bar.desp{background:var(--dnG);}
 .bar-bottom{margin-top:8px;text-align:center;}.bar-label{font-size:.72em;color:var(--tx3);font-weight:500;}
 .top-cat-item{margin-bottom:14px;}.top-cat-hdr{display:flex;justify-content:space-between;font-size:.83em;margin-bottom:5px;}
