@@ -21,8 +21,15 @@ sty.textContent = `
 .rq-btn { background: var(--bg2); border: 1px solid var(--bg4); border-radius: 7px; padding: 4px 10px; font-size: .64em; color: var(--tx3); cursor: pointer; transition: all .15s; display: flex; align-items: center; gap: 4px; font-weight: 600; white-space: nowrap; opacity: .85; }
 .rq-btn:hover { border-color: var(--pri); color: var(--pri2); opacity: 1; }
 
+/* ═══ SALDO HERO (destaque estilo neobank) ═══ */
+.r-hero { background: var(--priG); border-radius: 20px; padding: 24px 28px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 12px 30px -10px rgba(108,92,231,.4); }
+.r-hero-lbl { font-size: .7em; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,.75); font-weight: 700; margin-bottom: 6px; }
+.r-hero-val { font-size: 2em; font-weight: 800; letter-spacing: -.5px; color: #fff; }
+.r-hero-sub { font-size: .76em; color: rgba(255,255,255,.85); margin-top: 6px; }
+.r-hero-tag { display: inline-block; background: rgba(255,255,255,.18); padding: 5px 13px; border-radius: 20px; font-size: .7em; font-weight: 700; color: #fff; }
+
 /* ═══ INVESTMENT HERO CARD ═══ */
-.ih-card { background: var(--bg2); border: 1px solid var(--bg4); border-radius: var(--rad); padding: 16px 18px; box-shadow: var(--sh); border-top: 3px solid var(--inf2); margin-bottom: 16px; }
+.ih-card { background: var(--bg2); border: 1px solid var(--bg4); border-radius: 18px; padding: 20px 22px; box-shadow: var(--sh); border-top: 3px solid var(--inf2); margin-bottom: 16px; }
 .ih-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 .ih-title { font-size: .68em; text-transform: uppercase; letter-spacing: 1px; color: var(--tx3); font-weight: 700; }
 .ih-link { font-size: .7em; color: var(--pri2); cursor: pointer; font-weight: 600; }
@@ -57,7 +64,7 @@ sty.textContent = `
 .rg-sec { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
 
 /* ═══ CARD BASE (desktop) ═══ */
-.rc6 { background: var(--bg2); border: 1px solid var(--bg4); border-radius: var(--rad); padding: 16px 14px; box-shadow: var(--sh); transition: transform .2s; overflow: hidden; }
+.rc6 { background: var(--bg2); border: 1px solid var(--bg4); border-radius: 18px; padding: 18px 16px; box-shadow: var(--sh); transition: transform .2s; overflow: hidden; }
 .rc6:hover { transform: translateY(-3px); }
 .rc6-lbl { font-size: .66em; color: var(--tx3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
 .rc6-ico { margin-right: 4px; }
@@ -99,7 +106,7 @@ sty.textContent = `
     padding: 0 !important;
   }
 
-  .rg-main, .rg-sec, .ri-desk { display: none !important; }
+  .rg-main, .rg-sec, .ri-desk, .r-hero { display: none !important; }
 
   .rq-row {
     flex-wrap: nowrap !important;
@@ -310,10 +317,17 @@ window.renderResumo = function() {
   // Quick actions (discreet)
   h += '<div class="rq-row">';
   h += '<div class="rq-btn" onclick="nav(\'checkpag\')">&#9989; Check</div>';
-  h += '<div class="rq-btn" onclick="nav(\'lancs\')">&#128221; Lan\u00e7ar</div>';
+  h += '<div class="rq-btn" onclick="nav(\'lancs\')">&#128221; Lançar</div>';
   h += '</div>';
 
-  // ─── DESKTOP GRID: Main ───
+  // --- SALDO HERO (destaque, estilo neobank) ---
+  h += '<div class="r-hero">';
+  h += '<div><div class="r-hero-lbl">Saldo do mes</div><div class="r-hero-val">' + fmtV(sal) + '</div>';
+  h += '<div class="r-hero-sub">Receitas ' + fmtV(rec) + ' &minus; Despesas ' + fmtV(desp) + '</div></div>';
+  h += '<div><span class="r-hero-tag">' + mesNome(curMes) + '</span></div>';
+  h += '</div>';
+
+  // --- DESKTOP GRID: Main ---
   h += '<div class="rg-main">';
   h += '<div class="rc6 t-rec clk" onclick="window._resRec()">';
   h += '<div class="rc6-lbl"><span class="rc6-ico">&#128200;</span>Receitas</div>';
@@ -327,9 +341,10 @@ window.renderResumo = function() {
   h += '<div class="rc6-row"><span class="rc6-rl">Pagas</span><span class="rc6-rv" style="color:var(--ok)">' + fc(dcf) + ' <span class="rc6-bdg g">' + dcn + '</span></span></div>';
   h += '<div class="rc6-row"><span class="rc6-rl">Pendentes</span><span class="rc6-rv" style="color:var(--wn)">' + fc(dpn) + ' <span class="rc6-bdg y">' + dpnn + '</span></span></div>';
   h += '</div>';
-  h += '<div class="rc6 t-sal">';
-  h += '<div class="rc6-lbl"><span class="rc6-ico">&#128176;</span>Saldo</div>';
-  h += '<div class="rc6-val" style="color:' + (sal >= 0 ? 'var(--inf2)' : 'var(--dn2)') + '">' + fmtV(sal) + '</div>';
+  h += '<div class="rc6 t-cc clk" onclick="window._resFat()">';
+  h += '<div class="rc6-lbl"><span class="rc6-ico">&#128179;</span>Fatura do Cartão</div>';
+  h += '<div class="rc6-val" style="color:#e65100">' + fmtV(fT) + '</div>';
+  h += '<div class="rc6-row"><span class="rc6-rl">Compras no mês</span><span class="rc6-rv">' + fI.length + '</span></div>';
   h += '</div>';
   h += '</div>';
 
