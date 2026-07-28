@@ -21,14 +21,14 @@ sty.textContent = `
 }
 .inv-integ-btn:hover{opacity:.9;transform:translateY(-1px);}
 
-.inv-panel{
+.integ-panel{
   background:var(--bg2);border:1px solid var(--bg4);
   border-radius:var(--rad);padding:20px;
   box-shadow:var(--sh);margin-bottom:24px;
   display:none;
 }
-.inv-panel.show{display:block;}
-.inv-panel h3{font-size:.95em;margin-bottom:16px;color:var(--tx2);font-weight:600;}
+.integ-panel.show{display:block;}
+.integ-panel h3{font-size:.95em;margin-bottom:16px;color:var(--tx2);font-weight:600;}
 
 .inv-panel-grid{
   display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
@@ -257,7 +257,7 @@ function injectInvestPanel(){
   // Painel
   var panel = document.createElement('div');
   panel.id = 'invPanelLancs';
-  panel.className = 'inv-panel';
+  panel.className = 'integ-panel';
 
   // Inserir após o formulário de lançamentos
   var formSection = pgLancs.querySelector('.form-section');
