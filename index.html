@@ -198,16 +198,11 @@ tr:hover td{background:rgba(255,255,255,.025);}
 .cat-tag{display:inline-flex;align-items:center;gap:6px;background:var(--bg3);padding:5px 12px;border-radius:20px;font-size:.79em;margin:3px;border:1px solid rgba(255,255,255,.07);}
 .cat-tag .x{cursor:pointer;color:var(--dn2);font-weight:700;}.cat-tag .x:hover{color:#fff;}
 .pdf-area{font-family:Arial,Helvetica,sans-serif;background:#fff;color:#222;padding:20px;}
-/* ── OVERRIDE resumo-enhanced rc6 cards (borda no topo, como no layout aprovado) ──────────── */
-.rc6{background:var(--bg2)!important;border:1px solid rgba(255,255,255,.08)!important;border-radius:18px!important;border-left:none!important;border-top:3px solid rgba(255,255,255,.05)!important;box-shadow:none!important;padding:18px 20px!important;}
-.rc6.t-rec{border-top-color:var(--ok)!important;}
-.rc6.t-desp{border-top-color:var(--dn2)!important;}
-.rc6.t-sal{border-top-color:var(--inf2)!important;}
-.rc6.t-cc{border-top-color:#f97316!important;}
-.rc6.t-cont{border-top-color:var(--pri2)!important;}
-.rc6.t-ass{border-top-color:var(--wn)!important;}
-.rc6-lbl{font-size:.63em!important;letter-spacing:1px!important;font-weight:700!important;color:var(--tx3)!important;margin-bottom:8px!important;}
-.rc6-val{font-size:1.4em!important;font-weight:800!important;letter-spacing:-.5px!important;margin-bottom:10px!important;}
+/* ── OVERRIDE resumo-enhanced rc6 cards (estilo neobank: sem barra no topo, bolinha no rótulo) ──────────── */
+.rc6{background:var(--bg2)!important;border:1px solid rgba(255,255,255,.08)!important;border-radius:18px!important;border-left:none!important;border-top:none!important;box-shadow:none!important;padding:18px 20px!important;}
+.rc6.t-rec,.rc6.t-desp,.rc6.t-sal,.rc6.t-cc,.rc6.t-cont,.rc6.t-ass{border-top:none!important;}
+.rc6-lbl{font-size:.74em!important;letter-spacing:.3px!important;font-weight:600!important;color:var(--tx3)!important;margin-bottom:10px!important;display:flex!important;align-items:center!important;gap:7px!important;}
+.rc6-val{font-size:1.55em!important;font-weight:800!important;letter-spacing:-.5px!important;margin-bottom:10px!important;}
 .rc6-row{border-top:1px solid rgba(255,255,255,.05)!important;padding:5px 0!important;}
 .rc6-rl{color:var(--tx3)!important;font-size:.74em!important;}
 .rc6-rv{font-size:.74em!important;font-weight:700!important;}
@@ -852,7 +847,7 @@ g('extAte').value=hojeStr();
 <script src="patrimonio.js?v=3"></script>
 <script src="cartoes-fix.js"></script>  <!-- NOVO -->
 <script src="design-packs.js"></script>
-<script src="resumo-enhanced.js?v=10"></script>
+<script src="resumo-enhanced.js?v=11"></script>
 <script src="mobile-global-fix.js"></script>
 <script src="assinaturas-enhanced.js"></script>
 <script src="contratos-enhanced.js"></script>    <!-- NOVO -->

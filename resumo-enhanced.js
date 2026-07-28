@@ -59,6 +59,10 @@ sty.textContent = `
 .rc-bar-bg { height: 5px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
 .rc-bar-fill { height: 100%; border-radius: 3px; }
 
+/* ═══ GRÁFICO — valor acima da própria barra (par lado a lado) ═══ */
+.bar-stack { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; flex: 1; }
+.bar-stack .bar-top-val { margin-bottom: 5px; }
+
 /* ═══ DESKTOP GRIDS ═══ */
 .rg-main { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 16px; }
 .rg-sec { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
@@ -66,8 +70,9 @@ sty.textContent = `
 /* ═══ CARD BASE (desktop) ═══ */
 .rc6 { background: var(--bg2); border: 1px solid var(--bg4); border-radius: 18px; padding: 18px 16px; box-shadow: var(--sh); transition: transform .2s; overflow: hidden; }
 .rc6:hover { transform: translateY(-3px); }
-.rc6-lbl { font-size: .66em; color: var(--tx3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+.rc6-lbl { font-size: .66em; color: var(--tx3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; display: flex; align-items: center; gap: 7px; }
 .rc6-ico { margin-right: 4px; }
+.rc6-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; display: inline-block; }
 .rc6-val { font-size: 1.25em; font-weight: 700; margin-bottom: 6px; word-break: normal; }
 #resumoInvest .rc6-val { font-size: 1.1em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .rc6-row { display: flex; justify-content: space-between; align-items: center; font-size: .74em; padding: 3px 0; border-top: 1px solid var(--bg3); gap: 4px; }
@@ -330,19 +335,19 @@ window.renderResumo = function() {
   // --- DESKTOP GRID: Main ---
   h += '<div class="rg-main">';
   h += '<div class="rc6 t-rec clk" onclick="window._resRec()">';
-  h += '<div class="rc6-lbl"><span class="rc6-ico">&#128200;</span>Receitas</div>';
+  h += '<div class="rc6-lbl"><span class="rc6-dot" style="background:var(--ok)"></span>Receitas</div>';
   h += '<div class="rc6-val" style="color:var(--ok)">' + fmtV(rec) + '</div>';
   h += '<div class="rc6-row"><span class="rc6-rl">Recebido</span><span class="rc6-rv" style="color:var(--ok)">' + fc(rcf) + ' <span class="rc6-bdg g">' + rcn + '</span></span></div>';
   h += '<div class="rc6-row"><span class="rc6-rl">Pendente</span><span class="rc6-rv" style="color:var(--wn)">' + fc(rpn) + ' <span class="rc6-bdg y">' + rpnn + '</span></span></div>';
   h += '</div>';
   h += '<div class="rc6 t-desp clk" onclick="window._resDesp()">';
-  h += '<div class="rc6-lbl"><span class="rc6-ico">&#128201;</span>Despesas</div>';
+  h += '<div class="rc6-lbl"><span class="rc6-dot" style="background:var(--dn2)"></span>Despesas</div>';
   h += '<div class="rc6-val" style="color:var(--dn2)">' + fmtV(desp) + '</div>';
   h += '<div class="rc6-row"><span class="rc6-rl">Pagas</span><span class="rc6-rv" style="color:var(--ok)">' + fc(dcf) + ' <span class="rc6-bdg g">' + dcn + '</span></span></div>';
   h += '<div class="rc6-row"><span class="rc6-rl">Pendentes</span><span class="rc6-rv" style="color:var(--wn)">' + fc(dpn) + ' <span class="rc6-bdg y">' + dpnn + '</span></span></div>';
   h += '</div>';
   h += '<div class="rc6 t-cc clk" onclick="window._resFat()">';
-  h += '<div class="rc6-lbl"><span class="rc6-ico">&#128179;</span>Fatura do Cartão</div>';
+  h += '<div class="rc6-lbl"><span class="rc6-dot" style="background:var(--pri2)"></span>Fatura do Cartão</div>';
   h += '<div class="rc6-val" style="color:#e65100">' + fmtV(fT) + '</div>';
   h += '<div class="rc6-row"><span class="rc6-rl">Compras no mês</span><span class="rc6-rv">' + fI.length + '</span></div>';
   h += '</div>';
@@ -399,11 +404,9 @@ window.renderResumo = function() {
       dv = fmtI(x.d);
     }
     return '<div class="bar-group">' +
-      '<div class="bar-top-val g">' + rv + '</div>' +
-      '<div class="bar-top-val r">' + dv + '</div>' +
       '<div class="bar-bars">' +
-        '<div class="bar rec" style="height:' + rUnit + '"></div>' +
-        '<div class="bar desp" style="height:' + dUnit + '"></div>' +
+        '<div class="bar-stack"><div class="bar-top-val g">' + rv + '</div><div class="bar rec" style="height:' + rUnit + '"></div></div>' +
+        '<div class="bar-stack"><div class="bar-top-val r">' + dv + '</div><div class="bar desp" style="height:' + dUnit + '"></div></div>' +
       '</div>' +
       '<div class="bar-bottom"><div class="bar-label">' + mesNome(x.m) + '</div></div>' +
     '</div>';
