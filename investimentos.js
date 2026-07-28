@@ -399,6 +399,8 @@ window.renderInvest = function(){
   if(existing) existing.remove();
   var tbWrap = pgEl.querySelector('.table-wrap');
   if(tbWrap) tbWrap.style.display = 'none';
+  var oldForm = pgEl.querySelector('.form-section');
+  if(oldForm) oldForm.style.display = 'none';
 
   var area = document.createElement('div');
   area.id = 'invDynamicArea';

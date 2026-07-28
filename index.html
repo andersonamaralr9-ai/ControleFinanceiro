@@ -764,7 +764,7 @@ function renderPlan(){g('planMesLabel').textContent=mesNomeFull(planMes);let sc=
 function addPlan(){let cat=g('planCat').value,lim=parseN(g('planVal').value);if(!cat||!lim)return alert('Preencha.');if(!S.planejamento[planMes])S.planejamento[planMes]={};S.planejamento[planMes][cat]=lim;salvar();renderPlan();}
 function delPlan(cat){if(!confirm('Remover?'))return;if(S.planejamento[planMes])delete S.planejamento[planMes][cat];salvar();renderPlan();}
 
-function renderInvest(){let st=g('invTipo');st.innerHTML='';(S.cats.investimento||['Outro']).forEach(c=>{st.innerHTML+=`<option>${c}</option>`;});g('tbInvest').innerHTML=S.investimentos.length?S.investimentos.map(i=>`<tr><td>${fmtD(i.data)}</td><td>${i.nome}</td><td><span class="badge badge-info">${i.tipo}</span></td><td style="font-weight:600;color:var(--ok)">${fmtV(i.valor)}</td><td>${i.obs||'-'}</td><td><button class="btn btn-sm btn-danger" onclick="delInvest('${i.id}')">&#128465;</button></td></tr>`).join(''):'<tr><td colspan="6" style="text-align:center;color:var(--tx3)">Nenhum investimento</td></tr>';}
+// renderInvest legado removido - investimentos.js e a unica fonte de verdade
 function addInvest(){let nome=g('invNome').value.trim(),tipo=g('invTipo').value,valor=parseN(g('invValor').value),data=g('invData').value,obs=g('invObs').value.trim();if(!nome||!valor||!data)return alert('Preencha.');S.investimentos.push({id:uid(),nome,tipo,valor,data,obs});salvar();g('invNome').value='';g('invValor').value='';g('invObs').value='';renderInvest();}
 function delInvest(id){if(!confirm('Excluir?'))return;markDeleted(id);S.investimentos=S.investimentos.filter(x=>x.id!==id);salvar();renderInvest();}
 
@@ -801,7 +801,7 @@ g('extAte').value=hojeStr();
 <script src="antecipacao.js?v=4"></script>
 <script src="melhorias.js"></script>
 <script src="checkpagamentos.js"></script>
-<script src="investimentos.js"></script>
+<script src="investimentos.js?v=2"></script>
 <script src="investimentos-integra.js"></script>
 <script src="rent-saldo.js"></script> <!-- NOVO -->
 <script src="investimentos-enhanced.js"></script> <!-- NOVO -->
