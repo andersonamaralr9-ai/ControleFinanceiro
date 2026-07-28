@@ -16,10 +16,11 @@ sty.textContent = `
 
 #resWrap { width: 100%; }
 
-/* ═══ QUICK ACTIONS (discreet, right-aligned) ═══ */
-.rq-row { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; justify-content: flex-end; }
-.rq-btn { background: var(--bg2); border: 1px solid var(--bg4); border-radius: 7px; padding: 4px 10px; font-size: .64em; color: var(--tx3); cursor: pointer; transition: all .15s; display: flex; align-items: center; gap: 4px; font-weight: 600; white-space: nowrap; opacity: .85; }
-.rq-btn:hover { border-color: var(--pri); color: var(--pri2); opacity: 1; }
+/* ═══ QUICK ACTIONS (estilo neobank: normais, alinhados à esquerda) ═══ */
+.rq-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; justify-content: flex-start; }
+.rq-btn { background: var(--bg2); border: 1px solid var(--bg4); border-radius: 10px; padding: 8px 15px; font-size: .78em; color: var(--tx2); cursor: pointer; transition: all .15s; display: flex; align-items: center; gap: 6px; font-weight: 600; white-space: nowrap; }
+.rq-btn:hover { border-color: var(--pri); color: var(--pri2); transform: translateY(-1px); }
+.rq-btn.primary { background: var(--priG); border-color: transparent; color: #fff; }
 
 /* ═══ SALDO HERO (destaque estilo neobank) ═══ */
 .r-hero { background: var(--priG); border-radius: 20px; padding: 24px 28px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 12px 30px -10px rgba(108,92,231,.4); }
@@ -295,6 +296,8 @@ function showDet(t, items, cc) {
 // ================================================================
 window.renderResumo = function() {
   g('mesLabel').textContent = mesNomeFull(curMes);
+  var subtEl = g('resumoSubtitle');
+  if (subtEl) subtEl.textContent = mesNomeFull(curMes);
   var E = allEntries(curMes), chk = ck(curMes);
 
   var rec = 0, desp = 0, rcf = 0, rpn = 0, dcf = 0, dpn = 0, rcn = 0, rpnn = 0, dcn = 0, dpnn = 0;
@@ -321,8 +324,8 @@ window.renderResumo = function() {
 
   // Quick actions (discreet)
   h += '<div class="rq-row">';
-  h += '<div class="rq-btn" onclick="nav(\'checkpag\')">&#9989; Check</div>';
-  h += '<div class="rq-btn" onclick="nav(\'lancs\')">&#128221; Lançar</div>';
+  h += '<div class="rq-btn" onclick="nav(\'checkpag\')">&#9989; Check pagamentos</div>';
+  h += '<div class="rq-btn primary" onclick="nav(\'lancs\')">&#65291; Lançar</div>';
   h += '</div>';
 
   // --- SALDO HERO (destaque, estilo neobank) ---
