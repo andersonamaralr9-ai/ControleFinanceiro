@@ -41,7 +41,6 @@
   // Salvar referências originais
   var _renderLancs=window.renderLancs;
   var _renderExtrato=window.renderExtrato;
-  var _renderCompras=window.renderCompras;
 
   // Override renderLancs
   window.renderLancs=function(){
@@ -74,18 +73,11 @@
     }).join('');
   };
 
-  // Override renderCompras
-  window.renderCompras=function(){
-    _renderCompras();
-    var el=document.getElementById('comprasMobCards');
-    if(!el){el=document.createElement('div');el.id='comprasMobCards';el.className='mob-cards';document.getElementById('pg-compras').appendChild(el);}
-    if(!S.comprasCartao.length){el.innerHTML='<p style="color:var(--tx3);text-align:center;padding:20px">Nenhuma compra</p>';return;}
-    el.innerHTML=S.comprasCartao.map(function(c){
-      var cart=S.cartoes.find(function(x){return x.id===c.cartaoId;});
-      var vp=fmtV((Number(c.valor)||0)/(c.parcelas||1));
-      return '<div class="mc"><div class="mc-top"><span class="mc-date">'+fmtD(c.data)+'</span><span class="mc-val" style="color:var(--dn2)">'+fmtV(c.valor)+'</span></div><div class="mc-desc">'+c.desc+'</div><div class="mc-meta"><span class="mc-left">'+(cart?cart.nome:'-')+' &bull; '+(c.categoria||'-')+' &bull; '+(c.parcelas||1)+'x '+vp+'</span><span class="mc-acts"><button class="btn btn-sm btn-outline" onclick="editCompra(\''+c.id+'\')">&#9998;</button><button class="btn btn-sm btn-danger" onclick="delCompra(\''+c.id+'\')">&#128465;</button></span></div></div>';
-    }).join('');
-  };
+  // Compras NÃO tem card mobile aqui de propósito.
+  // compras-filtro.js renderiza #cpMobCards já filtrado pela fatura do mês.
+  // A versão que existia aqui listava S.comprasCartao inteiro (todos os meses)
+  // e aparecia sobreposta no mobile, porque o `.mob-cards{display:block!important}`
+  // deste arquivo vencia o display:none inline aplicado por compras-filtro.js.
 
   // Re-render if already loaded
   if(typeof renderAll==='function'){
