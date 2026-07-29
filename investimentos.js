@@ -27,13 +27,14 @@ sty.textContent = `
 .inv-mn-today{font-size:.65em;color:var(--pri2);cursor:pointer;padding:4px 10px;border-radius:6px;border:1px solid transparent;transition:all .15s;margin-right:4px;flex-shrink:0;}
 .inv-mn-today:hover{border-color:var(--pri);background:rgba(108,92,231,.1);}
 
-/* kpi strip */
-.inv-kpi-strip{display:grid;grid-template-columns:repeat(5,1fr);background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);margin-bottom:12px;overflow:hidden;}
-.inv-kc{padding:13px 10px;border-right:1px solid var(--bg4);text-align:center;}
+/* kpi strip — estilo neobank: dots de cor + tipografia maior */
+.inv-kpi-strip{display:grid;grid-template-columns:repeat(5,1fr);background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);margin-bottom:14px;overflow:hidden;}
+.inv-kc{padding:16px 12px;border-right:1px solid var(--bg4);text-align:center;}
 .inv-kc:last-child{border-right:none;}
-.inv-kc .inv-klbl{display:block;font-size:.58em;text-transform:uppercase;letter-spacing:1.2px;color:var(--tx3);font-weight:700;margin-bottom:5px;}
-.inv-kval{font-size:.95em;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.3px;}
-.inv-ksub{font-size:.6em;color:var(--tx3);margin-top:3px;}
+.inv-kc .inv-klbl{display:flex;align-items:center;justify-content:center;gap:5px;font-size:.64em;text-transform:uppercase;letter-spacing:1px;color:var(--tx3);font-weight:700;margin-bottom:7px;}
+.inv-klbl .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.inv-kval{font-size:1.15em;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.3px;}
+.inv-ksub{font-size:.64em;color:var(--tx3);margin-top:4px;}
 
 /* alloc */
 .inv-alloc{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);padding:12px 14px;margin-bottom:12px;}
@@ -115,9 +116,10 @@ sty.textContent = `
 .inv-px{background:var(--bg3);border:1px solid var(--bg4);color:var(--tx2);border-radius:8px;width:30px;height:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;font-size:.85em;}
 .inv-px:hover{background:var(--dn2);color:#fff;border-color:var(--dn2);}
 .inv-panel-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;padding:12px 16px;flex-shrink:0;}
-.inv-pk{background:var(--bg3);border:1px solid var(--bg4);border-radius:10px;padding:9px 10px;text-align:center;}
-.inv-pk .inv-pkl{display:block;font-size:.56em;text-transform:uppercase;letter-spacing:1px;color:var(--tx3);font-weight:700;margin-bottom:4px;}
-.inv-pk-val{font-size:.92em;font-weight:800;font-variant-numeric:tabular-nums;}
+.inv-pk{background:var(--bg3);border:1px solid var(--bg4);border-radius:12px;padding:11px 10px;text-align:center;}
+.inv-pk .inv-pkl{display:flex;align-items:center;justify-content:center;gap:4px;font-size:.6em;text-transform:uppercase;letter-spacing:.8px;color:var(--tx3);font-weight:700;margin-bottom:5px;}
+.inv-pk .inv-pkl .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.inv-pk-val{font-size:1em;font-weight:800;font-variant-numeric:tabular-nums;}
 .inv-pmn{display:flex;align-items:center;justify-content:space-between;padding:0 16px 10px;flex-shrink:0;}
 .inv-pmn-btn{background:var(--bg3);border:1px solid var(--bg4);color:var(--tx2);border-radius:8px;padding:5px 13px;cursor:pointer;font-size:.77em;font-weight:600;transition:all .15s;}
 .inv-pmn-btn:hover{border-color:var(--pri);color:var(--pri2);}
@@ -425,7 +427,7 @@ window.renderInvest = function(){
         '<button class="ivt-btn' + (_invVistaAtual === 'lista' ? ' on' : '') + '" id="invBtnLista" onclick="invSetVista(\'lista\')">&#9776; Lista</button>' +
         '<button class="ivt-btn' + (_invVistaAtual === 'detalhe' ? ' on' : '') + '" id="invBtnDetalhe" onclick="invSetVista(\'detalhe\')">&#9635; Detalhado</button>' +
       '</div>' +
-      '<button onclick="invOpenNovoAtivo()" style="background:var(--pri);border:none;color:#fff;border-radius:9px;padding:8px 15px;font-size:.78em;font-weight:700;cursor:pointer;">&#65291; Novo ativo</button>' +
+      '<button onclick="invOpenNovoAtivo()" style="background:var(--priG);border:none;color:#fff;border-radius:10px;padding:9px 16px;font-size:.8em;font-weight:700;cursor:pointer;">&#65291; Novo ativo</button>' +
     '</div>' +
   '</div>';
 
@@ -444,11 +446,11 @@ window.renderInvest = function(){
   var rentPct = tSI > 0 ? (tRent / tSI * 100) : 0;
   var rentCls = tRent >= 0 ? 'color:var(--ok)' : 'color:var(--dn2)';
   html += '<div class="inv-kpi-strip">' +
-    '<div class="inv-kc"><span class="inv-klbl">Saldo Inicial</span><div class="inv-kval" style="color:var(--tx2)">' + _invFmt(tSI) + '</div></div>' +
-    '<div class="inv-kc"><span class="inv-klbl">Aportes</span><div class="inv-kval" style="color:var(--pri2)">' + (tAp ? '+' + _invFmt(tAp) : '—') + '</div></div>' +
-    '<div class="inv-kc"><span class="inv-klbl">Resgates</span><div class="inv-kval" style="color:var(--dn2)">' + (tRe ? '−' + _invFmt(tRe) : '—') + '</div></div>' +
-    '<div class="inv-kc"><span class="inv-klbl">Rentabilidade</span><div class="inv-kval" style="' + rentCls + '">' + (tRent ? (tRent > 0 ? '+' : '') + _invFmt(tRent) : '—') + '</div><div class="inv-ksub">' + (tSI > 0 ? rentPct.toFixed(2) + '% a.m.' : '') + '</div></div>' +
-    '<div class="inv-kc"><span class="inv-klbl">Saldo Fechamento</span><div class="inv-kval" style="color:var(--ok)">' + _invFmt(tFec) + '</div></div>' +
+    '<div class="inv-kc"><span class="inv-klbl"><span class="dot" style="background:var(--tx3)"></span>Saldo Inicial</span><div class="inv-kval" style="color:var(--tx2)">' + _invFmt(tSI) + '</div></div>' +
+    '<div class="inv-kc"><span class="inv-klbl"><span class="dot" style="background:var(--pri2)"></span>Aportes</span><div class="inv-kval" style="color:var(--pri2)">' + (tAp ? '+' + _invFmt(tAp) : '—') + '</div></div>' +
+    '<div class="inv-kc"><span class="inv-klbl"><span class="dot" style="background:var(--dn2)"></span>Resgates</span><div class="inv-kval" style="color:var(--dn2)">' + (tRe ? '−' + _invFmt(tRe) : '—') + '</div></div>' +
+    '<div class="inv-kc"><span class="inv-klbl"><span class="dot" style="background:' + (tRent >= 0 ? 'var(--ok)' : 'var(--dn2)') + '"></span>Rentabilidade</span><div class="inv-kval" style="' + rentCls + '">' + (tRent ? (tRent > 0 ? '+' : '') + _invFmt(tRent) : '—') + '</div><div class="inv-ksub">' + (tSI > 0 ? rentPct.toFixed(2) + '% a.m.' : '') + '</div></div>' +
+    '<div class="inv-kc"><span class="inv-klbl"><span class="dot" style="background:var(--ok)"></span>Saldo Fechamento</span><div class="inv-kval" style="color:var(--ok)">' + _invFmt(tFec) + '</div></div>' +
   '</div>';
 
   // ── alocação ──
@@ -668,9 +670,9 @@ function _invRenderPanel(){
   if(miData) miData.value = _invPMesSel + '-10';
 
   document.getElementById('invPKpis').innerHTML =
-    '<div class="inv-pk"><span class="inv-pkl">Saldo Fechamento</span><div class="inv-pk-val" style="color:var(--ok)">' + _invFmt(c.fechamento) + '</div></div>' +
-    '<div class="inv-pk"><span class="inv-pkl">Rent. Mês</span><div class="inv-pk-val" style="color:' + rentCls + '">' + (c.rent ? (c.rent > 0 ? '+' : '') + _invFmt(c.rent) : '—') + '</div></div>' +
-    '<div class="inv-pk"><span class="inv-pkl">Rent. Acumulada</span><div class="inv-pk-val" style="color:var(--pri2)">' + (ra.valor ? (ra.valor > 0 ? '+' : '') + _invFmt(ra.valor) : '—') + '</div><div style="font-size:.6em;color:var(--tx3);margin-top:2px">' + (ra.pct ? (ra.pct > 0 ? '+' : '') + ra.pct.toFixed(1) + '% total' : '') + '</div></div>';
+    '<div class="inv-pk"><span class="inv-pkl"><span class="dot" style="background:var(--ok)"></span>Saldo Fechamento</span><div class="inv-pk-val" style="color:var(--ok)">' + _invFmt(c.fechamento) + '</div></div>' +
+    '<div class="inv-pk"><span class="inv-pkl"><span class="dot" style="background:' + (c.rent >= 0 ? 'var(--ok)' : 'var(--dn2)') + '"></span>Rent. Mês</span><div class="inv-pk-val" style="color:' + rentCls + '">' + (c.rent ? (c.rent > 0 ? '+' : '') + _invFmt(c.rent) : '—') + '</div></div>' +
+    '<div class="inv-pk"><span class="inv-pkl"><span class="dot" style="background:var(--pri2)"></span>Rent. Acumulada</span><div class="inv-pk-val" style="color:var(--pri2)">' + (ra.valor ? (ra.valor > 0 ? '+' : '') + _invFmt(ra.valor) : '—') + '</div><div style="font-size:.6em;color:var(--tx3);margin-top:2px">' + (ra.pct ? (ra.pct > 0 ? '+' : '') + ra.pct.toFixed(1) + '% total' : '') + '</div></div>';
 
   // aba rent
   var rents = (inv.rentabilidade || []).slice().sort(function(a, b){ return b.mes.localeCompare(a.mes); });
