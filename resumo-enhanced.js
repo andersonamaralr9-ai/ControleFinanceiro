@@ -272,6 +272,27 @@ function ck(mes) { return (S.checkPagamentos && S.checkPagamentos[mes]) ? S.chec
 function bk(e) { return (e.origem || '') + '|' + (e.desc || '') + '|' + (e.valor || 0).toFixed(2); }
 function fc(v) { return 'R$ ' + Math.round(v || 0).toLocaleString('pt-BR'); }
 
+// Linha "Fechamento" do card de fatura (como no layout aprovado).
+// So e exibida quando o dia e inequivoco: com cartoes de dias diferentes
+// um unico numero seria enganoso, entao mostramos a quantidade de cartoes.
+function _resLinhaFechamento(){
+  var dias = {};
+  (S.cartoes || []).forEach(function(c){
+    var d = parseInt(c.fechamento, 10);
+    if(d >= 1 && d <= 31) dias[d] = 1;
+  });
+  var lista = Object.keys(dias);
+  if(!lista.length) return '';
+  if(lista.length > 1){
+    return '<div class="rc6-row"><span class="rc6-rl">Cartões</span>' +
+           '<span class="rc6-rv">' + S.cartoes.length + '</span></div>';
+  }
+  var dia = String(lista[0]).padStart(2, '0');
+  var mes = (curMes || '').split('-')[1] || '';
+  return '<div class="rc6-row"><span class="rc6-rl">Fechamento</span>' +
+         '<span class="rc6-rv">' + dia + (mes ? '/' + mes : '') + '</span></div>';
+}
+
 function showDet(t, items, cc) {
   document.getElementById('resDetTitle').textContent = t;
   var h = '';
@@ -337,22 +358,26 @@ window.renderResumo = function() {
 
   // --- DESKTOP GRID: Main ---
   h += '<div class="rg-main">';
+  // Padrao neobank aprovado: o numero principal fica neutro (branco).
+  // A cor aparece so no ponto do rotulo e nos valores de status ja
+  // conciliados (recebido/pagas). Colorir o total tambem competia com eles.
   h += '<div class="rc6 t-rec clk" onclick="window._resRec()">';
   h += '<div class="rc6-lbl"><span class="rc6-dot" style="background:var(--ok)"></span>Receitas</div>';
-  h += '<div class="rc6-val" style="color:var(--ok)">' + fmtV(rec) + '</div>';
+  h += '<div class="rc6-val">' + fmtV(rec) + '</div>';
   h += '<div class="rc6-row"><span class="rc6-rl">Recebido</span><span class="rc6-rv" style="color:var(--ok)">' + fc(rcf) + ' <span class="rc6-bdg g">' + rcn + '</span></span></div>';
-  h += '<div class="rc6-row"><span class="rc6-rl">Pendente</span><span class="rc6-rv" style="color:var(--wn)">' + fc(rpn) + ' <span class="rc6-bdg y">' + rpnn + '</span></span></div>';
+  h += '<div class="rc6-row"><span class="rc6-rl">Pendente</span><span class="rc6-rv">' + fc(rpn) + ' <span class="rc6-bdg y">' + rpnn + '</span></span></div>';
   h += '</div>';
   h += '<div class="rc6 t-desp clk" onclick="window._resDesp()">';
   h += '<div class="rc6-lbl"><span class="rc6-dot" style="background:var(--dn2)"></span>Despesas</div>';
-  h += '<div class="rc6-val" style="color:var(--dn2)">' + fmtV(desp) + '</div>';
+  h += '<div class="rc6-val">' + fmtV(desp) + '</div>';
   h += '<div class="rc6-row"><span class="rc6-rl">Pagas</span><span class="rc6-rv" style="color:var(--ok)">' + fc(dcf) + ' <span class="rc6-bdg g">' + dcn + '</span></span></div>';
-  h += '<div class="rc6-row"><span class="rc6-rl">Pendentes</span><span class="rc6-rv" style="color:var(--wn)">' + fc(dpn) + ' <span class="rc6-bdg y">' + dpnn + '</span></span></div>';
+  h += '<div class="rc6-row"><span class="rc6-rl">Pendentes</span><span class="rc6-rv">' + fc(dpn) + ' <span class="rc6-bdg y">' + dpnn + '</span></span></div>';
   h += '</div>';
   h += '<div class="rc6 t-cc clk" onclick="window._resFat()">';
-  h += '<div class="rc6-lbl"><span class="rc6-dot" style="background:var(--pri2)"></span>Fatura do Cartão</div>';
-  h += '<div class="rc6-val" style="color:#e65100">' + fmtV(fT) + '</div>';
+  h += '<div class="rc6-lbl"><span class="rc6-dot" style="background:var(--pri2)"></span>Fatura do cartão</div>';
+  h += '<div class="rc6-val">' + fmtV(fT) + '</div>';
   h += '<div class="rc6-row"><span class="rc6-rl">Compras no mês</span><span class="rc6-rv">' + fI.length + '</span></div>';
+  h += _resLinhaFechamento();
   h += '</div>';
   h += '</div>';
 
