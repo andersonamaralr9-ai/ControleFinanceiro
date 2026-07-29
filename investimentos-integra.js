@@ -248,18 +248,29 @@ function injectInvestPanel(){
   if(!pgLancs) return;
   if(document.getElementById('invPanelLancs')) return; // já injetado
 
-  // Botão toggle
-  var btnWrap = document.createElement('div');
-  btnWrap.style.cssText = 'margin-bottom:16px;display:flex;gap:10px;flex-wrap:wrap;';
-  btnWrap.innerHTML = '<button class="inv-integ-btn" onclick="window._toggleInvPanel()">'+
-    '&#128184; Investir / Resgatar</button>';
-
   // Painel
   var panel = document.createElement('div');
   panel.id = 'invPanelLancs';
   panel.className = 'integ-panel';
 
-  // Inserir após o formulário de lançamentos
+  // O botão entra na barra de ações da página, ao lado de "Novo lançamento".
+  // (Antes era ancorado no .form-section, que virou modal e não existe mais aqui.)
+  var acoes = pgLancs.querySelector('.page-actions');
+  if(acoes){
+    var btn = document.createElement('button');
+    btn.className = 'inv-integ-btn';
+    btn.setAttribute('onclick', 'window._toggleInvPanel()');
+    btn.innerHTML = '&#128184; Investir / Resgatar';
+    acoes.appendChild(btn);
+    acoes.parentNode.insertBefore(panel, acoes.nextSibling);
+    return;
+  }
+
+  // Fallback: mantém o comportamento antigo se a barra de ações não existir
+  var btnWrap = document.createElement('div');
+  btnWrap.style.cssText = 'margin-bottom:16px;display:flex;gap:10px;flex-wrap:wrap;';
+  btnWrap.innerHTML = '<button class="inv-integ-btn" onclick="window._toggleInvPanel()">'+
+    '&#128184; Investir / Resgatar</button>';
   var formSection = pgLancs.querySelector('.form-section');
   if(formSection){
     formSection.parentNode.insertBefore(btnWrap, formSection.nextSibling);

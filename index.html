@@ -186,6 +186,13 @@ tr:hover td{background:rgba(255,255,255,.025);}
 .cc-card h4{margin-bottom:8px;font-size:.95em;}.cc-card p{font-size:.84em;color:var(--tx2);margin-bottom:4px;}
 .clickable{cursor:pointer;transition:color .15s;}.clickable:hover{color:var(--pri2);text-decoration:underline;}
 .filter-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center;}
+/* Barra de acoes da pagina (ex.: "+ Novo lancamento") */
+.page-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+/* Filtros em grade: no desktop se distribuem, no mobile viram 2 colunas */
+.filter-grid{display:grid;grid-template-columns:2fr 1fr 1.4fr 1.4fr;gap:10px;align-items:center;}
+.filter-grid .form-control{max-width:100%;}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;padding:16px 22px;border-top:1px solid rgba(255,255,255,.06);}
+.modal-footer .btn{min-width:110px;}
 .filter-bar .form-control{max-width:180px;}
 .backup-status{padding:13px;border-radius:9px;margin-top:14px;font-weight:600;text-align:center;font-size:.88em;}
 .backup-status.success{background:rgba(0,206,201,.08);color:var(--ok);border:1px solid rgba(0,206,201,.2);}
@@ -333,6 +340,13 @@ td{font-size:.86em;}
   .btn-sm{width:auto!important;display:inline-block!important;padding:6px 12px!important;font-size:.74em!important;}
   .btn-outline{width:auto!important;display:inline-flex!important;}
   .filter-bar{flex-direction:column;align-items:stretch;gap:8px;}
+  /* Filtros em 2 colunas no mobile (empilhados viravam uma coluna longa) */
+  .filter-grid{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;}
+  .filter-grid .fg-wide{grid-column:1/-1;}
+  .filter-grid .form-control{font-size:.82em;padding:9px 10px;}
+  .page-actions .btn{width:100%;text-align:center;}
+  .modal-footer{padding:12px 16px;}
+  .modal-footer .btn{flex:1;min-width:0;}
   .filter-bar .form-control{max-width:100%;}
   .filter-bar .btn{width:100%;display:block;text-align:center;}
   /* Tabelas: edge-to-edge com scroll horizontal */
@@ -458,21 +472,28 @@ td{font-size:.86em;}
     <div class="pg-head-left"><h2 class="page-title">Lan&ccedil;amentos</h2></div>
     <div class="month-nav"><button class="btn btn-outline" onclick="chgLM(-1)">&#9664;</button><span class="mes-label" id="lancMesLabel"></span><button class="btn btn-outline" onclick="chgLM(1)">&#9654;</button></div>
   </div>
-  <div class="form-section"><div class="form-grid">
-    <div class="form-group"><label>Tipo</label><select id="lTipo" class="form-control" onchange="updLCats()"><option value="despesa">Despesa</option><option value="receita">Receita</option></select></div>
-    <div class="form-group"><label>Descri&ccedil;&atilde;o</label><input id="lDesc" class="form-control"></div>
-    <div class="form-group"><label>Categoria</label><select id="lCat" class="form-control"></select></div>
-    <div class="form-group"><label>Valor (R$)</label><input id="lValor" class="form-control" placeholder="0,00" inputmode="decimal"></div>
-    <div class="form-group"><label>Data</label><input type="date" id="lData" class="form-control"></div>
-    <div class="form-group"><label>Observa&ccedil;&atilde;o</label><input id="lObs" class="form-control"></div>
-    <div class="form-group"><label>&nbsp;</label><button class="btn btn-primary" onclick="addLanc()">Adicionar</button></div>
-  </div></div>
-  <div class="filter-bar" style="margin-bottom:12px;flex-wrap:wrap;gap:8px">
-    <select id="lfTipo" class="form-control" style="max-width:130px" onchange="renderLancs()"><option value="">Todos</option><option value="receita">Receita</option><option value="despesa">Despesa</option></select>
-    <select id="lfCat" class="form-control" style="max-width:160px" onchange="renderLancs()"><option value="">Todas categorias</option></select>
-    <input id="lfBusca" class="form-control" style="max-width:200px" placeholder="Buscar..." oninput="renderLancs()">
-    <select id="lfSort" class="form-control" style="max-width:160px" onchange="renderLancs()"><option value="data_desc">Data ↓</option><option value="data_asc">Data ↑</option><option value="valor_desc">Valor ↓</option><option value="valor_asc">Valor ↑</option><option value="desc_asc">Descrição A-Z</option></select>
+  <div class="page-actions">
+    <button class="btn btn-primary" onclick="openM('modalNovoLanc')">&#65291; Novo lan&ccedil;amento</button>
   </div>
+  <div class="filter-bar filter-grid" style="margin-bottom:12px">
+    <input id="lfBusca" class="form-control fg-wide" placeholder="Buscar..." oninput="renderLancs()">
+    <select id="lfTipo" class="form-control" onchange="renderLancs()"><option value="">Todos</option><option value="receita">Receita</option><option value="despesa">Despesa</option></select>
+    <select id="lfCat" class="form-control" onchange="renderLancs()"><option value="">Todas categorias</option></select>
+    <select id="lfSort" class="form-control" onchange="renderLancs()"><option value="data_desc">Data ↓</option><option value="data_asc">Data ↑</option><option value="valor_desc">Valor ↓</option><option value="valor_asc">Valor ↑</option><option value="desc_asc">Descrição A-Z</option></select>
+  </div>
+  <!-- Formulario de lancamento em modal (antes ficava sempre aberto ocupando a tela) -->
+  <div class="modal" id="modalNovoLanc"><div class="modal-content">
+    <div class="modal-header"><h3>Novo Lan&ccedil;amento</h3><span class="modal-close" onclick="closeM('modalNovoLanc')">&times;</span></div>
+    <div class="modal-body"><div class="form-grid">
+      <div class="form-group"><label>Tipo</label><select id="lTipo" class="form-control" onchange="updLCats()"><option value="despesa">Despesa</option><option value="receita">Receita</option></select></div>
+      <div class="form-group"><label>Descri&ccedil;&atilde;o</label><input id="lDesc" class="form-control"></div>
+      <div class="form-group"><label>Categoria</label><select id="lCat" class="form-control"></select></div>
+      <div class="form-group"><label>Valor (R$)</label><input id="lValor" class="form-control" placeholder="0,00" inputmode="decimal"></div>
+      <div class="form-group"><label>Data</label><input type="date" id="lData" class="form-control"></div>
+      <div class="form-group"><label>Observa&ccedil;&atilde;o</label><input id="lObs" class="form-control"></div>
+    </div></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeM('modalNovoLanc')">Cancelar</button><button class="btn btn-primary" onclick="addLanc()">Adicionar</button></div>
+  </div></div>
   <div class="table-wrap"><table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Origem</th><th style="text-align:right">Valor</th><th style="text-align:right">Ações</th></tr></thead><tbody id="tbLancs"></tbody></table></div>
 </div>
 
@@ -775,7 +796,7 @@ function updateSidebarStats(){}
 function catBadgeClass(cat){var c=(cat||'').toLowerCase();if(/alimenta|mercado|food|caju|refei/.test(c))return'cb-food';if(/moradia|aluguel|casa|condom/.test(c))return'cb-home';if(/saúde|farmácia|médico|plano/.test(c))return'cb-health';if(/educa|escola|curso|facul/.test(c))return'cb-edu';if(/investiment|poupança|renda fixa|ações|tesouro|cdb|fii/.test(c))return'cb-invest';if(/salário|venda|rendimento|bônus|renda/.test(c))return'cb-income';if(/cartão|fatura|parcela|assinat/.test(c))return'cb-card';if(/lazer|entreten|viagem|bar|restaur/.test(c))return'cb-leisure';if(/transp|uber|carro|gasolina|comb/.test(c))return'cb-transport';return'cb-other';}
 function getCats(t){return S.cats[t]||[];}
 function updLCats(){let s=g('lCat');s.innerHTML='';getCats(g('lTipo').value).forEach(c=>{s.innerHTML+=`<option>${c}</option>`;});}
-function addLanc(){let tipo=g('lTipo').value,desc=g('lDesc').value.trim(),cat=g('lCat').value,valor=parseN(g('lValor').value),data=g('lData').value,obs=g('lObs').value.trim();if(!desc||!valor||!data)return alert('Preencha tudo.');S.lancamentos.push({id:uid(),tipo,desc,categoria:cat,valor,data,status:'confirmado',obs});salvar();g('lDesc').value='';g('lValor').value='';g('lObs').value='';g('lData').value=hojeStr();renderLancs();}
+function addLanc(){let tipo=g('lTipo').value,desc=g('lDesc').value.trim(),cat=g('lCat').value,valor=parseN(g('lValor').value),data=g('lData').value,obs=g('lObs').value.trim();if(!desc||!valor||!data)return alert('Preencha tudo.');S.lancamentos.push({id:uid(),tipo,desc,categoria:cat,valor,data,status:'confirmado',obs});salvar();g('lDesc').value='';g('lValor').value='';g('lObs').value='';g('lData').value=hojeStr();closeM('modalNovoLanc');renderLancs();}
 function renderLancs(){g('lancMesLabel').textContent=mesNomeFull(lancMes);updLCats();let E=allEntries(lancMes);let fTipo=g('lfTipo')?g('lfTipo').value:'';let fCat=g('lfCat')?g('lfCat').value:'';let fBusca=g('lfBusca')?g('lfBusca').value.trim().toLowerCase():'';let fSort=g('lfSort')?g('lfSort').value:'data_desc';let cats=[...new Set(E.map(e=>e.cat))].sort();let sc=g('lfCat');if(sc){let prev=sc.value;sc.innerHTML='<option value="">Todas categorias</option>';cats.forEach(c=>{sc.innerHTML+=`<option value="${c}">${c}</option>`;});sc.value=cats.includes(prev)?prev:'';}if(fTipo)E=E.filter(e=>e.tipo===fTipo);if(fCat)E=E.filter(e=>e.cat===fCat);if(fBusca)E=E.filter(e=>(e.desc||'').toLowerCase().includes(fBusca)||(e.cat||'').toLowerCase().includes(fBusca)||(e.obs||'').toLowerCase().includes(fBusca));E.sort((a,b)=>{if(fSort==='data_asc')return a.data.localeCompare(b.data);if(fSort==='valor_desc')return b.valor-a.valor;if(fSort==='valor_asc')return a.valor-b.valor;if(fSort==='desc_asc')return(a.desc||'').localeCompare(b.desc||'');return b.data.localeCompare(a.data);});g('tbLancs').innerHTML=E.length?E.map(e=>{let isRec=e.tipo==='receita';let cb=catBadgeClass(e.cat);let origLabel=e.origem==='Contrato'?'<span class="badge badge-purple" style="font-size:.62em">Contrato</span>':e.origem.startsWith('Assinatura')?'<span class="badge badge-warning" style="font-size:.62em">Assinatura</span>':e.origem.startsWith('Cart\u00e3o')||e.origem.startsWith('Cart')?'<span class="badge badge-info" style="font-size:.62em">Cart\u00e3o</span>':'';return`<tr><td style="white-space:nowrap;color:var(--tx3);font-size:.8em">${fmtD(e.data)}</td><td><div style="display:flex;align-items:center;gap:7px"><span class="tipo-dot ${isRec?'rec':'desp'}"></span><div><div style="font-size:.86em;font-weight:500;color:var(--tx)">${e.desc}</div>${e.obs?`<div style="font-size:.72em;color:var(--tx3)">${e.obs}</div>`:''}</div></div></td><td><span class="cat-badge ${cb}">${e.cat}</span></td><td style="white-space:nowrap">${origLabel}</td><td style="text-align:right;white-space:nowrap"><span class="${isRec?'amount-rec':'amount-desp'}">${isRec?'+':'-'} ${fmtV(e.valor)}</span></td><td style="text-align:right;white-space:nowrap">${e.isManual?`<button class="btn btn-sm btn-outline" onclick="editLanc('${e.id}')">&#9998;</button> <button class="btn btn-sm btn-danger" onclick="delLanc('${e.id}')">&#128465;</button>`:''}</td></tr>`;}).join(''):'<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--tx3)">Nenhum lan\u00e7amento neste m\u00eas</td></tr>';}
 function editLanc(id){let l=S.lancamentos.find(x=>x.id===id);if(!l)return;g('elId').value=id;g('elTipo').value=l.tipo;g('elDesc').value=l.desc;g('elValor').value=(l.valor||0).toFixed(2).replace('.',',');g('elData').value=l.data;g('elObs').value=l.obs||'';updElCats();g('elCat').value=l.categoria||l.cat||'';openM('modalEditLanc');}
 function updElCats(){let s=g('elCat');s.innerHTML='';getCats(g('elTipo').value).forEach(c=>{s.innerHTML+=`<option>${c}</option>`;});}
@@ -872,10 +893,10 @@ g('extAte').value=hojeStr();
 <script src="melhorias.js?v=2"></script>
 <script src="checkpagamentos.js?v=2"></script>
 <script src="investimentos.js?v=3"></script>
-<script src="investimentos-integra.js?v=2"></script>
+<script src="investimentos-integra.js?v=3"></script>
 <script src="rent-saldo.js"></script> <!-- NOVO -->
 <script src="investimentos-enhanced.js"></script> <!-- NOVO -->
-<script src="compras-filtro.js?v=5"></script>
+<script src="compras-filtro.js?v=6"></script>
 <script src="planejamento.js"></script>
 <script src="patrimonio.js?v=3"></script>
 <script src="cartoes-fix.js"></script>  <!-- NOVO -->

@@ -33,12 +33,18 @@ sty.textContent = `
 .cp-mes-nav .cp-mes-label{font-size:1.05em;font-weight:700;min-width:160px;text-align:center;}
 .cp-mob-cards{display:none;}
 @media(max-width:768px){
-  .cp-filter-row{flex-direction:column;}
-  .cp-filter-row .form-group{min-width:100%;}
-  .cp-summary{grid-template-columns:1fr 1fr;gap:8px;}
-  .cp-summary .card{padding:10px 8px;}
-  .cp-summary .card .card-label{font-size:.62em;}
-  .cp-summary .card .card-value{font-size:.9em;}
+  /* Filtros em 2 colunas — empilhados viravam uma coluna longa demais */
+  .cp-filter-bar{padding:12px;}
+  .cp-filter-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:end;}
+  .cp-filter-row .form-group{min-width:0;}
+  .cp-filter-row .form-group:first-child{grid-column:1/-1;}
+  .cp-filter-row .form-control{font-size:.8em;padding:8px 10px;}
+  .cp-filter-row .form-group label{font-size:.66em;}
+  /* Resumo em 3 colunas: 6 cards cabem em 2 linhas em vez de 6 */
+  .cp-summary{grid-template-columns:repeat(3,1fr);gap:6px;}
+  .cp-summary .card{padding:9px 6px;}
+  .cp-summary .card .card-label{font-size:.58em;margin-bottom:4px;}
+  .cp-summary .card .card-value{font-size:.82em;}
   .cp-totais-grid{grid-template-columns:1fr;}
   .cp-mes-nav .cp-mes-label{font-size:.88em;min-width:120px;}
   .cp-section .table-wrap{display:none!important;}
@@ -53,8 +59,12 @@ sty.textContent = `
   .cpm-acts{display:flex;gap:4px;margin-top:6px;}
 }
 @media(max-width:380px){
-  .cp-summary{grid-template-columns:1fr!important;}
-  .cp-summary .card .card-value{font-size:.82em;}
+  /* Mantem 3 colunas mesmo em telas estreitas: 1 coluna deixava a pagina
+     com 6 cards empilhados, exigindo rolagem so para ver o resumo. */
+  .cp-summary{grid-template-columns:repeat(3,1fr);gap:5px;}
+  .cp-summary .card{padding:8px 4px;}
+  .cp-summary .card .card-label{font-size:.54em;letter-spacing:0;}
+  .cp-summary .card .card-value{font-size:.74em;}
 }
 `;
 document.head.appendChild(sty);
