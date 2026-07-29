@@ -528,17 +528,8 @@ window.renderCheckPag = function(){
 // ================================================================
 // HOOK NAVEGAÇÃO
 // ================================================================
-var _origNav = window.nav;
-window.nav = function(pg){
-  _origNav(pg);
-  var el = document.getElementById('nav-checkpag');
-  if(el) el.classList[pg === 'checkpag' ? 'add' : 'remove']('active');
-  var pgEl = document.getElementById('pg-checkpag');
-  if(pgEl){
-    if(pg === 'checkpag'){ pgEl.classList.add('active'); renderCheckPag(); }
-    else pgEl.classList.remove('active');
-  }
-};
+// Declara a pagina no registro do index.html, em vez de embrulhar nav().
+if(typeof registerPage === 'function') registerPage('checkpag', function(){ renderCheckPag(); });
 
 console.log('[Financeiro Pro] Check de Pagamentos v5 — Mobile zero zoom.');
 })();

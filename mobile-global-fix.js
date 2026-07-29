@@ -511,14 +511,12 @@ if (_origAddPlan2) {
   };
 }
 
-// Interceptar nav — ao trocar de tela, resetar scroll
-var _origNav2 = window.nav;
-if (_origNav2) {
-  window.nav = function() {
-    _origNav2.apply(this, arguments);
+// Ao trocar de tela, resetar scroll — via hook do registro, sem embrulhar nav()
+if (typeof onNavigate === 'function') {
+  onNavigate(function(){
     setTimeout(resetMobileScroll, 50);
     setTimeout(resetMobileScroll, 150);
-  };
+  });
 }
 
 

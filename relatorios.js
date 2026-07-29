@@ -104,20 +104,7 @@ function createPage(){
   if(mainDiv) mainDiv.appendChild(page);
 }
 
-var _origNav = window.nav;
-window.nav = function(p){
-  if(p === 'relatorios'){
-    document.querySelectorAll('.page').forEach(function(x){ x.classList.remove('active'); });
-    document.querySelectorAll('.sidebar a').forEach(function(x){ x.classList.remove('active'); });
-    document.getElementById('pg-relatorios').classList.add('active');
-    var nl = document.getElementById('nav-relatorios');
-    if(nl) nl.classList.add('active');
-    renderRelatorios();
-    if(typeof closeSidebar === 'function') closeSidebar();
-    return;
-  }
-  _origNav(p);
-};
+// (o registro da pagina fica no Init, ao final do arquivo)
 
 // ================================================================
 // Menu de relatorios
@@ -645,5 +632,10 @@ function buildInvest(){
 // ================================================================
 addMenuLink();
 createPage();
+// Declara a pagina no registro do index.html, em vez de embrulhar nav().
+// A versao anterior reimplementava a troca de pagina e dava return antes de
+// chamar o nav original, engolindo os hooks dos demais modulos.
+// A funcao e resolvida na chamada (late binding), para nao depender da ordem.
+if(typeof registerPage === 'function') registerPage('relatorios', function(){ renderRelatorios(); });
 console.log('[Financeiro Pro] Relat\u00f3rios v2 — 9 relat\u00f3rios com navega\u00e7\u00e3o mensal + Excel detalhado.');
 })();

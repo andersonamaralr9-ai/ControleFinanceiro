@@ -802,8 +802,52 @@ function load(){try{let d=JSON.parse(localStorage.getItem(SK));if(d){S=d;['lanca
 function salvar(){localStorage.setItem(SK,JSON.stringify(S));scheduleSync();}
 
 let curPage='resumo',curMes=mesAtual(),lancMes=mesAtual(),planMes=mesAtual();
-function nav(p){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.sidebar a').forEach(x=>x.classList.remove('active'));g('pg-'+p).classList.add('active');let n=g('nav-'+p);if(n)n.classList.add('active');curPage=p;document.body.className=document.body.className.replace(/\bpage-\w+/g,'').trim()+' page-'+p;ren(p);closeSidebar();}
-function ren(p){({resumo:renderResumo,lancs:renderLancs,contratos:renderContratos,extrato:renderExtrato,balancete:renderBalancete,cartoes:renderCartoes,compras:renderCompras,assinaturas:renderAssinaturas,planejamento:renderPlan,investimentos:renderInvest,patrimonio:renderPatrimonio,config:renderConfig,backup:renderBackupPage}[p]||function(){})();}
+/* ── Registro de paginas ────────────────────────────────────────
+   Antes o mapa de paginas era fixo aqui dentro, entao todo modulo que
+   criava uma pagina nova (Extrato Categorizado, Check Pagamentos,
+   Relatorios) precisava interceptar window.nav para se encaixar.
+   Eram 4 wrappers encadeados, cada um chamando o anterior — se um
+   deixasse de encadear, os seguintes morriam em silencio.
+   Agora o modulo so declara a sua pagina:  registerPage('id', render)
+   e, para rodar algo apos cada navegacao:  onNavigate(fn)            */
+const PAGE_RENDERERS={};
+const NAV_HOOKS=[];
+function registerPage(id,render){ if(id&&typeof render==='function') PAGE_RENDERERS[id]=render; }
+function onNavigate(fn){ if(typeof fn==='function') NAV_HOOKS.push(fn); }
+window.registerPage=registerPage;
+window.onNavigate=onNavigate;
+
+function nav(p){
+  const alvo=g('pg-'+p);
+  if(!alvo) return; // pagina ainda nao registrada: nao quebra a navegacao
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.sidebar a').forEach(x=>x.classList.remove('active'));
+  alvo.classList.add('active');
+  const n=g('nav-'+p); if(n)n.classList.add('active');
+  curPage=p;
+  document.body.className=document.body.className.replace(/\bpage-\w+/g,'').trim()+' page-'+p;
+  ren(p);
+  NAV_HOOKS.forEach(fn=>{ try{ fn(p); }catch(e){ console.warn('[nav hook]',e); } });
+  closeSidebar();
+}
+function ren(p){
+  const fn=PAGE_RENDERERS[p];
+  if(typeof fn==='function'){ try{ fn(); }catch(e){ console.error('[render '+p+']',e); } }
+}
+/* Paginas nativas do index.html */
+registerPage('resumo',()=>renderResumo());
+registerPage('lancs',()=>renderLancs());
+registerPage('contratos',()=>renderContratos());
+registerPage('extrato',()=>renderExtrato());
+registerPage('balancete',()=>renderBalancete());
+registerPage('cartoes',()=>renderCartoes());
+registerPage('compras',()=>renderCompras());
+registerPage('assinaturas',()=>renderAssinaturas());
+registerPage('planejamento',()=>renderPlan());
+registerPage('investimentos',()=>renderInvest());
+registerPage('patrimonio',()=>renderPatrimonio());
+registerPage('config',()=>renderConfig());
+registerPage('backup',()=>renderBackupPage());
 function chgM(n){curMes=addMes(curMes,n);renderResumo();}
 function chgLM(n){lancMes=addMes(lancMes,n);renderLancs();}
 function chgPM(n){planMes=addMes(planMes,n);renderPlan();}
@@ -914,8 +958,8 @@ g('extAte').value=hojeStr();
 <script src="auth.js?v=2"></script>
 <script src="mobile-cards.js?v=2"></script>
 <script src="antecipacao.js?v=4"></script>
-<script src="melhorias.js?v=4"></script>
-<script src="checkpagamentos.js?v=2"></script>
+<script src="melhorias.js?v=5"></script>
+<script src="checkpagamentos.js?v=3"></script>
 <script src="investimentos.js?v=3"></script>
 <script src="investimentos-integra.js?v=3"></script>
 <script src="rent-saldo.js"></script> <!-- NOVO -->
@@ -926,10 +970,10 @@ g('extAte').value=hojeStr();
 <script src="cartoes-fix.js"></script>  <!-- NOVO -->
 <script src="design-packs.js"></script>
 <script src="resumo-enhanced.js?v=14"></script>
-<script src="mobile-global-fix.js"></script>
+<script src="mobile-global-fix.js?v=2"></script>
 <script src="assinaturas-enhanced.js"></script>
 <script src="contratos-enhanced.js?v=3"></script>    <!-- NOVO -->
-<script src="relatorios.js?v=4"></script>
+<script src="relatorios.js?v=5"></script>
 <script src="theme-persist.js"></script>
 
 

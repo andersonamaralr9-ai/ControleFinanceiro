@@ -781,18 +781,9 @@ window.abrirHistorico = function(tipo, itemId, manterAberto){
     compArea.innerHTML = ch;
   };
 
-  // Nav hook
-  var _origNav = window.nav;
-  window.nav = function(pg){
-    _origNav(pg);
-    var el = document.getElementById('nav-extratoCat');
-    if(el) el.classList[pg === 'extratoCat' ? 'add' : 'remove']('active');
-    var pgEl = document.getElementById('pg-extratoCat');
-    if(pgEl){
-      if(pg === 'extratoCat'){ pgEl.classList.add('active'); renderExtratoCat(); }
-      else pgEl.classList.remove('active');
-    }
-  };
+  // Declara a pagina no registro do index.html, em vez de embrulhar nav().
+  // O nav() base ja cuida de ativar/desativar .page e o item do menu.
+  if(typeof registerPage === 'function') registerPage('extratoCat', function(){ renderExtratoCat(); });
 })();
 
 
