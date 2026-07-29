@@ -510,7 +510,7 @@ window.renderResumoInvest = function() {
 
   // --- DESKTOP: hero card unico (ri-desk oculto no mobile via CSS) ---
   var dh = '<div class="ri-desk ih-card">';
-  dh += '<div class="ih-top"><div class="ih-title">Investimentos - ' + mesNome(ma) + '</div><div class="ih-link" onclick="nav(\'investimentos\')">Ver detalhes &rarr;</div></div>';
+  dh += '<div class="ih-top"><div class="ih-title">Investimentos &mdash; ' + mesNomeFull(ma) + '</div><div class="ih-link" onclick="nav(\'investimentos\')">Ver detalhes &rarr;</div></div>';
   dh += '<div class="ih-grid">';
   dh += '<div class="ih-item"><div class="ih-lbl">Saldo Inicial</div><div class="ih-val" style="color:var(--inf2)">' + fmtV(saldoInicial) + '</div><div class="ih-sub">Abertura de ' + mesNome(ma) + '</div></div>';
   dh += '<div class="ih-item"><div class="ih-lbl">Rentabilidade</div><div class="ih-val" style="color:' + rentColor + '">' + (rentMes >= 0 ? '+' : '') + fmtV(rentMes) + '</div><div class="ih-sub">Aportes ' + fmtV(aporteMes) + ' &middot; Resgates ' + fmtV(resgateMes) + '</div></div>';
