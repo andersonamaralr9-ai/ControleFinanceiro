@@ -335,64 +335,15 @@ window.abrirHistorico = function(tipo, itemId, manterAberto){
 
 
 // ================================================================
-// 2. OVERRIDE renderContratos — adicionar botão Histórico + valor vigente
+// 2. renderContratos — REMOVIDO (era codigo morto)
+// ----------------------------------------------------------------
+// Este bloco embrulhava window.renderContratos para acrescentar o botao
+// "Historico" e o valor vigente. Nunca executava: contratos-enhanced.js
+// carrega depois e SUBSTITUI renderContratos por completo, sem chamar o
+// anterior — entao o wrapper era descartado silenciosamente.
+// As duas funcionalidades foram portadas para contratos-enhanced.js
+// (botao Historico no card e _ceValorNoMes).
 // ================================================================
-(function(){
-  var _orig = window.renderContratos;
-  if(!_orig) return;
-  
-  window.renderContratos = function(){
-    _orig();
-    
-    var contGrid = document.getElementById('contGrid');
-    if(!contGrid) return;
-    var ma = _mesAtual();
-    
-    contGrid.querySelectorAll('.sub-box').forEach(function(box){
-      var actions = box.querySelector('.sub-box-actions');
-      if(!actions) return;
-      
-      // Encontrar o ID — procurar em QUALQUER botão com onclick que contenha o ID
-      var allBtns = actions.querySelectorAll('button[onclick]');
-      var contId = null;
-      allBtns.forEach(function(btn){
-        var oc = btn.getAttribute('onclick') || '';
-        // Procurar padrões: editCont('xxx'), ajCont('xxx'), encCont('xxx'), delCont('xxx')
-        var match = oc.match(/(?:editCont|ajCont|encCont|delCont|reatCont)\(['"](.+?)['"]\)/);
-        if(match) contId = match[1];
-      });
-      if(!contId) return;
-      
-      var cont = S.contratos.find(function(c){return c.id === contId;});
-      if(!cont) return;
-      
-      // Atualizar valor exibido para o vigente do mês atual
-      var vigente = valorVigenteMes(cont, ma);
-      var valorCadastrado = Number(cont.valor) || 0;
-      var valorEl = box.querySelector('.sub-valor');
-      if(valorEl){
-        if(cont.historico && cont.historico.length > 1 && Math.abs(vigente - valorCadastrado) > 0.01){
-          valorEl.innerHTML = fmtV(vigente)+'/mês <span class="vigente-info">(vigente em '+nomeMesBR(ma).split(' ')[0]+')</span>';
-        } else {
-          valorEl.innerHTML = fmtV(vigente)+'/mês';
-        }
-      }
-      
-      // Botão Histórico
-      if(!actions.querySelector('.btn-hist')){
-        var btn = document.createElement('button');
-        btn.className = 'btn btn-sm btn-outline btn-hist';
-        btn.innerHTML = '&#128197; Histórico';
-        btn.title = 'Ver histórico de valores';
-        btn.onclick = function(){ abrirHistorico('contrato', contId); };
-        actions.appendChild(btn);
-      }
-    });
-    
-    // Aplicar filtros se existirem
-    if(typeof filtrarContratos === 'function') filtrarContratos();
-  };
-})();
 
 
 // ================================================================
@@ -556,24 +507,10 @@ window.abrirHistorico = function(tipo, itemId, manterAberto){
     '<span class="filter-count" id="fContCount"></span>';
   contGrid.parentNode.insertBefore(filterDiv, contGrid);
 
-  var _afterRenderC = window.renderContratos;
-  window.renderContratos = function(){
-    _afterRenderC();
-    var selCat = document.getElementById('fContCat');
-    if(selCat){
-      var ccv = selCat.value || lerFiltro('contCat','');
-      selCat.innerHTML = '<option value="">Todas as categorias</option>';
-      var cats = {};
-      S.contratos.forEach(function(c){ if(c.categoria) cats[c.categoria] = 1; });
-      Object.keys(cats).sort().forEach(function(c){ selCat.innerHTML += '<option value="'+c+'">'+c+'</option>'; });
-      selCat.value = ccv;
-    }
-    var tipoEl = document.getElementById('fContTipo');
-    if(tipoEl && !tipoEl._restored){ tipoEl.value = lerFiltro('contTipo',''); tipoEl._restored = true; }
-    var buscaEl = document.getElementById('fContBusca');
-    if(buscaEl && !buscaEl._restored){ buscaEl.value = lerFiltro('contBusca',''); buscaEl._restored = true; }
-  };
-
+  // Wrapper de renderContratos removido: era codigo morto pelo mesmo motivo
+  // do bloco 2 (contratos-enhanced.js substitui a funcao). A repopulacao do
+  // seletor de categoria e a restauracao dos filtros salvos foram portadas
+  // para _ceSincronizaFiltros() em contratos-enhanced.js.
   window.filtrarContratos = function(){
     var tipoFiltro = (document.getElementById('fContTipo')||{}).value || '';
     var catFiltro = (document.getElementById('fContCat')||{}).value || '';

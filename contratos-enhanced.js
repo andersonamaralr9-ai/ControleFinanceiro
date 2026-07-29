@@ -309,7 +309,7 @@ window.renderContratos = function(){
       '<div class="sub-box-header"><strong>' + c.desc + '</strong>' + bdHtml + '</div>' +
       '<div class="sub-box-body">' +
         '<p>' + (c.tipo === 'receita' ? '&#128200; Receita' : '&#128201; Despesa') + ' &bull; ' + (c.categoria || 'Outros') + '</p>' +
-        '<p class="sub-valor">' + fmtV(c.valor) + '/m&ecirc;s</p>' +
+        '<p class="sub-valor">' + _ceValorNoMes(c) + '</p>' +
         '<p>Dia ' + (c.dia || 1) + ' &bull; In&iacute;cio: ' + (c.inicio ? mesNome(c.inicio) : '-') + '</p>' +
         fimInfo +
         (c.obs ? '<p class="sub-obs">' + c.obs + '</p>' : '') +
@@ -326,7 +326,48 @@ window.renderContratos = function(){
         '<button class="btn btn-sm btn-danger" onclick="delCont(\'' + c.id + '\')">&#128465;</button>' +
       '</div></div>';
   }).join('') : '<p style="color:var(--tx3)">Nenhum contrato.</p>';
+
+  // ── Sincroniza a barra de filtros ──────────────────────────────
+  // Esta etapa vinha de um wrapper em melhorias.js que nunca executava:
+  // este arquivo carrega depois e substitui renderContratos por completo,
+  // sem encadear o anterior. Resultado: o seletor de categoria ficava
+  // vazio e os filtros salvos não eram reaplicados.
+  _ceSincronizaFiltros();
 };
+
+// Mostra o valor que vigora no mes exibido, e nao apenas o ultimo cadastrado.
+// (Tambem vinha do wrapper morto em melhorias.js.)
+function _ceValorNoMes(c){
+  var base = Number(c.valor) || 0;
+  if(typeof valorVigenteMes !== 'function') return fmtV(base) + '/m&ecirc;s';
+  var vig = valorVigenteMes(c, ceResumoMes);
+  var txt = fmtV(vig) + '/m&ecirc;s';
+  if(Math.abs(vig - base) > 0.01){
+    txt += ' <span class="vigente-info">(vigente em ' + mesNome(ceResumoMes) + ')</span>';
+  }
+  return txt;
+}
+
+function _ceSincronizaFiltros(){
+  var selCat = document.getElementById('fContCat');
+  if(selCat){
+    var atual = selCat.value || (typeof lerFiltro === 'function' ? lerFiltro('contCat','') : '');
+    var cats = {};
+    S.contratos.forEach(function(c){ if(c.categoria) cats[c.categoria] = 1; });
+    selCat.innerHTML = '<option value="">Todas as categorias</option>' +
+      Object.keys(cats).sort().map(function(c){
+        return '<option value="' + c + '">' + c + '</option>';
+      }).join('');
+    selCat.value = atual;
+  }
+  if(typeof lerFiltro === 'function'){
+    var tipoEl = document.getElementById('fContTipo');
+    if(tipoEl && !tipoEl._restored){ tipoEl.value = lerFiltro('contTipo',''); tipoEl._restored = true; }
+    var buscaEl = document.getElementById('fContBusca');
+    if(buscaEl && !buscaEl._restored){ buscaEl.value = lerFiltro('contBusca',''); buscaEl._restored = true; }
+  }
+  if(typeof filtrarContratos === 'function') filtrarContratos();
+}
 
 // ================================================================
 // Override allEntries para respeitar dataFim

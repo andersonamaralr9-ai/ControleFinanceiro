@@ -103,8 +103,63 @@ function deepMergeState(local,remote){
       else Object.assign(r.checkPagamentos[m],l.checkPagamentos[m]);
     });
   }
-  return ensureArrays(r);
+  var _mesclado=ensureArrays(r);
+  // O estado mesclado vira a nova referencia: nada nele deve ser
+  // considerado "alterado localmente" no proximo salvar().
+  _tsReset(_mesclado);
+  return _mesclado;
 }
+
+// ================================================================
+// CARIMBO DE ALTERACAO (_ts)
+// ----------------------------------------------------------------
+// deepMergeState resolve conflito por _ts (linha "if(lts>rts)"), mas
+// nada no app gravava esse campo: os dois lados ficavam em 0, a
+// comparacao dava falso e o REMOTO vencia sempre. Consequencia: se o
+// sync de 3s falhasse (rede), o auto-sync de 5min sobrescrevia a
+// edicao local com a versao antiga da nuvem.
+// Aqui marcamos _ts apenas nos itens que realmente mudaram, comparando
+// com um retrato do ultimo estado salvo/mesclado.
+// ================================================================
+var _TS_COLS=['lancamentos','cartoes','comprasCartao','assinaturas','contratos','investimentos','caixa'];
+var _tsSnap={};
+
+function _tsFingerprint(it){
+  var c={};
+  Object.keys(it).forEach(function(k){ if(k!=='_ts') c[k]=it[k]; });
+  try{ return JSON.stringify(c); }catch(e){ return ''; }
+}
+
+// Define o estado atual como referencia (sem marcar nada como alterado)
+function _tsReset(st){
+  _tsSnap={};
+  if(!st) return;
+  _TS_COLS.forEach(function(col){
+    var m={};
+    (Array.isArray(st[col])?st[col]:[]).forEach(function(it){
+      if(it&&it.id) m[it.id]=_tsFingerprint(it);
+    });
+    _tsSnap[col]=m;
+  });
+}
+
+// Marca _ts nos itens novos ou modificados desde a ultima referencia
+function _tsStamp(st){
+  if(!st) return;
+  var agora=Date.now();
+  _TS_COLS.forEach(function(col){
+    var anterior=_tsSnap[col]||{}, atual={};
+    (Array.isArray(st[col])?st[col]:[]).forEach(function(it){
+      if(!it||!it.id) return;
+      var fp=_tsFingerprint(it);
+      atual[it.id]=fp;
+      if(anterior[it.id]!==fp) it._ts=agora;
+    });
+    _tsSnap[col]=atual;
+  });
+}
+window._tsReset=_tsReset;
+window._tsStamp=_tsStamp;
 function ensureArrays(st){
   ['lancamentos','cartoes','comprasCartao','assinaturas','contratos','investimentos','caixa'].forEach(function(k){
     if(!Array.isArray(st[k]))st[k]=[];
@@ -519,9 +574,11 @@ function switchToUserData(user,skipRender){
   var uKey=getUserStorageKey(user);
   window._userSK=uKey;window._authUsername=user;
   try{var d=JSON.parse(localStorage.getItem(uKey));if(d){S=ensureArrays(d);}else{S=defState();}}catch(e){S=defState();}
+  _tsReset(S); // estado recem-carregado e a referencia inicial
 
   window.salvar=function(){
     if(!window._userSK)return;
+    _tsStamp(S); // marca o que mudou, para o merge saber quem e mais recente
     localStorage.setItem(window._userSK,JSON.stringify(S));
     window.scheduleSync();
   };
@@ -666,6 +723,7 @@ function switchToUserData(user,skipRender){
     var rem=await readUserGistFile(window._authUsername);
     if(rem&&typeof rem==='object'&&(rem.lancamentos||rem.cartoes||rem.contratos)){
       S=ensureArrays(JSON.parse(JSON.stringify(rem)));
+      _tsReset(S); // restaurado da nuvem: nada e alteracao local
       localStorage.setItem(window._userSK,JSON.stringify(S));
       if(typeof renderAll==='function')renderAll();
       syncUI('on','Dados restaurados do Cloud');
