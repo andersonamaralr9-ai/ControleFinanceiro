@@ -561,7 +561,7 @@ window.abrirHistorico = function(tipo, itemId){
   var newLink = document.createElement('a');
   newLink.id = 'nav-extratoCat';
   newLink.onclick = function(){ nav('extratoCat'); };
-  newLink.innerHTML = '<span>&#128202; Extrato Categorizado</span>';
+  newLink.innerHTML = '<span class="nav-ic">&#9639;</span><span>Extrato Categorizado</span>';
   extLink.parentNode.insertBefore(newLink, extLink.nextSibling);
 
   // Criar página
@@ -571,7 +571,7 @@ window.abrirHistorico = function(tipo, itemId){
   pgDiv.className = 'page';
   pgDiv.id = 'pg-extratoCat';
   pgDiv.innerHTML =
-    '<h2 class="page-title">&#128202; Extrato por Categoria</h2>'+
+    '<h2 class="page-title">Extrato por Categoria</h2>'+
     '<div class="month-nav"><button class="btn btn-outline" onclick="chgECM(-1)">&#9664;</button>'+
     '<span class="mes-label" id="ecMesLabel"></span>'+
     '<button class="btn btn-outline" onclick="chgECM(1)">&#9654;</button></div>'+

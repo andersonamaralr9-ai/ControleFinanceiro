@@ -258,7 +258,7 @@ if(!balLink) return;
 var newLink = document.createElement('a');
 newLink.id = 'nav-checkpag';
 newLink.onclick = function(){ nav('checkpag'); };
-newLink.innerHTML = '<span>&#9989; Check Pagamentos</span>';
+newLink.innerHTML = '<span class="nav-ic">&#10003;</span><span>Check Pagamentos</span>';
 balLink.parentNode.insertBefore(newLink, balLink.nextSibling);
 
 // ================================================================
@@ -271,7 +271,7 @@ var pgDiv = document.createElement('div');
 pgDiv.className = 'page';
 pgDiv.id = 'pg-checkpag';
 pgDiv.innerHTML =
-  '<h2 class="page-title">&#9989; Check de Pagamentos</h2>' +
+  '<h2 class="page-title">Check de Pagamentos</h2>' +
   '<div class="month-nav">' +
     '<button class="btn btn-outline" onclick="chgCheckM(-1)">&#9664;</button>' +
     '<span class="mes-label" id="checkMesLabel"></span>' +

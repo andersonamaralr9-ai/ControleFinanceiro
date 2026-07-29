@@ -13,14 +13,14 @@
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <style>
 :root{
-  --bg:#15182a;--bg2:#1d2138;--bg3:#252a45;--bg4:#303658;
-  --tx:#eef0f8;--tx2:#9da4c5;--tx3:#626a90;
-  --pri:#6c5ce7;--pri2:#a29bfe;--priG:linear-gradient(135deg,#6c5ce7,#a29bfe);
-  --ok:#00cec9;--ok2:#55efc4;--okG:linear-gradient(135deg,#00b894,#55efc4);
-  --wn:#fdcb6e;--wn2:#ffeaa7;--wnG:linear-gradient(135deg,#f39c12,#fdcb6e);
-  --dn:#d63031;--dn2:#ff7675;--dnG:linear-gradient(135deg,#d63031,#ff7675);
-  --inf:#0984e3;--inf2:#74b9ff;
-  --rad:18px;--sh:0 2px 16px rgba(0,0,0,.25);
+  --bg:#14151d;--bg2:#1e2029;--bg3:#282a35;--bg4:#343643;
+  --tx:#f5f5f8;--tx2:#a8abbd;--tx3:#7d7f92;
+  --pri:#8b5cf6;--pri2:#a78bfa;--priG:linear-gradient(135deg,#8b5cf6,#6d28d9);
+  --ok:#2fd480;--ok2:#5ee5a0;--okG:linear-gradient(135deg,#22b869,#2fd480);
+  --wn:#ffbe5c;--wn2:#ffd591;--wnG:linear-gradient(135deg,#e89b2b,#ffbe5c);
+  --dn:#e8384f;--dn2:#ff5c72;--dnG:linear-gradient(135deg,#e8384f,#ff5c72);
+  --inf:#5aa8ff;--inf2:#7ec2ff;
+  --rad:18px;--sh:0 2px 16px rgba(0,0,0,.28);
 }
 body.theme-light{--bg:#f5f6fa;--bg2:#ffffff;--bg3:#edf0f5;--bg4:#d5d9e2;--tx:#1e2139;--tx2:#555b7a;--tx3:#8890a8;--pri:#6c5ce7;--pri2:#5a4bd1;--ok:#00b894;--ok2:#00a381;--dn:#d63031;--dn2:#c0392b;--wn:#e17055;--inf:#0984e3;--inf2:#0767b1;--sh:0 4px 20px rgba(0,0,0,.06);}
 body.theme-midnight{--bg:#080c1a;--bg2:#0f1528;--bg3:#182040;--bg4:#1f2b52;--tx:#dce1f0;--tx2:#8892bf;--tx3:#4e5a8a;--pri:#4f6ef7;--pri2:#7b93ff;--priG:linear-gradient(135deg,#4f6ef7,#7b93ff);--ok:#00d2d3;--ok2:#48dbfb;--okG:linear-gradient(135deg,#00d2d3,#48dbfb);--dn:#ff6b6b;--dn2:#ff8787;--dnG:linear-gradient(135deg,#ff4757,#ff6b6b);--wn:#feca57;--inf:#54a0ff;--inf2:#70b1ff;--sh:0 4px 30px rgba(0,0,0,.4);}
@@ -209,6 +209,57 @@ tr:hover td{background:rgba(255,255,255,.025);}
 .rg-main,.rg-sec{gap:12px!important;margin-bottom:14px!important;}
 /* .rq-btn não é mais sobrescrito aqui — estilo discreto definido em resumo-enhanced.js */
 
+/* ══════════ DESIGN SYSTEM ══════════
+   Fica aqui no <head> (e não num script no fim) para valer já na
+   primeira pintura — sem a tela "piscar" no estilo antigo e corrigir. */
+
+/* Rótulos em sentença, não em caixa alta.
+   Uppercase permanece só nos grupos da sidebar e no card de saldo. */
+.card .card-label,.rc6-lbl,.chart-box h3,.ih-title,.ih-lbl,
+.inv-klbl,.inv-pkl,.inv-clbl,.inv-ifrm-lbl,.inv-hist-sec-lbl,
+.top-cat-hdr,.rm-sh{text-transform:none!important;letter-spacing:.1px!important;}
+.card .card-label{font-size:.8em!important;color:var(--tx2)!important;font-weight:600!important;}
+.rc6-lbl{font-size:.8em!important;color:var(--tx2)!important;}
+.chart-box h3{font-size:.85em!important;color:var(--tx)!important;font-weight:700!important;}
+.ih-title{font-size:.85em!important;color:var(--tx)!important;font-weight:700!important;}
+.ih-lbl{font-size:.76em!important;color:var(--tx3)!important;}
+.inv-klbl{font-size:.74em!important;color:var(--tx2)!important;}
+.inv-pkl{font-size:.72em!important;color:var(--tx2)!important;}
+
+/* Cabeçalho da página: título à esquerda, mês em pílula à direita */
+.pg-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:22px;flex-wrap:wrap;}
+.pg-head-left{min-width:0;}
+.pg-head .page-title{margin-bottom:3px;}
+.pg-head .page-subtitle{margin-bottom:0;}
+.pg-head .month-nav{margin-bottom:0;flex-shrink:0;}
+.month-nav{background:var(--bg2);border:1px solid var(--bg4);border-radius:12px;padding:5px 6px;gap:2px;}
+.month-nav .btn,.month-nav .btn-outline{background:none!important;border:none!important;color:var(--tx2)!important;padding:5px 10px!important;font-size:.95em!important;min-width:auto!important;}
+.month-nav .btn:hover{color:var(--pri2)!important;background:var(--bg3)!important;}
+.month-nav .mes-label{font-size:.86em;font-weight:700;min-width:auto;padding:0 6px;white-space:nowrap;}
+
+/* Sidebar: marca + ícones geométricos */
+.sidebar-brand{display:flex;align-items:center;gap:11px;padding:20px 18px;margin-bottom:6px;}
+.sidebar-brand .sb-logo{width:34px;height:34px;border-radius:11px;background:var(--priG);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.9rem;flex-shrink:0;}
+.sidebar-brand .sb-name{font-size:.95em;font-weight:700;color:var(--tx);letter-spacing:-.2px;}
+.sidebar .group-label{padding:14px 18px 5px;font-size:.63em;letter-spacing:1.6px;color:var(--tx3);font-weight:700;}
+.sidebar .sep{display:none;}
+.sidebar a{gap:11px;padding:9px 18px;margin:1px 0;border-radius:0;font-size:.85em;color:var(--tx2);font-weight:500;position:relative;}
+.sidebar a:hover{background:rgba(255,255,255,.04);color:var(--tx);}
+.sidebar a.active{color:var(--tx);font-weight:700;background:rgba(139,92,246,.10);}
+.sidebar a.active::before{content:'';position:absolute;left:0;top:6px;bottom:6px;width:3px;background:var(--pri2);border-radius:0 3px 3px 0;}
+.nav-ic{display:inline-block;width:18px;text-align:center;font-size:1em;opacity:.85;flex-shrink:0;}
+.sidebar a.active .nav-ic{opacity:1;color:var(--pri2);}
+
+/* Card de investimentos: ícone em quadrado */
+.ih-title{display:flex!important;align-items:center;gap:9px;}
+.ih-title::before{content:'\2197';width:26px;height:26px;border-radius:9px;background:rgba(139,92,246,.18);color:var(--pri2);display:flex;align-items:center;justify-content:center;font-size:.85em;flex-shrink:0;}
+
+/* Superfícies e tabelas */
+.card,.chart-box,.form-section,.table-wrap,.rc6,.ih-card{border-color:rgba(255,255,255,.07);}
+.card:hover{transform:none;}
+th{font-size:.7em;color:var(--tx3);letter-spacing:.8px;}
+td{font-size:.86em;}
+
 .pdf-area h2{font-size:16px;margin-bottom:4px;color:#1a1a2e;}
 .pdf-area .pdf-sub{font-size:10px;color:#777;margin-bottom:14px;}
 .pdf-area table{width:100%;border-collapse:collapse;font-size:9px;}
@@ -257,9 +308,19 @@ tr:hover td{background:rgba(255,255,255,.025);}
   .bar-label{font-size:.55em;}
   .top-cat-item{margin-bottom:10px;}
   .top-cat-hdr{font-size:.76em;}
-  .month-nav{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:14px;}
+  .month-nav{display:flex;align-items:center;justify-content:center;gap:2px;margin-bottom:14px;}
   .month-nav .btn{width:auto;min-width:36px;padding:7px 12px;display:inline-flex;align-items:center;justify-content:center;}
   .month-nav .mes-label{font-size:.88em;min-width:110px;text-align:center;}
+  /* Design system — mobile */
+  .pg-head{flex-direction:column;align-items:stretch;gap:10px;margin-bottom:14px;}
+  .pg-head .month-nav{width:100%;justify-content:center;}
+  .sidebar-brand{padding:16px;}
+  .sidebar a{padding:11px 16px;font-size:.88em;}
+  .sidebar .group-label{padding:12px 16px 4px;}
+  .card .card-label{font-size:.74em!important;}
+  .rc6-lbl{font-size:.76em!important;}
+  .chart-box h3{font-size:.82em!important;}
+  .mobile-header .mob-title{background:none;-webkit-text-fill-color:var(--tx);color:var(--tx);}
   /* Formulários: 2 colunas no mobile para aproveitar mais espaço */
   .form-grid{grid-template-columns:1fr 1fr!important;}
   .form-grid .form-group{min-width:0;overflow:hidden;}
@@ -340,42 +401,47 @@ tr:hover td{background:rgba(255,255,255,.025);}
 </div></div></div>
 
 <nav class="sidebar" id="sidebar">
-  <!-- Perfil -->
-  <div class="sidebar-profile">
+  <!-- Marca -->
+  <div class="sidebar-brand">
+    <div class="sb-logo">$</div>
+    <div class="sb-name">Financeiro</div>
+  </div>
+  <!-- Perfil (mantido oculto: auth.js escreve nome/avatar aqui) -->
+  <div class="sidebar-profile" style="display:none">
     <div class="sidebar-avatar" id="sidebarAvatar">AN</div>
     <div class="sidebar-name" id="sidebarName">Anderson</div>
     <div class="sidebar-tagline">Controle Financeiro</div>
   </div>
   <div class="group-label">Principal</div>
-  <a onclick="nav('resumo')" id="nav-resumo" class="active"><span>&#128202; Resumo</span></a>
-  <div class="sep"></div>
+  <a onclick="nav('resumo')" id="nav-resumo" class="active"><span class="nav-ic">&#9638;</span><span>Resumo</span></a>
   <div class="group-label">Lan&ccedil;amentos</div>
-  <a onclick="nav('lancs')" id="nav-lancs"><span>&#128221; Lan&ccedil;amentos</span></a>
-  <a onclick="nav('contratos')" id="nav-contratos"><span>&#128196; Contratos</span></a>
-  <a onclick="nav('extrato')" id="nav-extrato"><span>&#128203; Extrato</span></a>
-  <a onclick="nav('balancete')" id="nav-balancete"><span>&#128200; Balancete</span></a>
-  <div class="sep"></div>
+  <a onclick="nav('lancs')" id="nav-lancs"><span class="nav-ic">&#8597;</span><span>Lan&ccedil;amentos</span></a>
+  <a onclick="nav('contratos')" id="nav-contratos"><span class="nav-ic">&#9636;</span><span>Contratos</span></a>
+  <a onclick="nav('extrato')" id="nav-extrato"><span class="nav-ic">&#9776;</span><span>Extrato</span></a>
+  <a onclick="nav('balancete')" id="nav-balancete"><span class="nav-ic">&#9637;</span><span>Balancete</span></a>
   <div class="group-label">Cart&atilde;o de Cr&eacute;dito</div>
-  <a onclick="nav('cartoes')" id="nav-cartoes"><span>&#128179; Cart&otilde;es</span></a>
-  <a onclick="nav('compras')" id="nav-compras"><span>&#128722; Compras</span></a>
-  <a onclick="nav('assinaturas')" id="nav-assinaturas"><span>&#128257; Assinaturas</span></a>
-  <div class="sep"></div>
+  <a onclick="nav('cartoes')" id="nav-cartoes"><span class="nav-ic">&#9645;</span><span>Cart&otilde;es</span></a>
+  <a onclick="nav('compras')" id="nav-compras"><span class="nav-ic">&#8862;</span><span>Compras</span></a>
+  <a onclick="nav('assinaturas')" id="nav-assinaturas"><span class="nav-ic">&#8635;</span><span>Assinaturas</span></a>
   <div class="group-label">Planejamento</div>
-  <a onclick="nav('planejamento')" id="nav-planejamento"><span>&#127919; Planejamento</span></a>
-  <a onclick="nav('investimentos')" id="nav-investimentos"><span>&#128184; Investimentos</span></a>
-  <a onclick="nav('patrimonio')" id="nav-patrimonio"><span>&#127968; Patrim&ocirc;nio</span></a>
-<div class="sep"></div>
+  <a onclick="nav('planejamento')" id="nav-planejamento"><span class="nav-ic">&#9678;</span><span>Planejamento</span></a>
+  <a onclick="nav('investimentos')" id="nav-investimentos"><span class="nav-ic">&#8599;</span><span>Investimentos</span></a>
+  <a onclick="nav('patrimonio')" id="nav-patrimonio"><span class="nav-ic">&#8962;</span><span>Patrim&ocirc;nio</span></a>
   <div class="group-label">Sistema</div>
-  <a onclick="nav('config')" id="nav-config"><span>&#9881; Configura&ccedil;&otilde;es</span></a>
-  <a onclick="nav('backup')" id="nav-backup"><span>&#9729; Backup / Cloud</span></a>
+  <a onclick="nav('config')" id="nav-config"><span class="nav-ic">&#9881;</span><span>Configura&ccedil;&otilde;es</span></a>
+  <a onclick="nav('backup')" id="nav-backup"><span class="nav-ic">&#9729;</span><span>Backup / Cloud</span></a>
   <div class="sync-bar"><span class="sdot off" id="syncDot"></span><span id="syncLabel" style="color:var(--tx3)">Offline</span></div>
 </nav>
 <div class="main">
 
 <div class="page active" id="pg-resumo">
-  <h2 class="page-title">Resumo</h2>
-  <p class="page-subtitle" id="resumoSubtitle">Junho de 2026</p>
-  <div class="month-nav"><button class="btn btn-outline" onclick="chgM(-1)">&#9664;</button><span class="mes-label" id="mesLabel"></span><button class="btn btn-outline" onclick="chgM(1)">&#9654;</button></div>
+  <div class="pg-head">
+    <div class="pg-head-left">
+      <h2 class="page-title">Resumo</h2>
+      <p class="page-subtitle" id="resumoSubtitle">Junho de 2026</p>
+    </div>
+    <div class="month-nav"><button class="btn btn-outline" onclick="chgM(-1)">&#9664;</button><span class="mes-label" id="mesLabel"></span><button class="btn btn-outline" onclick="chgM(1)">&#9654;</button></div>
+  </div>
   <div class="cards" id="resumoCards"></div>
   <div id="resumoInvest"></div>
   <div class="chart-row">
@@ -388,8 +454,10 @@ tr:hover td{background:rgba(255,255,255,.025);}
 </div>
 
 <div class="page" id="pg-lancs">
-  <h2 class="page-title">&#128221; Lan&ccedil;amentos</h2>
-  <div class="month-nav"><button class="btn btn-outline" onclick="chgLM(-1)">&#9664;</button><span class="mes-label" id="lancMesLabel"></span><button class="btn btn-outline" onclick="chgLM(1)">&#9654;</button></div>
+  <div class="pg-head">
+    <div class="pg-head-left"><h2 class="page-title">Lan&ccedil;amentos</h2></div>
+    <div class="month-nav"><button class="btn btn-outline" onclick="chgLM(-1)">&#9664;</button><span class="mes-label" id="lancMesLabel"></span><button class="btn btn-outline" onclick="chgLM(1)">&#9654;</button></div>
+  </div>
   <div class="form-section"><div class="form-grid">
     <div class="form-group"><label>Tipo</label><select id="lTipo" class="form-control" onchange="updLCats()"><option value="despesa">Despesa</option><option value="receita">Receita</option></select></div>
     <div class="form-group"><label>Descri&ccedil;&atilde;o</label><input id="lDesc" class="form-control"></div>
@@ -409,7 +477,7 @@ tr:hover td{background:rgba(255,255,255,.025);}
 </div>
 
 <div class="page" id="pg-contratos">
-  <h2 class="page-title">&#128196; Contratos Recorrentes</h2>
+  <h2 class="page-title">Contratos Recorrentes</h2>
   <div class="form-section"><div class="form-grid">
     <div class="form-group"><label>Tipo</label><select id="contTipo" class="form-control" onchange="updContCats()"><option value="despesa">Despesa</option><option value="receita">Receita</option></select></div>
     <div class="form-group"><label>Descri&ccedil;&atilde;o</label><input id="contDesc" class="form-control"></div>
@@ -424,7 +492,7 @@ tr:hover td{background:rgba(255,255,255,.025);}
 </div>
 
 <div class="page" id="pg-extrato">
-  <h2 class="page-title">&#128203; Extrato</h2>
+  <h2 class="page-title">Extrato</h2>
   <div class="filter-bar">
     <input type="date" id="extDe" class="form-control"><input type="date" id="extAte" class="form-control">
     <select id="extTipo" class="form-control"><option value="">Todos</option><option value="receita">Receita</option><option value="despesa">Despesa</option></select>
@@ -436,7 +504,7 @@ tr:hover td{background:rgba(255,255,255,.025);}
 </div>
 
 <div class="page" id="pg-balancete">
-  <h2 class="page-title">&#128200; Balancete</h2>
+  <h2 class="page-title">Balancete</h2>
   <div class="filter-bar">
     <input type="month" id="balDe" class="form-control"><input type="month" id="balAte" class="form-control">
     <button class="btn btn-primary" onclick="renderBalancete()">Gerar</button>
@@ -447,7 +515,7 @@ tr:hover td{background:rgba(255,255,255,.025);}
 </div>
 
 <div class="page" id="pg-cartoes">
-  <h2 class="page-title">&#128179; Cart&otilde;es de Cr&eacute;dito</h2>
+  <h2 class="page-title">Cart&otilde;es de Cr&eacute;dito</h2>
   <div class="form-section"><div class="form-grid">
     <div class="form-group"><label>Nome</label><input id="ccNome" class="form-control"></div>
     <div class="form-group"><label>Bandeira</label><select id="ccBand" class="form-control"><option>Mastercard</option><option>Visa</option><option>Elo</option><option>Amex</option><option>Outra</option></select></div>
@@ -460,7 +528,7 @@ tr:hover td{background:rgba(255,255,255,.025);}
 </div>
 
 <div class="page" id="pg-compras">
-  <h2 class="page-title">&#128722; Compras no Cart&atilde;o</h2>
+  <h2 class="page-title">Compras no Cart&atilde;o</h2>
   <div class="form-section"><div class="form-grid">
     <div class="form-group"><label>Cart&atilde;o</label><select id="cpCartao" class="form-control"></select></div>
     <div class="form-group"><label>Descri&ccedil;&atilde;o</label><input id="cpDesc" class="form-control"></div>
@@ -474,7 +542,7 @@ tr:hover td{background:rgba(255,255,255,.025);}
 </div>
 
 <div class="page" id="pg-assinaturas">
-  <h2 class="page-title">&#128257; Assinaturas</h2>
+  <h2 class="page-title">Assinaturas</h2>
   <div class="form-section"><div class="form-grid">
     <div class="form-group"><label>Nome</label><input id="subNome" class="form-control"></div>
     <div class="form-group"><label>Valor/m&ecirc;s (R$)</label><input id="subValor" class="form-control" placeholder="0,00" inputmode="decimal"></div>
@@ -487,8 +555,10 @@ tr:hover td{background:rgba(255,255,255,.025);}
 </div>
 
 <div class="page" id="pg-planejamento">
-  <h2 class="page-title">&#127919; Planejamento Mensal</h2>
-  <div class="month-nav"><button class="btn btn-outline" onclick="chgPM(-1)">&#9664;</button><span class="mes-label" id="planMesLabel"></span><button class="btn btn-outline" onclick="chgPM(1)">&#9654;</button></div>
+  <div class="pg-head">
+    <div class="pg-head-left"><h2 class="page-title">Planejamento Mensal</h2></div>
+    <div class="month-nav"><button class="btn btn-outline" onclick="chgPM(-1)">&#9664;</button><span class="mes-label" id="planMesLabel"></span><button class="btn btn-outline" onclick="chgPM(1)">&#9654;</button></div>
+  </div>
   <div class="form-section"><div class="form-grid">
     <div class="form-group"><label>Categoria</label><select id="planCat" class="form-control"></select></div>
     <div class="form-group"><label>Limite (R$)</label><input id="planVal" class="form-control" placeholder="0,00" inputmode="decimal"></div>
@@ -498,7 +568,7 @@ tr:hover td{background:rgba(255,255,255,.025);}
 </div>
 
 <div class="page" id="pg-patrimonio">
-  <h2 class="page-title">&#127968; Patrim&ocirc;nio</h2>
+  <h2 class="page-title">Patrim&ocirc;nio</h2>
   <div class="form-section">
     <div class="form-grid">
       <div class="form-group"><label>Nome</label><input id="patNome" class="form-control" placeholder="Ex: Apartamento Centro"></div>
@@ -560,7 +630,7 @@ tr:hover td{background:rgba(255,255,255,.025);}
 </div>
 
 <div class="page" id="pg-investimentos">
-  <h2 class="page-title">&#128184; Investimentos</h2>
+  <h2 class="page-title">Investimentos</h2>
   <div class="form-section"><div class="form-grid">
     <div class="form-group"><label>Nome</label><input id="invNome" class="form-control"></div>
     <div class="form-group"><label>Tipo</label><select id="invTipo" class="form-control"></select></div>
@@ -573,14 +643,14 @@ tr:hover td{background:rgba(255,255,255,.025);}
 </div>
 
 <div class="page" id="pg-config">
-  <h2 class="page-title">&#9881; Configura&ccedil;&otilde;es</h2>
+  <h2 class="page-title">Configura&ccedil;&otilde;es</h2>
   <div id="configCatsArea"></div>
   <div class="form-section"><h3 style="margin-bottom:14px">&#127912; Tema</h3><div class="theme-grid" id="themeGrid"></div></div>
   <div class="form-section"><h3 style="margin-bottom:14px;color:var(--dn2)">&#9888; Limpar Todos os Dados</h3><p style="color:var(--tx2);font-size:.86em;margin-bottom:12px">Irrevers&iacute;vel.</p><button class="btn btn-danger" onclick="limparDados()">Limpar Tudo</button></div>
 </div>
 
 <div class="page" id="pg-backup">
-  <h2 class="page-title">&#9729; Backup / Cloud</h2>
+  <h2 class="page-title">Backup / Cloud</h2>
   <div class="form-section"><h3 style="margin-bottom:14px">&#9729; GitHub Gist (Cloud Sync)</h3><div id="cloudArea"></div></div>
   <div class="form-section"><h3 style="margin-bottom:10px">&#128229; Exportar</h3><p style="color:var(--tx2);font-size:.86em;margin-bottom:14px">JSON com todos os dados e categorias.</p><button class="btn btn-primary" onclick="exportBackup()">Baixar Backup</button></div>
   <div class="form-section"><h3 style="margin-bottom:10px">&#128228; Importar</h3><p style="color:var(--tx2);font-size:.86em;margin-bottom:14px">Restaure a partir de JSON.</p><input type="file" id="fileBackup" accept=".json,.txt" class="form-control" style="max-width:400px;margin-bottom:12px"><button class="btn btn-success" onclick="importBackup()">Restaurar</button><div id="backupStatus"></div></div>
@@ -799,8 +869,8 @@ g('extAte').value=hojeStr();
 <script src="auth.js"></script>
 <script src="mobile-cards.js"></script>
 <script src="antecipacao.js?v=4"></script>
-<script src="melhorias.js"></script>
-<script src="checkpagamentos.js"></script>
+<script src="melhorias.js?v=2"></script>
+<script src="checkpagamentos.js?v=2"></script>
 <script src="investimentos.js?v=3"></script>
 <script src="investimentos-integra.js?v=2"></script>
 <script src="rent-saldo.js"></script> <!-- NOVO -->
@@ -814,10 +884,8 @@ g('extAte').value=hojeStr();
 <script src="mobile-global-fix.js"></script>
 <script src="assinaturas-enhanced.js"></script>
 <script src="contratos-enhanced.js"></script>    <!-- NOVO -->
-<script src="relatorios.js?v=3"></script>
+<script src="relatorios.js?v=4"></script>
 <script src="theme-persist.js"></script>
-<!-- Design System: SEMPRE por último — unifica a identidade visual sobre os demais estilos -->
-<script src="design-system.js?v=1"></script>
 
 
 </body>

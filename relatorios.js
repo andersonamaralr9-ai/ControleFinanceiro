@@ -90,7 +90,7 @@ function addMenuLink(){
   var newLink = document.createElement('a');
   newLink.id = 'nav-relatorios';
   newLink.setAttribute('onclick', "nav('relatorios')");
-  newLink.innerHTML = '<span>&#128202; Relat&oacute;rios</span>';
+  newLink.innerHTML = '<span class="nav-ic">&#9707;</span><span>Relat&oacute;rios</span>';
   if(configLink) sidebar.insertBefore(newLink, configLink);
 }
 
@@ -99,7 +99,7 @@ function createPage(){
   var page = document.createElement('div');
   page.className = 'page';
   page.id = 'pg-relatorios';
-  page.innerHTML = '<h2 class="page-title">&#128202; Relat&oacute;rios</h2><div id="relContent"></div>';
+  page.innerHTML = '<h2 class="page-title">Relat&oacute;rios</h2><div id="relContent"></div>';
   var mainDiv = document.querySelector('.main');
   if(mainDiv) mainDiv.appendChild(page);
 }
