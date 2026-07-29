@@ -122,6 +122,21 @@ sty.textContent = `
 .hist-item .hist-diff.down{color:var(--ok);}
 .hist-item .hist-diff.zero{color:var(--tx3);}
 .hist-orig{border-left-color:var(--tx3)!important;opacity:.7;}
+/* Acoes por lancamento do historico (editar / excluir) */
+.hist-item .hist-acts{display:flex;gap:4px;margin-left:auto;flex-shrink:0;}
+.hist-item .hist-diff + .hist-acts{margin-left:8px;}
+.hist-item .hist-acts .btn{padding:3px 8px;font-size:.72em;}
+.hist-item.hist-editing{gap:6px;border-left-color:var(--pri2)!important;}
+.hist-item .hist-ed-in{max-width:132px;padding:6px 9px;font-size:.82em;}
+.hist-item .hist-ed-acts{display:flex;gap:5px;margin-left:auto;flex-shrink:0;}
+.hist-item .hist-ed-acts .btn{padding:5px 10px;font-size:.74em;}
+@media(max-width:768px){
+  .hist-item{gap:6px;}
+  .hist-item .hist-acts{margin-left:auto;}
+  .hist-item.hist-editing{flex-wrap:wrap;}
+  .hist-item .hist-ed-in{max-width:calc(50% - 4px);flex:1;}
+  .hist-item .hist-ed-acts{width:100%;margin-left:0;justify-content:flex-end;}
+}
 .vigente-info{font-size:.72em;color:var(--inf2);margin-left:4px;}
 .cat-row{display:grid;grid-template-columns:1fr 120px 120px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--bg4);transition:background .15s;cursor:default;}
 .cat-row:hover{background:var(--bg3);}
@@ -173,11 +188,79 @@ modalHist.innerHTML = '<div class="modal-content" style="max-width:520px">'+
   '<div class="modal-body" id="histBody"></div></div>';
 document.body.appendChild(modalHist);
 
-window.abrirHistorico = function(tipo, itemId){
-  var item;
-  if(tipo === 'contrato') item = S.contratos.find(function(c){return c.id === itemId;});
-  else item = S.assinaturas.find(function(a){return a.id === itemId;});
+// Estado de edição inline do histórico (índice no array original ou -1)
+var _histEditIdx = -1;
+var _histCtx = { tipo:null, itemId:null };
+
+function _histGetItem(tipo, itemId){
+  return tipo === 'contrato'
+    ? S.contratos.find(function(c){ return c.id === itemId; })
+    : S.assinaturas.find(function(a){ return a.id === itemId; });
+}
+
+// Mantém item.valor igual ao ajuste mais recente do histórico
+function _histSincronizaValor(item){
+  var h = (item.historico || []).slice().sort(function(a,b){
+    return (a.de||'').localeCompare(b.de||'');
+  });
+  if(h.length) item.valor = Number(h[h.length-1].valor) || 0;
+}
+
+function _histReRender(tipo){
+  if(tipo === 'contrato'){ if(typeof renderContratos === 'function') renderContratos(); }
+  else { if(typeof renderAssinaturas === 'function') renderAssinaturas(); }
+  if(typeof renderResumo === 'function') renderResumo();
+}
+
+window._histEditar = function(idx){
+  _histEditIdx = idx;
+  abrirHistorico(_histCtx.tipo, _histCtx.itemId, true);
+};
+window._histCancelar = function(){
+  _histEditIdx = -1;
+  abrirHistorico(_histCtx.tipo, _histCtx.itemId, true);
+};
+
+window._histSalvar = function(idx){
+  var item = _histGetItem(_histCtx.tipo, _histCtx.itemId);
+  if(!item) return;
+  var mesEl = document.getElementById('histEdMes');
+  var valEl = document.getElementById('histEdVal');
+  var mes = mesEl ? mesEl.value : '';
+  var val = valEl ? parseN(valEl.value) : 0;
+  if(!mes || !val){ alert('Informe mês e valor.'); return; }
+  item.historico[idx].de = mes;
+  item.historico[idx].valor = val;
+  _histSincronizaValor(item);
+  salvar();
+  _histEditIdx = -1;
+  abrirHistorico(_histCtx.tipo, _histCtx.itemId, true);
+  _histReRender(_histCtx.tipo);
+};
+
+window._histExcluir = function(idx){
+  var item = _histGetItem(_histCtx.tipo, _histCtx.itemId);
+  if(!item || !Array.isArray(item.historico)) return;
+  if(item.historico.length <= 1){
+    alert('Não é possível excluir: o histórico precisa manter ao menos um valor.');
+    return;
+  }
+  if(!confirm('Excluir este ajuste do histórico?')) return;
+  item.historico.splice(idx, 1);
+  _histSincronizaValor(item);
+  salvar();
+  _histEditIdx = -1;
+  abrirHistorico(_histCtx.tipo, _histCtx.itemId, true);
+  _histReRender(_histCtx.tipo);
+};
+
+window.abrirHistorico = function(tipo, itemId, manterAberto){
+  var item = _histGetItem(tipo, itemId);
   if(!item){ toast('Item não encontrado','error'); return; }
+
+  if(!manterAberto) _histEditIdx = -1;
+  _histCtx.tipo = tipo;
+  _histCtx.itemId = itemId;
 
   var nome = item.desc || item.nome || '-';
   var ma = _mesAtual();
@@ -190,23 +273,36 @@ window.abrirHistorico = function(tipo, itemId){
     '<strong style="font-size:1.1em;color:var(--ok)">'+fmtV(vigente)+'</strong><br>'+
     '<span style="font-size:.78em;color:var(--tx3)">Valor cadastrado (último ajuste): '+fmtV(item.valor)+'</span></p>';
 
-  var hist = (item.historico || []).slice();
-  
+  // Guarda o índice original para editar/excluir a entrada certa após ordenar
+  var hist = (item.historico || []).map(function(h, i){
+    return { de:h.de, valor:h.valor, _idx:i };
+  });
+
   if(!hist.length){
     html += '<p style="color:var(--tx3);text-align:center;padding:20px">Nenhum histórico registrado.</p>';
   } else {
-    // Ordenar do mais recente para o mais antigo
-    hist.sort(function(a,b){
-      return (b.de||'').localeCompare(a.de||'');
-    });
-    
+    hist.sort(function(a,b){ return (b.de||'').localeCompare(a.de||''); });
+
     html += '<div class="hist-timeline">';
     for(var i = 0; i < hist.length; i++){
       var h = hist[i];
-      var isFirst = (i === 0); // mais recente
-      var isLast = (i === hist.length - 1); // mais antigo (original)
-      
-      // Calcular diferença com o anterior (que é o próximo no array, pois está em ordem decrescente)
+      var isFirst = (i === 0);
+      var isLast  = (i === hist.length - 1);
+
+      // Linha em modo edição
+      if(h._idx === _histEditIdx){
+        html += '<div class="hist-item hist-editing">'+
+          '<input type="month" id="histEdMes" class="form-control hist-ed-in" value="'+(h.de||'')+'">'+
+          '<input id="histEdVal" class="form-control hist-ed-in" inputmode="decimal" value="'+
+            String((Number(h.valor)||0).toFixed(2)).replace('.',',')+'">'+
+          '<span class="hist-ed-acts">'+
+            '<button class="btn btn-sm btn-primary" onclick="_histSalvar('+h._idx+')">Salvar</button>'+
+            '<button class="btn btn-sm btn-outline" onclick="_histCancelar()">Cancelar</button>'+
+          '</span>'+
+        '</div>';
+        continue;
+      }
+
       var diffHtml = '';
       if(!isLast && hist[i+1]){
         var diff = (Number(h.valor)||0) - (Number(hist[i+1].valor)||0);
@@ -214,16 +310,20 @@ window.abrirHistorico = function(tipo, itemId){
         var diffLabel = diff > 0 ? '▲ +'+fmtV(Math.abs(diff)) : (diff < 0 ? '▼ -'+fmtV(Math.abs(diff)) : '—');
         diffHtml = '<span class="hist-diff '+diffClass+'">'+diffLabel+'</span>';
       }
-      
+
       var vigLabel = h.de ? '<span class="hist-vigencia">a partir de '+nomeMesBR(h.de)+'</span>' : '';
       var isAtualClass = isFirst ? 'style="color:var(--ok);font-weight:700"' : 'class="hist-valor"';
-      
+
       html += '<div class="hist-item'+(isLast?' hist-orig':'')+'">'+
         vigLabel+
         '<span '+isAtualClass+'>'+fmtV(h.valor)+'</span>'+
         (isFirst ? ' <span style="font-size:.68em;color:var(--ok)">(atual)</span>' : '')+
         (isLast ? ' <span style="font-size:.68em;color:var(--tx3)">(original)</span>' : '')+
         diffHtml+
+        '<span class="hist-acts">'+
+          '<button class="btn btn-sm btn-outline" title="Editar" onclick="_histEditar('+h._idx+')">&#9998;</button>'+
+          '<button class="btn btn-sm btn-danger" title="Excluir" onclick="_histExcluir('+h._idx+')">&#128465;</button>'+
+        '</span>'+
       '</div>';
     }
     html += '</div>';

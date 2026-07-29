@@ -298,27 +298,12 @@ window.renderContratos = function(){
 
     var fimInfo = c.dataFim ? '<p>&#128197; Fim: ' + mesNome(c.dataFim) + '</p>' : '';
 
-    // histórico de valores
-    var hist = (c.historico || []).slice().sort(function(a,b){ return (a.de||'').localeCompare(b.de||''); });
-    var histHtml = '';
-    if(hist.length > 1){
-      var uid_h = 'hist-' + c.id;
-      histHtml += '<div class="ce-hist-section">' +
-        '<div class="ce-hist-toggle" onclick="ceTglHist(\'' + uid_h + '\', this)">' +
-          '<span class="ce-hist-title">&#128337; Hist&oacute;rico de valores <span class="ce-hist-badge">' + hist.length + '</span></span>' +
-          '<span class="ce-hist-icon">&#9660;</span>' +
-        '</div>' +
-        '<div class="ce-hist-body" id="' + uid_h + '">';
-      hist.forEach(function(h, i){
-        var isLast = i === hist.length - 1;
-        histHtml += '<div class="ce-hist-item">' +
-          '<span style="color:var(--tx2)">' + mesNome(h.de) + '</span>' +
-          (i > 0 ? '<span style="font-size:.68em;color:var(--tx3)">ajuste</span>' : '<span style="font-size:.68em;color:var(--tx3)">in&iacute;cio</span>') +
-          '<span style="font-weight:700;color:' + (isLast ? 'var(--pri2)' : 'var(--tx2)') + '">' + fmtV(Number(h.valor)||0) + '</span>' +
-        '</div>';
-      });
-      histHtml += '</div></div>';
-    }
+    // Histórico agora abre em modal (mesmo padrão das assinaturas), com
+    // editar/excluir por lançamento. Antes era uma seção expansível no card.
+    var hist = (c.historico || []);
+    var histBtn = hist.length ?
+      '<button class="btn btn-sm btn-outline" onclick="abrirHistorico(\'contrato\',\'' + c.id + '\')">' +
+        '&#128197; Hist&oacute;rico <span class="ce-hist-badge">' + hist.length + '</span></button>' : '';
 
     return '<div class="sub-box">' +
       '<div class="sub-box-header"><strong>' + c.desc + '</strong>' + bdHtml + '</div>' +
@@ -329,8 +314,8 @@ window.renderContratos = function(){
         fimInfo +
         (c.obs ? '<p class="sub-obs">' + c.obs + '</p>' : '') +
       '</div>' +
-      histHtml +
       '<div class="sub-box-actions">' +
+        histBtn +
         '<button class="btn btn-sm btn-outline" onclick="editCont(\'' + c.id + '\')">&#9998;</button>' +
         (at && !vencido ?
           '<button class="btn btn-sm btn-warning" onclick="ajCont(\'' + c.id + '\')">Ajustar</button>' +

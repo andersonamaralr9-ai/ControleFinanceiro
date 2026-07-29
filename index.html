@@ -738,7 +738,31 @@ td{font-size:.86em;}
 
 <script>
 const g=id=>document.getElementById(id),_a=v=>Array.isArray(v)?v:[],uid=()=>Math.random().toString(36).substr(2,9)+Date.now().toString(36);
-const parseN=s=>Number(String(s).replace(/[^\d,.-]/g,'').replace(',','.'))||0;
+/* Converte texto em numero aceitando o formato brasileiro.
+   A versao anterior fazia apenas replace(',','.'), entao "3.200,00" virava
+   "3.200.00" -> NaN -> 0: qualquer valor digitado com separador de milhar
+   era gravado como zero. */
+const parseN=s=>{
+  let t=String(s==null?'':s).replace(/[^\d,.-]/g,'');
+  if(!t) return 0;
+  const neg=t.charAt(0)==='-';
+  t=t.replace(/-/g,'');
+  const temVirgula=t.indexOf(',')>=0, temPonto=t.indexOf('.')>=0;
+  if(temVirgula&&temPonto){
+    // o separador mais a direita e o decimal; o outro e de milhar
+    t=t.lastIndexOf(',')>t.lastIndexOf('.')
+      ? t.replace(/\./g,'').replace(',','.')
+      : t.replace(/,/g,'');
+  }else if(temVirgula){
+    t=t.replace(/\./g,'').replace(',','.');
+  }else if(temPonto){
+    // "1.500" = milhar; "1.50" e "1.5" = decimal
+    const p=t.split('.');
+    if(p.length>2||(p.length===2&&p[1].length===3)) t=p.join('');
+  }
+  const n=Number(t);
+  return isFinite(n)?(neg?-n:n):0;
+};
 const fmtV=v=>'R$ '+(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const fmtI=v=>'R$ '+Math.round(v||0).toLocaleString('pt-BR');
 const fmtD=d=>{if(!d)return'-';let p=d.split('-');return p.length>=3?p[2]+'/'+p[1]+'/'+p[0]:d;};
@@ -890,7 +914,7 @@ g('extAte').value=hojeStr();
 <script src="auth.js"></script>
 <script src="mobile-cards.js?v=2"></script>
 <script src="antecipacao.js?v=4"></script>
-<script src="melhorias.js?v=2"></script>
+<script src="melhorias.js?v=3"></script>
 <script src="checkpagamentos.js?v=2"></script>
 <script src="investimentos.js?v=3"></script>
 <script src="investimentos-integra.js?v=3"></script>
@@ -904,7 +928,7 @@ g('extAte').value=hojeStr();
 <script src="resumo-enhanced.js?v=13"></script>
 <script src="mobile-global-fix.js"></script>
 <script src="assinaturas-enhanced.js"></script>
-<script src="contratos-enhanced.js"></script>    <!-- NOVO -->
+<script src="contratos-enhanced.js?v=2"></script>    <!-- NOVO -->
 <script src="relatorios.js?v=4"></script>
 <script src="theme-persist.js"></script>
 
