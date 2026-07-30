@@ -135,6 +135,20 @@ function _invGetMes(){
 function _invFmt(v){
   return 'R$ ' + (v || 0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
 }
+
+// Le um campo de dinheiro no formato brasileiro.
+// Antes cada campo fazia parseFloat(txt.replace(',','.')), o que quebrava
+// com separador de milhar: "1.050,00" virava "1.050.00" -> 1.05. Valores de
+// investimento costumam ter milhar, entao aportes e saldos eram gravados
+// mil vezes menores. Aqui reaproveitamos o parseN global (que trata o
+// formato) e devolvemos NaN para campo vazio, porque as validacoes
+// existentes usam isNaN().
+function _invNum(txt){
+  var s = String(txt == null ? '' : txt).trim();
+  if(!s || !/\d/.test(s)) return NaN;
+  return (typeof parseN === 'function') ? parseN(s)
+                                        : parseFloat(s.replace(/\./g,'').replace(',','.'));
+}
 function _invFmtMes(m){
   var p = (m || '').split('-');
   if(p.length < 2) return m;
@@ -458,7 +472,11 @@ window.invSwitchTab = function(id){
   _invActiveTab = id;
   ['Rent','Mov'].forEach(function(t){
     var btn = document.getElementById('invTab' + t);
-    var tp = document.getElementById('invTp' + t.toLowerCase());
+    // Os paineis sao invTpRent / invTpMov. Antes isto usava
+    // t.toLowerCase(), procurando invTprent / invTpmov: nao existem,
+    // entao tp era null e o conteudo nunca trocava — so o botao ficava
+    // marcado, dando a impressao de que a aba estava travada.
+    var tp = document.getElementById('invTp' + t);
     var isOn = (id === t.toLowerCase());
     if(btn) btn.classList.toggle('on', isOn);
     if(tp) tp.classList.toggle('on', isOn);
@@ -549,7 +567,7 @@ window.invSetRModo = function(m){
 window.invCalcRentPreview = function(){
   if(_invRModo !== 'saldo' || !_invAtivoSel) return;
   var mes = (document.getElementById('invFiRMes') || {}).value;
-  var saldo = parseFloat(((document.getElementById('invFiRSaldo') || {}).value || '').replace(',','.'));
+  var saldo = _invNum((document.getElementById('invFiRSaldo') || {}).value);
   var el = document.getElementById('invFiRCalc');
   if(!el) return;
   if(!mes || isNaN(saldo)){ el.style.display = 'none'; return; }
@@ -566,10 +584,10 @@ window.invAddRent = function(){
   if(!mes) return alert('Selecione o mês.');
   var val;
   if(_invRModo === 'valor'){
-    val = parseFloat(((document.getElementById('invFiRVal') || {}).value || '').replace(',','.'));
+    val = _invNum((document.getElementById('invFiRVal') || {}).value);
     if(isNaN(val)) return alert('Preencha o valor da rentabilidade.');
   } else {
-    var saldo = parseFloat(((document.getElementById('invFiRSaldo') || {}).value || '').replace(',','.'));
+    var saldo = _invNum((document.getElementById('invFiRSaldo') || {}).value);
     if(isNaN(saldo)) return alert('Preencha o saldo atual.');
     var c = _invCalcAtivo(_invAtivoSel, mes);
     val = saldo - (c.saldoInicial + c.aporte - c.resgate);
@@ -598,7 +616,7 @@ window.invAddMov = function(){
   if(!_invAtivoSel) return;
   var tipo = (document.getElementById('invFiMTipo') || {}).value || 'aporte';
   var data = (document.getElementById('invFiMData') || {}).value;
-  var val = parseFloat(((document.getElementById('invFiMVal') || {}).value || '').replace(',','.'));
+  var val = _invNum((document.getElementById('invFiMVal') || {}).value);
   if(!data) return alert('Informe a data.');
   if(isNaN(val) || val <= 0) return alert('Informe um valor válido.');
   if(!Array.isArray(_invAtivoSel.movimentacoes)) _invAtivoSel.movimentacoes = [];
@@ -672,8 +690,7 @@ window.invCloseNovoAtivo = function(){
 window.invSalvarNovoAtivo = function(){
   var nome = ((document.getElementById('invNaNome') || {}).value || '').trim();
   var tipo = (document.getElementById('invNaTipo') || {}).value || 'Outro';
-  var valRaw = ((document.getElementById('invNaValor') || {}).value || '').replace(',','.');
-  var val = parseFloat(valRaw);
+  var val = _invNum((document.getElementById('invNaValor') || {}).value);
   var data = (document.getElementById('invNaData') || {}).value || '';
   var obs = ((document.getElementById('invNaObs') || {}).value || '').trim();
   var editId = (document.getElementById('invNaEditId') || {}).value || '';
