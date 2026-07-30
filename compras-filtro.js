@@ -73,14 +73,14 @@ document.head.appendChild(sty);
 // VARIÁVEIS
 // ================================================================
 var cpFiltroMes = mesAtual();
-var _baseRenderCompras = window.renderCompras;
 
 // ================================================================
-// OVERRIDE renderCompras
+// COMPLEMENTO da tela de Compras
+// Registrado com afterRender em vez de embrulhar window.renderCompras:
+// a funcao base dispara os complementos no final, entao isto vale
+// tambem quando renderCompras() e chamado direto (apos salvar/excluir).
 // ================================================================
-window.renderCompras = function(){
-  if(_baseRenderCompras) _baseRenderCompras();
-
+function _cpRender(){
   var pgEl = document.getElementById('pg-compras');
   if(!pgEl) return;
 
@@ -171,7 +171,9 @@ window.renderCompras = function(){
   }
 
   _cpApplyFilter();
-};
+}
+
+if(typeof afterRender === 'function') afterRender('compras', _cpRender);
 
 // ================================================================
 // NAVEGAÇÃO DE MÊS

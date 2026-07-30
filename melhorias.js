@@ -355,12 +355,9 @@ window.abrirHistorico = function(tipo, itemId, manterAberto){
   // Mas mobile-cards.js e melhorias anteriores overridam renderSubs...
   // O index.html define renderAssinaturas, não renderSubs!
   
-  var _orig = window.renderAssinaturas;
-  if(!_orig) return;
-  
-  window.renderAssinaturas = function(){
-    _orig();
-    
+  afterRender('assinaturas', function(){
+    // (a chamada ao render anterior saiu: como complemento, isto ja roda
+    //  depois da funcao base — manter a chamada causaria recursao)
     var subGrid = document.getElementById('subGrid');
     if(!subGrid) return;
     var ma = _mesAtual();
@@ -406,7 +403,7 @@ window.abrirHistorico = function(tipo, itemId, manterAberto){
     
     // Aplicar filtros se existirem
     if(typeof filtrarSubs === 'function') filtrarSubs();
-  };
+  });
 })();
 
 
@@ -430,12 +427,9 @@ window.abrirHistorico = function(tipo, itemId, manterAberto){
   subGrid.parentNode.insertBefore(filterDiv, subGrid);
 
   // Povoar filtros após cada render
-  var _origRA = window.renderAssinaturas;
-  var _wrappedRA = window.renderAssinaturas; // pode já ter sido wrapped acima
-  // Adicionar povoamento de filtros ao final
-  var _afterRender = window.renderAssinaturas;
-  window.renderAssinaturas = function(){
-    _afterRender();
+  afterRender('assinaturas', function(){
+    // (a chamada ao render anterior saiu: como complemento, isto ja roda
+    //  depois da funcao base — manter a chamada causaria recursao)
     // Povoar selects
     var selCart = document.getElementById('fSubCartao');
     var selCat = document.getElementById('fSubCat');
@@ -455,7 +449,7 @@ window.abrirHistorico = function(tipo, itemId, manterAberto){
     }
     var buscaEl = document.getElementById('fSubBusca');
     if(buscaEl && !buscaEl._restored){ buscaEl.value = lerFiltro('subBusca',''); buscaEl._restored = true; }
-  };
+  });
 
   window.filtrarSubs = function(){
     var cartFiltro = (document.getElementById('fSubCartao')||{}).value || '';

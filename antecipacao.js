@@ -372,75 +372,14 @@
   };
 
   // ============================================
-  // Override renderCompras para adicionar botão ⚡ Antecipar
+  // Override de renderCompras REMOVIDO (era codigo morto)
+  // --------------------------------------------
+  // Injetava o botao de antecipar em dois lugares que nao existem mais:
+  //  - #tbCompras: a tabela original, que compras-filtro.js oculta
+  //  - #comprasMobCards: lista mobile que foi retirada de mobile-cards.js
+  // O botao visivel e renderizado por compras-filtro.js, que ja consulta
+  // abrirAntecipacao() e _getAntecipacaoDestino().
   // ============================================
-  var _origRenderCompras = window.renderCompras;
-
-  window.renderCompras = function(){
-    _origRenderCompras();
-
-    var tb = document.getElementById('tbCompras');
-    if(tb){
-      tb.querySelectorAll('tr').forEach(function(row){
-        var lastTd = row.querySelector('td:last-child');
-        if(!lastTd) return;
-        var editBtn = lastTd.querySelector('[onclick*="editCompra"]');
-        if(!editBtn) return;
-        var match = editBtn.getAttribute('onclick').match(/editCompra\(['"](.+?)['"]\)/);
-        if(!match) return;
-        var compraId = match[1];
-        var compra = S.comprasCartao.find(function(c){return c.id===compraId;});
-        if(!compra || (compra.parcelas||1) <= 1) return;
-        if(lastTd.querySelector('.btn-antecipar')) return;
-
-        var parcelas = calcularParcelas(compra);
-        var naoAntecipadas = parcelas.filter(function(p){return p.status!=='antecipada';});
-        if(naoAntecipadas.length <= 1) return;
-
-        var btn = document.createElement('button');
-        btn.className = 'btn btn-sm btn-warning btn-antecipar';
-        btn.innerHTML = '&#9889;';
-        btn.title = 'Antecipar parcelas';
-        btn.onclick = (function(id){ return function(){ abrirAntecipacao(id); }; })(compraId);
-        lastTd.insertBefore(btn, lastTd.firstChild);
-
-        if(compra.antecipacoes && compra.antecipacoes.length > 0){
-          var totalAnt = compra.antecipacoes.reduce(function(a,b){return a+b.valorTotal;},0);
-          var parcAnt = compra.antecipacoes.reduce(function(a,b){return a+(b.parcelasNums?b.parcelasNums.length:0);},0);
-          var tds = row.querySelectorAll('td');
-          if(tds.length >= 6 && !tds[5].querySelector('.badge-purple')){
-            tds[5].innerHTML += ' <span class="badge badge-purple" title="'+parcAnt+' parcela(s) antecipada(s) - '+fmtV(totalAnt)+'">&#9889; '+parcAnt+' ant.</span>';
-          }
-        }
-      });
-    }
-
-    var mobCards = document.getElementById('comprasMobCards');
-    if(mobCards){
-      mobCards.querySelectorAll('.mc').forEach(function(mc){
-        var editBtn = mc.querySelector('[onclick*="editCompra"]');
-        if(!editBtn) return;
-        var match = editBtn.getAttribute('onclick').match(/editCompra\(['"](.+?)['"]\)/);
-        if(!match) return;
-        var compraId = match[1];
-        var compra = S.comprasCartao.find(function(c){return c.id===compraId;});
-        if(!compra || (compra.parcelas||1) <= 1) return;
-        if(mc.querySelector('.btn-antecipar')) return;
-        var acts = mc.querySelector('.mc-acts');
-        if(!acts) return;
-
-        var parcelas = calcularParcelas(compra);
-        var naoAntecipadas = parcelas.filter(function(p){return p.status!=='antecipada';});
-        if(naoAntecipadas.length <= 1) return;
-
-        var btnA = document.createElement('button');
-        btnA.className = 'btn btn-sm btn-warning btn-antecipar';
-        btnA.innerHTML = '&#9889; Antecipar';
-        btnA.onclick = (function(id){ return function(){ abrirAntecipacao(id); }; })(compraId);
-        acts.insertBefore(btnA, acts.firstChild);
-      });
-    }
-  };
 
   // ============================================
   // Função global para consultar antecipações por fatura

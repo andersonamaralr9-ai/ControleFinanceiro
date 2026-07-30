@@ -115,10 +115,8 @@ window._esSave = function(){
 // ================================================================
 // OVERRIDE renderAssinaturas — Resumo + botão editar
 // ================================================================
-var _origRenderAss = window.renderAssinaturas;
-
-window.renderAssinaturas = function(){
-  if(_origRenderAss) _origRenderAss();
+// Complemento registrado em vez de embrulhar window.renderAssinaturas.
+afterRender('assinaturas', function(){
 
   var pgEl = document.getElementById('pg-assinaturas');
   if(!pgEl) return;
@@ -207,7 +205,7 @@ window.renderAssinaturas = function(){
     btn.onclick = function(){ editSub(subId); };
     actions.insertBefore(btn, actions.firstChild);
   });
-};
+});
 
 console.log('[Financeiro Pro] Assinaturas Enhanced v2 carregado.');
 })();
