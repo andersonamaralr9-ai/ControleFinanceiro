@@ -6,71 +6,7 @@
 // ================================================================
 // CSS
 // ================================================================
-var sty = document.createElement('style');
-sty.textContent = `
-/* ── PLANEJAMENTO GERENCIAL ── */
-.pl-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:24px;}
-.pl-scard{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);padding:18px;box-shadow:var(--sh);text-align:center;transition:transform .2s;}
-.pl-scard:hover{transform:translateY(-3px);}
-.pl-scard .pl-scard-label{font-size:.7em;text-transform:uppercase;letter-spacing:1px;color:var(--tx3);margin-bottom:6px;font-weight:700;}
-.pl-scard .pl-scard-value{font-size:1.3em;font-weight:700;}
-.pl-scard .pl-scard-value.green{color:var(--ok);}
-.pl-scard .pl-scard-value.red{color:var(--dn2);}
-.pl-scard .pl-scard-value.blue{color:var(--inf2);}
-.pl-scard .pl-scard-value.yellow{color:var(--wn);}
-.pl-scard .pl-scard-value.purple{color:var(--pri2);}
-
-.pl-cats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:28px;}
-.pl-cat-card{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);padding:18px;box-shadow:var(--sh);transition:transform .2s;}
-.pl-cat-card:hover{transform:translateY(-2px);}
-.pl-cat-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
-.pl-cat-card-header h4{font-size:.95em;font-weight:700;margin:0;}
-.pl-cat-card-header .pl-pct{font-size:.85em;font-weight:700;padding:3px 10px;border-radius:20px;}
-.pl-pct-ok{background:rgba(0,206,201,.15);color:var(--ok);}
-.pl-pct-warn{background:rgba(253,203,110,.15);color:var(--wn);}
-.pl-pct-danger{background:rgba(214,48,49,.15);color:var(--dn2);}
-.pl-bar-wrap{background:var(--bg3);border-radius:6px;height:14px;overflow:hidden;margin-bottom:10px;}
-.pl-bar-fill{height:100%;border-radius:6px;transition:width .5s ease;}
-.pl-bar-ok{background:var(--okG);}
-.pl-bar-warn{background:var(--wnG);}
-.pl-bar-danger{background:var(--dnG);}
-.pl-cat-card-info{display:flex;justify-content:space-between;font-size:.82em;color:var(--tx2);}
-.pl-cat-card-info span{display:flex;flex-direction:column;align-items:center;gap:2px;}
-.pl-cat-card-info .pl-val{font-weight:700;font-size:1em;color:var(--tx);}
-.pl-cat-card-actions{margin-top:12px;display:flex;gap:6px;justify-content:flex-end;}
-.pl-cat-card .pl-icon-alert{font-size:1.1em;margin-right:4px;}
-
-.pl-section{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);padding:20px;box-shadow:var(--sh);margin-bottom:24px;}
-.pl-section h3{font-size:.95em;margin-bottom:14px;color:var(--tx2);font-weight:600;}
-
-.pl-no-budget{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;}
-.pl-no-budget-item{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--bg3);border-radius:8px;border-left:3px solid var(--wn);}
-.pl-no-budget-item .pl-nb-cat{font-size:.88em;font-weight:600;}
-.pl-no-budget-item .pl-nb-val{font-size:.82em;color:var(--dn2);font-weight:700;margin:0 10px;}
-.pl-no-budget-item .btn{flex-shrink:0;}
-
-.pl-comp-table{width:100%;border-collapse:collapse;margin-top:10px;}
-.pl-comp-table th{background:var(--bg3);padding:10px 12px;text-align:left;font-size:.72em;text-transform:uppercase;letter-spacing:1px;color:var(--tx3);font-weight:700;}
-.pl-comp-table td{padding:9px 12px;border-bottom:1px solid var(--bg3);font-size:.82em;}
-.pl-comp-table tr:hover td{background:rgba(108,92,231,.03);}
-.pl-comp-table .pl-comp-cat{font-weight:600;}
-.pl-comp-val-ok{color:var(--ok);font-weight:700;}
-.pl-comp-val-dn{color:var(--dn2);font-weight:700;}
-.pl-comp-val-tx{color:var(--tx2);}
-
-.pl-btn-copy{margin-bottom:20px;}
-
-@media(max-width:768px){
-  .pl-summary{grid-template-columns:1fr 1fr;gap:10px;}
-  .pl-scard{padding:12px;}
-  .pl-scard .pl-scard-value{font-size:1.05em;}
-  .pl-cats-grid{grid-template-columns:1fr;}
-  .pl-no-budget{grid-template-columns:1fr;}
-  .pl-comp-table{font-size:.75em;}
-  .pl-comp-table th,.pl-comp-table td{padding:7px 8px;}
-}
-`;
-document.head.appendChild(sty);
+// CSS movido para app.css (bloco 1 deste arquivo)
 
 // ================================================================
 // HELPER: Buscar gasto real de uma categoria em um mês

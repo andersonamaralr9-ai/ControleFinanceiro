@@ -392,6 +392,13 @@ td{font-size:.86em;}
   .card .card-value{font-size:.95em;}
 }
 </style>
+<!-- Estilos dos modulos, consolidados.
+     Antes cada modulo injetava um <style> em document.head durante o
+     carregamento; a ordem de injecao definia a cascata e o estilo so
+     chegava depois da primeira pintura.
+     Vem DEPOIS do <style> acima de proposito: e essa ordem que os
+     modulos tinham antes, e trocar isso inverteria a precedencia. -->
+<link rel="stylesheet" href="app.css?v=1">
 </head>
 <body class="theme-dark">
 
@@ -972,25 +979,25 @@ g('extDe').value=_ed.getFullYear()+'-'+String(_ed.getMonth()+1).padStart(2,'0')+
 g('extAte').value=hojeStr();
 // renderAll() e initCloud() removidos — auth.js gerencia render e sync
 </script>
-<script src="auth.js?v=2"></script>
-<script src="mobile-cards.js?v=2"></script>
-<script src="antecipacao.js?v=5"></script>
-<script src="melhorias.js?v=6"></script>
-<script src="checkpagamentos.js?v=3"></script>
-<script src="investimentos.js?v=3"></script>
-<script src="investimentos-integra.js?v=3"></script>
-<script src="rent-saldo.js"></script> <!-- NOVO -->
+<script src="auth.js?v=3"></script>
+<script src="mobile-cards.js?v=3"></script>
+<script src="antecipacao.js?v=6"></script>
+<script src="melhorias.js?v=7"></script>
+<script src="checkpagamentos.js?v=4"></script>
+<script src="investimentos.js?v=4"></script>
+<script src="investimentos-integra.js?v=4"></script>
+<script src="rent-saldo.js?v=3"></script> <!-- NOVO -->
 <script src="investimentos-enhanced.js"></script> <!-- NOVO -->
-<script src="compras-filtro.js?v=7"></script>
-<script src="planejamento.js"></script>
+<script src="compras-filtro.js?v=8"></script>
+<script src="planejamento.js?v=3"></script>
 <script src="patrimonio.js?v=3"></script>
-<script src="cartoes-fix.js"></script>  <!-- NOVO -->
+<script src="cartoes-fix.js?v=3"></script>  <!-- NOVO -->
 <script src="design-packs.js"></script>
-<script src="resumo-enhanced.js?v=14"></script>
-<script src="mobile-global-fix.js?v=2"></script>
-<script src="assinaturas-enhanced.js?v=2"></script>
-<script src="contratos-enhanced.js?v=3"></script>    <!-- NOVO -->
-<script src="relatorios.js?v=5"></script>
+<script src="resumo-enhanced.js?v=15"></script>
+<script src="mobile-global-fix.js?v=3"></script>
+<script src="assinaturas-enhanced.js?v=3"></script>
+<script src="contratos-enhanced.js?v=4"></script>    <!-- NOVO -->
+<script src="relatorios.js?v=6"></script>
 <script src="theme-persist.js"></script>
 
 

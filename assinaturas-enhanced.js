@@ -5,22 +5,7 @@
 // ================================================================
 // CSS
 // ================================================================
-var sty = document.createElement('style');
-sty.textContent = `
-.as-resumo{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:18px;}
-.as-resumo .card{text-align:center;}
-#modalEditSub .form-group{margin-bottom:12px;}
-@media(max-width:768px){
-  .as-resumo{grid-template-columns:1fr 1fr;gap:8px;}
-  .as-resumo .card{padding:10px 8px;}
-  .as-resumo .card .card-label{font-size:.62em;}
-  .as-resumo .card .card-value{font-size:.88em;}
-}
-@media(max-width:380px){
-  .as-resumo{grid-template-columns:1fr!important;}
-}
-`;
-document.head.appendChild(sty);
+// CSS movido para app.css (bloco 1 deste arquivo)
 
 // ================================================================
 // MODAL DE EDIÇÃO DE ASSINATURA

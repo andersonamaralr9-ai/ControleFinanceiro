@@ -5,20 +5,7 @@
 // ================================================================
 // CSS
 // ================================================================
-var sty = document.createElement('style');
-sty.textContent = `
-.cc-card-detail{font-size:.84em;color:var(--tx2);margin-bottom:4px;display:flex;justify-content:space-between;}
-.cc-card-detail .cc-label{color:var(--tx3);font-size:.82em;}
-.cc-card-detail .cc-val{font-weight:700;}
-.cc-card-separator{height:1px;background:var(--bg4);margin:8px 0;}
-.cc-bar-wrap{background:var(--bg3);border-radius:5px;height:8px;overflow:hidden;margin:8px 0 4px;}
-.cc-bar-fill{height:100%;border-radius:5px;transition:width .5s;}
-.cc-bar-ok{background:var(--okG);}
-.cc-bar-warn{background:var(--wnG);}
-.cc-bar-danger{background:var(--dnG);}
-.cc-pct-label{font-size:.72em;color:var(--tx3);text-align:right;margin-bottom:6px;}
-`;
-document.head.appendChild(sty);
+// CSS movido para app.css (bloco 1 deste arquivo)
 
 // ================================================================
 // MODAL DE EDIÇÃO DE CARTÃO

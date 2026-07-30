@@ -5,64 +5,7 @@
 // ================================================================
 // CSS
 // ================================================================
-var sty = document.createElement('style');
-sty.textContent = `
-.rel-opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:24px;}
-.rel-opt{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);padding:20px;box-shadow:var(--sh);cursor:pointer;transition:all .2s;}
-.rel-opt:hover{transform:translateY(-3px);border-color:var(--pri);}
-.rel-opt .ro-icon{font-size:1.8em;margin-bottom:8px;}
-.rel-opt .ro-title{font-size:.95em;font-weight:700;margin-bottom:4px;}
-.rel-opt .ro-desc{font-size:.78em;color:var(--tx3);line-height:1.4;}
-.rel-area{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);padding:24px;box-shadow:var(--sh);margin-bottom:24px;}
-.rel-area h3{font-size:1.05em;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--bg4);}
-.rel-back{display:inline-flex;align-items:center;gap:6px;font-size:.85em;color:var(--pri2);cursor:pointer;margin-bottom:16px;padding:6px 14px;background:var(--bg3);border-radius:8px;border:1px solid var(--bg4);transition:all .15s;}
-.rel-back:hover{background:var(--bg4);}
-.rel-table{width:100%;border-collapse:collapse;margin-bottom:16px;}
-.rel-table th{background:var(--bg3);padding:10px 14px;text-align:left;font-size:.73em;text-transform:uppercase;letter-spacing:1px;color:var(--tx3);font-weight:700;}
-.rel-table td{padding:10px 14px;border-bottom:1px solid var(--bg3);font-size:.84em;}
-.rel-table tr:hover td{background:rgba(108,92,231,.03);}
-.rel-table .rt-total{background:var(--bg3);font-weight:700;}
-.rel-table .rt-green{color:var(--ok);}
-.rel-table .rt-red{color:var(--dn2);}
-.rel-table .rt-blue{color:var(--inf2);}
-.rel-table .rt-purple{color:var(--pri2);}
-.rel-filters{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-bottom:20px;}
-.rel-filters .form-group{min-width:140px;}
-.rel-filters .form-group label{font-size:.72em;color:var(--tx2);font-weight:600;display:block;margin-bottom:4px;}
-.rel-mini-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:20px;}
-.rel-mc{background:var(--bg3);border-radius:8px;padding:12px;text-align:center;}
-.rel-mc .rmc-label{font-size:.62em;text-transform:uppercase;letter-spacing:1px;color:var(--tx3);margin-bottom:2px;}
-.rel-mc .rmc-val{font-size:1.05em;font-weight:700;}
-.rel-hbar{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
-.rel-hbar .rhb-label{font-size:.82em;min-width:120px;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.rel-hbar .rhb-bar-bg{flex:1;background:var(--bg3);border-radius:6px;height:18px;overflow:hidden;}
-.rel-hbar .rhb-bar-fill{height:100%;border-radius:6px;transition:width .4s;}
-.rel-hbar .rhb-val{font-size:.78em;font-weight:700;min-width:80px;}
-.rel-analysis{background:var(--bg3);border-radius:var(--rad);padding:16px;margin-bottom:16px;}
-.rel-analysis h4{font-size:.88em;font-weight:700;margin-bottom:10px;color:var(--tx2);}
-.rel-analysis p{font-size:.84em;color:var(--tx2);line-height:1.5;margin-bottom:6px;}
-.rel-analysis strong{color:var(--tx);}
-.rel-month-nav{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:16px;}
-.rel-month-nav .rel-mes-label{font-size:1em;font-weight:600;min-width:160px;text-align:center;}
-@media(max-width:768px){
-  .rel-opts{grid-template-columns:1fr;}
-  .rel-opt{padding:14px;}
-  .rel-area{padding:14px;}
-  .rel-filters{flex-direction:column;align-items:stretch;}
-  .rel-filters .form-group{min-width:100%;}
-  .rel-mini-cards{grid-template-columns:1fr 1fr;gap:8px;}
-  .rel-hbar .rhb-label{min-width:80px;font-size:.72em;}
-  .rel-hbar .rhb-val{min-width:60px;font-size:.7em;}
-  .rel-table th,.rel-table td{padding:7px 8px;font-size:.72em;}
-  .rel-table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;}
-  .rel-month-nav .rel-mes-label{font-size:.85em;min-width:120px;}
-}
-@media(max-width:380px){
-  .rel-mini-cards{grid-template-columns:1fr 1fr;}
-  .rel-mc .rmc-val{font-size:.85em;}
-}
-`;
-document.head.appendChild(sty);
+// CSS movido para app.css (bloco 1 deste arquivo)
 
 // ================================================================
 // Estado dos relatorios com mes

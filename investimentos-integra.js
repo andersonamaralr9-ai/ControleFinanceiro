@@ -8,105 +8,7 @@
 // ================================================================
 // CSS
 // ================================================================
-var sty = document.createElement('style');
-sty.textContent = `
-/* ── INTEGRAÇÃO INVEST ↔ LANÇ ── */
-
-.inv-integ-btn{
-  background:linear-gradient(135deg,#6c5ce7,#a29bfe);
-  color:#fff;border:none;border-radius:8px;
-  padding:10px 20px;font-size:.83em;font-weight:600;
-  cursor:pointer;transition:all .2s;
-  display:inline-flex;align-items:center;gap:6px;
-}
-.inv-integ-btn:hover{opacity:.9;transform:translateY(-1px);}
-
-.integ-panel{
-  background:var(--bg2);border:1px solid var(--bg4);
-  border-radius:var(--rad);padding:20px;
-  box-shadow:var(--sh);margin-bottom:24px;
-  display:none;
-}
-.integ-panel.show{display:block;}
-.integ-panel h3{font-size:.95em;margin-bottom:16px;color:var(--tx2);font-weight:600;}
-
-.inv-panel-grid{
-  display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
-  gap:14px;
-}
-
-.inv-panel-card{
-  background:var(--bg3);border:1px solid var(--bg4);
-  border-radius:10px;padding:16px;transition:transform .15s;
-}
-.inv-panel-card:hover{transform:translateY(-2px);}
-.inv-panel-card-header{
-  display:flex;justify-content:space-between;align-items:center;
-  margin-bottom:12px;
-}
-.inv-panel-card-header strong{font-size:.92em;}
-.inv-panel-card-row{
-  display:flex;justify-content:space-between;align-items:center;
-  padding:3px 0;font-size:.82em;
-}
-.inv-panel-card-row .lbl{color:var(--tx3);}
-.inv-panel-card-row .val{font-weight:700;}
-
-.inv-panel-form{
-  display:flex;gap:10px;align-items:end;flex-wrap:wrap;
-  margin-top:12px;padding-top:12px;
-  border-top:1px solid var(--bg4);
-}
-.inv-panel-form .form-group{flex:1;min-width:100px;}
-.inv-panel-form .form-group label{font-size:.7em;color:var(--tx3);font-weight:600;display:block;margin-bottom:3px;}
-.inv-panel-form input,.inv-panel-form select{
-  background:var(--bg2);border:1px solid var(--bg4);
-  border-radius:6px;padding:8px 10px;color:var(--tx);
-  font-size:.82em;width:100%;
-}
-.inv-panel-form input:focus,.inv-panel-form select:focus{
-  outline:none;border-color:var(--pri);
-}
-.inv-panel-form .btn{white-space:nowrap;padding:8px 16px;font-size:.78em;}
-
-.inv-panel-card .saldo-projecao{
-  margin-top:8px;padding:8px 10px;
-  background:var(--bg2);border-radius:8px;
-  font-size:.78em;display:none;
-}
-.inv-panel-card .saldo-projecao.show{display:block;}
-.inv-panel-card .saldo-projecao .proj-row{
-  display:flex;justify-content:space-between;padding:2px 0;
-}
-.inv-panel-card .saldo-projecao .proj-row .proj-lbl{color:var(--tx3);}
-.inv-panel-card .saldo-projecao .proj-row .proj-val{font-weight:700;}
-
-.inv-lanc-badge{
-  display:inline-block;padding:2px 8px;border-radius:12px;
-  font-size:.65em;font-weight:700;margin-left:6px;
-  background:rgba(108,92,231,.15);color:var(--pri2);
-  vertical-align:middle;
-}
-
-/* Resumo na panel */
-.inv-panel-summary{
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
-  gap:10px;margin-bottom:16px;
-}
-.inv-panel-summary .ips-card{
-  background:var(--bg3);border-radius:8px;padding:12px;text-align:center;
-}
-.inv-panel-summary .ips-label{font-size:.68em;color:var(--tx3);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
-.inv-panel-summary .ips-val{font-size:1.05em;font-weight:700;}
-
-@media(max-width:768px){
-  .inv-panel-grid{grid-template-columns:1fr;}
-  .inv-panel-form{flex-direction:column;}
-  .inv-panel-form .form-group{min-width:100%;}
-  .inv-panel-summary{grid-template-columns:1fr 1fr;}
-}
-`;
-document.head.appendChild(sty);
+// CSS movido para app.css (bloco 1 deste arquivo)
 
 // ================================================================
 // HELPERS (reutiliza do investimentos.js via window)
@@ -456,9 +358,7 @@ function _invIntegToast(msg){
 }
 
 // Animação do toast
-var toastAnim = document.createElement('style');
-toastAnim.textContent = '@keyframes invToastIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}';
-document.head.appendChild(toastAnim);
+// CSS movido para app.css (bloco 2 deste arquivo)
 
 // ================================================================
 // HOOK: injetar painel quando renderLancs é chamado

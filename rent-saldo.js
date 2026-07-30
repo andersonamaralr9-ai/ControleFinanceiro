@@ -6,35 +6,7 @@
 // ================================================================
 // CSS
 // ================================================================
-var sty = document.createElement('style');
-sty.textContent = `
-/* ── RENT SALDO ── */
-.ri-mode-tabs{display:flex;gap:0;margin-bottom:16px;border-radius:8px;overflow:hidden;border:1px solid var(--bg4);}
-.ri-mode-tab{flex:1;padding:10px 8px;text-align:center;cursor:pointer;font-size:.82em;font-weight:600;
-  background:var(--bg3);color:var(--tx3);transition:all .2s;user-select:none;border:none;}
-.ri-mode-tab:hover{color:var(--tx);}
-.ri-mode-tab.active{background:var(--pri);color:#fff;}
-
-.ri-calc-box{background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:14px;display:none;}
-.ri-calc-box.show{display:block;}
-.ri-calc-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:.84em;}
-.ri-calc-row .ri-calc-label{color:var(--tx2);}
-.ri-calc-row .ri-calc-val{font-weight:700;}
-.ri-calc-divider{border-top:1px solid var(--bg4);margin:6px 0;}
-.ri-calc-result{font-size:1em;padding-top:6px;}
-.ri-calc-result .ri-calc-val{font-size:1.1em;}
-
-.ri-saldo-input-wrap{position:relative;}
-.ri-saldo-input-wrap .ri-saldo-hint{
-  position:absolute;right:12px;top:50%;transform:translateY(-50%);
-  font-size:.72em;color:var(--tx3);pointer-events:none;
-}
-
-@media(max-width:768px){
-  .ri-mode-tab{font-size:.75em;padding:10px 4px;}
-}
-`;
-document.head.appendChild(sty);
+// CSS movido para app.css (bloco 1 deste arquivo)
 
 // ================================================================
 // HELPERS — replicar do investimentos.js (escopo IIFE)

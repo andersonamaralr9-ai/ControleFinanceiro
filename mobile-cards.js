@@ -4,39 +4,7 @@
   function isMob(){return window.innerWidth<=768;}
 
   // Injetar CSS mobile cards
-  var sty=document.createElement('style');
-  sty.textContent=`
-    .mob-cards{display:none;}
-    @media(max-width:768px){
-      /* Esconder tabelas, mostrar cards */
-      #pg-lancs .table-wrap{display:none!important;}
-      #pg-extrato .table-wrap{display:none!important;}
-      #pg-compras .table-wrap{display:none!important;}
-      .mob-cards{display:block!important;}
-
-      /* Card style */
-      .mc{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);padding:14px;margin-bottom:10px;box-shadow:var(--sh);}
-      .mc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
-      .mc-date{font-size:.75em;color:var(--tx3);}
-      .mc-val{font-size:1.05em;font-weight:700;}
-      .mc-desc{font-size:.88em;font-weight:600;margin-bottom:4px;color:var(--tx);}
-      .mc-meta{display:flex;justify-content:space-between;align-items:center;font-size:.75em;color:var(--tx3);flex-wrap:wrap;gap:4px;}
-      .mc-acts{display:flex;gap:6px;}
-      .mc-obs{font-size:.72em;color:var(--tx3);font-style:italic;margin-top:4px;}
-      .mc-left{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
-
-      /* Fix gráfico - mais espaço */
-      .chart-box{padding:14px;overflow:visible!important;}
-      .bar-chart{height:200px!important;gap:2px!important;overflow:visible!important;}
-      .bar-group{min-width:0;overflow:visible;}
-      .bar-top-val{font-size:.45em!important;min-height:auto!important;margin-bottom:1px!important;line-height:1.2!important;}
-      .bar{max-width:18px!important;}
-      .bar-bars{gap:2px!important;}
-      .bar-label{font-size:.5em!important;}
-      .bar-bottom{margin-top:3px!important;}
-    }
-  `;
-  document.head.appendChild(sty);
+  // CSS movido para app.css (bloco 1 deste arquivo)
 
   // Salvar referências originais
   var _renderLancs=window.renderLancs;

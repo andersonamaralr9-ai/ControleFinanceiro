@@ -4,36 +4,7 @@
   // ============================================
   // CSS do modal de antecipação
   // ============================================
-  var sty = document.createElement('style');
-  sty.textContent = `
-    .ant-modal-parcelas { max-height: 300px; overflow-y: auto; margin: 12px 0; }
-    .ant-parc-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-bottom:1px solid var(--bg4); font-size:.88em; }
-    .ant-parc-item:last-child { border-bottom:none; }
-    .ant-parc-item.ja-paga { opacity:.45; }
-    .ant-parc-item.antecipada { background:rgba(0,206,201,.08); }
-    .ant-parc-item.bloqueada { opacity:.35; }
-    .ant-parc-item label { display:flex; align-items:center; gap:8px; cursor:pointer; flex:1; }
-    .ant-parc-item input[type=checkbox] { width:18px; height:18px; accent-color:var(--pri); cursor:pointer; }
-    .ant-parc-info { flex:1; }
-    .ant-parc-num { font-weight:700; color:var(--pri2); }
-    .ant-parc-mes { font-size:.82em; color:var(--tx2); margin-left:6px; }
-    .ant-parc-val { font-weight:700; color:var(--dn2); white-space:nowrap; }
-    .ant-parc-status { font-size:.72em; padding:2px 8px; border-radius:10px; font-weight:600; margin-left:8px; }
-    .ant-parc-status.normal { background:rgba(9,132,227,.12); color:var(--inf2); }
-    .ant-parc-status.pendente { background:rgba(253,203,110,.15); color:var(--wn); }
-    .ant-parc-status.antecipada { background:rgba(108,92,231,.15); color:var(--pri2); }
-    .ant-parc-status.bloqueada { background:rgba(100,100,100,.15); color:var(--tx3); }
-    .ant-resumo { background:var(--bg3); border-radius:8px; padding:14px; margin:12px 0; }
-    .ant-resumo p { font-size:.85em; color:var(--tx2); margin-bottom:4px; }
-    .ant-resumo .ant-total { font-size:1.15em; font-weight:700; color:var(--ok); }
-    .ant-select-bar { display:flex; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
-    .ant-select-bar button { padding:5px 12px; font-size:.75em; }
-    .ant-mes-destino { margin:12px 0; padding:14px; background:var(--bg3); border-radius:8px; }
-    .ant-mes-destino label { font-size:.8em; color:var(--tx2); font-weight:600; display:block; margin-bottom:6px; }
-    .ant-mes-destino .ant-help { font-size:.72em; color:var(--tx3); margin-top:6px; font-style:italic; }
-    .ant-aviso { background:rgba(253,203,110,.1); border:1px solid rgba(253,203,110,.25); border-radius:8px; padding:10px 14px; margin:10px 0; font-size:.82em; color:var(--wn); }
-  `;
-  document.head.appendChild(sty);
+  // CSS movido para app.css (bloco 1 deste arquivo)
 
   // ============================================
   // Criar o modal HTML

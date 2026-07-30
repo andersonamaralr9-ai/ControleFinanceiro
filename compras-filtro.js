@@ -5,69 +5,7 @@
 // ================================================================
 // CSS
 // ================================================================
-var sty = document.createElement('style');
-sty.textContent = `
-.cp-filter-bar{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);padding:16px 20px;margin-bottom:16px;box-shadow:var(--sh);}
-.cp-filter-row{display:flex;gap:10px;flex-wrap:wrap;align-items:end;}
-.cp-filter-row .form-group{flex:1;min-width:150px;}
-.cp-filter-row .form-group label{font-size:.72em;color:var(--tx3);font-weight:600;margin-bottom:4px;display:block;}
-.cp-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px;}
-.cp-section{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);padding:16px 20px;margin-bottom:20px;box-shadow:var(--sh);}
-.cp-section h3{font-size:.88em;color:var(--tx2);font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
-.cp-section h3 .cp-count{background:var(--bg3);padding:2px 10px;border-radius:12px;font-size:.82em;color:var(--tx3);}
-.cp-table{width:100%;border-collapse:collapse;}
-.cp-table th{background:var(--bg3);padding:10px 12px;text-align:left;font-size:.72em;text-transform:uppercase;letter-spacing:1px;color:var(--tx3);font-weight:700;}
-.cp-table td{padding:9px 12px;border-bottom:1px solid var(--bg3);font-size:.84em;}
-.cp-table tr:hover td{background:rgba(108,92,231,.04);}
-.cp-parc-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.72em;font-weight:700;}
-.cp-parc-ativa{background:rgba(0,206,201,.12);color:var(--ok);}
-.cp-parc-quitada{background:rgba(108,92,231,.12);color:var(--pri2);}
-.cp-highlight{background:rgba(253,203,110,.06)!important;}
-.cp-totais-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-bottom:20px;}
-.cp-total-card{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);padding:14px 18px;box-shadow:var(--sh);}
-.cp-total-card h4{font-size:.82em;color:var(--tx2);margin-bottom:8px;}
-.cp-total-card .cp-tc-row{display:flex;justify-content:space-between;font-size:.82em;padding:3px 0;}
-.cp-total-card .cp-tc-row .cp-tc-label{color:var(--tx3);}
-.cp-total-card .cp-tc-row .cp-tc-val{font-weight:700;}
-.cp-mes-nav{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:14px;}
-.cp-mes-nav .cp-mes-label{font-size:1.05em;font-weight:700;min-width:160px;text-align:center;}
-.cp-mob-cards{display:none;}
-@media(max-width:768px){
-  /* Filtros em 2 colunas — empilhados viravam uma coluna longa demais */
-  .cp-filter-bar{padding:12px;}
-  .cp-filter-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:end;}
-  .cp-filter-row .form-group{min-width:0;}
-  .cp-filter-row .form-group:first-child{grid-column:1/-1;}
-  .cp-filter-row .form-control{font-size:.8em;padding:8px 10px;}
-  .cp-filter-row .form-group label{font-size:.66em;}
-  /* Resumo em 3 colunas: 6 cards cabem em 2 linhas em vez de 6 */
-  .cp-summary{grid-template-columns:repeat(3,1fr);gap:6px;}
-  .cp-summary .card{padding:9px 6px;}
-  .cp-summary .card .card-label{font-size:.58em;margin-bottom:4px;}
-  .cp-summary .card .card-value{font-size:.82em;}
-  .cp-totais-grid{grid-template-columns:1fr;}
-  .cp-mes-nav .cp-mes-label{font-size:.88em;min-width:120px;}
-  .cp-section .table-wrap{display:none!important;}
-  .cp-mob-cards{display:block!important;}
-  .cpm{background:var(--bg3);border-radius:10px;padding:12px;margin-bottom:8px;overflow:hidden;max-width:100%;box-sizing:border-box;}
-  .cpm-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
-  .cpm-desc{font-size:.85em;font-weight:600;margin-bottom:4px;word-break:break-word;}
-  .cpm-meta{display:flex;flex-wrap:wrap;gap:4px;font-size:.72em;color:var(--tx3);align-items:center;}
-  .cpm-meta span{flex-shrink:0;}
-  .cpm-val{font-size:.95em;font-weight:700;color:var(--dn2);flex-shrink:0;}
-  .cpm-date{font-size:.7em;color:var(--tx3);}
-  .cpm-acts{display:flex;gap:4px;margin-top:6px;}
-}
-@media(max-width:380px){
-  /* Mantem 3 colunas mesmo em telas estreitas: 1 coluna deixava a pagina
-     com 6 cards empilhados, exigindo rolagem so para ver o resumo. */
-  .cp-summary{grid-template-columns:repeat(3,1fr);gap:5px;}
-  .cp-summary .card{padding:8px 4px;}
-  .cp-summary .card .card-label{font-size:.54em;letter-spacing:0;}
-  .cp-summary .card .card-value{font-size:.74em;}
-}
-`;
-document.head.appendChild(sty);
+// CSS movido para app.css (bloco 1 deste arquivo)
 
 // ================================================================
 // VARIÁVEIS
