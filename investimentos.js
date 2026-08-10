@@ -455,6 +455,7 @@ function _invBuildDetalhe(invs, ma){
 window.invOpenPanel = function(id, tab){
   _invAtivoSel = (S.investimentos || []).find(function(x){ return x.id === id; });
   if(!_invAtivoSel) return;
+  window._invAtivoSelId = id; // exposto p/ integrações externas (investimentos-integra.js)
   _invPMesSel = _invGetMes();
   invSwitchTab(tab || 'rent');
   _invRenderPanel();

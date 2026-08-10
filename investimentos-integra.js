@@ -55,21 +55,22 @@ function criarLancamentoInvestimento(tipo, valor, invNome, data, obs){
 }
 
 // ================================================================
-// OVERRIDE _invAddMov — interceptar para criar lançamento
+// OVERRIDE invAddMov — interceptar para criar lançamento
 // ================================================================
-var _origInvAddMov = window._invAddMov;
+// Nome real da função em investimentos.js (sem underscore). Chamar a
+// original diretamente pelo onclick="invAddMov()" do botão Salvar.
+var _origInvAddMov = window.invAddMov;
 
-window._invAddMov = function(){
-  var id = document.getElementById('miId').value;
-  var inv = S.investimentos.find(function(x){ return x.id === id; });
-  if(!inv) return;
+window.invAddMov = function(){
+  var inv = (S.investimentos || []).find(function(x){ return x.id === window._invAtivoSelId; });
+  if(!inv) return _origInvAddMov && _origInvAddMov();
 
-  var tipo = document.getElementById('miTipo').value;
-  var valor = parseN(document.getElementById('miValor').value);
-  var data = document.getElementById('miData').value;
-  var obs = document.getElementById('miObs').value.trim();
+  var tipo = (document.getElementById('invFiMTipo') || {}).value || 'aporte';
+  var data = (document.getElementById('invFiMData') || {}).value;
+  var valor = parseN((document.getElementById('invFiMVal') || {}).value);
+  var obs = '';
 
-  if(!valor || valor <= 0) return alert('Valor inválido.');
+  if(isNaN(valor) || valor <= 0) return alert('Informe um valor válido.');
   if(!data) return alert('Informe a data.');
 
   if(tipo === 'resgate'){
@@ -77,29 +78,16 @@ window._invAddMov = function(){
     if(valor > saldoAtual) return alert('Valor excede o saldo ('+_fmt(saldoAtual)+').');
   }
 
-  // Adiciona movimentação
-  if(!Array.isArray(inv.movimentacoes)) inv.movimentacoes = [];
-  inv.movimentacoes.push({tipo:tipo, valor:valor, data:data, obs:obs, id:uid()});
+  // Executa a função original (grava a movimentação, salva, atualiza UI)
+  _origInvAddMov();
 
   // Lançamento: aporte pergunta, resgate sempre cria
   var gerarLanc = tipo === 'resgate' ||
     confirm('Deseja gerar um lançamento de despesa em "Investimento" para este aporte?');
   if(gerarLanc){
     criarLancamentoInvestimento(tipo, valor, inv.nome||'Investimento', data, obs);
+    salvar();
   }
-
-  salvar();
-  document.getElementById('miValor').value = '';
-  document.getElementById('miObs').value = '';
-
-  // Atualiza UI
-  if(typeof _invRenderMovList === 'function'){
-    _invRenderMovList(inv);
-  } else {
-    var el = document.getElementById('miMovList');
-    if(el) el.innerHTML = '<p style="color:var(--tx3);text-align:center;font-size:.85em">Movimentação adicionada.</p>';
-  }
-  if(typeof renderInvest === 'function') renderInvest();
 
   _invIntegToast(tipo === 'aporte'
     ? 'Aporte de '+_fmt(valor)+' registrado!' + (gerarLanc ? ' Lançamento de despesa criado.' : '')
