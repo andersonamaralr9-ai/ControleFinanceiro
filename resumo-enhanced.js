@@ -96,7 +96,9 @@ window.renderResumo = function() {
   // Quick actions (discreet)
   h += '<div class="rq-row">';
   h += '<div class="rq-btn" onclick="nav(\'checkpag\')">&#9989; Check pagamentos</div>';
-  h += '<div class="rq-btn primary" onclick="nav(\'lancs\')">&#65291; Lançar</div>';
+  // Abre direto o modal (o modal vive no body, nao dentro de #pg-lancs),
+  // para lancar sem sair do Resumo.
+  h += '<div class="rq-btn primary" onclick="abrirNovoLanc()">&#65291; Lançar</div>';
   h += '</div>';
 
   // --- SALDO HERO (destaque, estilo neobank) ---

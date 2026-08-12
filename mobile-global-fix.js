@@ -46,6 +46,18 @@ if (_origRenderAll) {
   };
 }
 
+// Volta ao topo da pagina. O resetMobileScroll acima so zera o scroll
+// HORIZONTAL (scrollLeft); apos concluir um lancamento a pagina continuava
+// na posicao vertical de antes, dando a impressao de ter rolado sozinha.
+function scrollTopMobile() {
+  if (window.innerWidth > 768) return;
+  window.scrollTo(0, 0);
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+  var main = document.querySelector('.main');
+  if (main && main.scrollTop > 0) main.scrollTop = 0;
+}
+
 // Interceptar addLanc — esse é o principal causador do zoom pós-lançamento
 var _origAddLanc = window.addLanc;
 if (_origAddLanc) {
@@ -55,6 +67,13 @@ if (_origAddLanc) {
     setTimeout(resetMobileScroll, 50);
     setTimeout(resetMobileScroll, 200);
     setTimeout(resetMobileScroll, 500);
+    // Só sobe se o lancamento foi de fato gravado: quando a validacao
+    // falha o addLanc so faz alert() e mantem o modal aberto.
+    var m = document.getElementById('modalNovoLanc');
+    if (!m || !m.classList.contains('show')) {
+      setTimeout(scrollTopMobile, 60);
+      setTimeout(scrollTopMobile, 220);
+    }
   };
 }
 

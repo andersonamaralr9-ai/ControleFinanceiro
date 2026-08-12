@@ -1023,7 +1023,13 @@ tr{transition:background .12s}
 .rc-bar-fill { height: 100%; border-radius: 3px; }
 
 /* ═══ GRÁFICO — valor acima da própria barra (par lado a lado) ═══ */
-.bar-stack { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; flex: 1; }
+/* O stack tem largura fixa (nao flex:1). Com flex:1 cada stack ocupava
+   metade do mes e a barra ficava centralizada nessa metade, separando
+   receita/despesa mais do que os proprios meses entre si. Agora o par
+   fica junto e a folga sobra entre os meses, que e a leitura correta. */
+.bar-stack { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; flex: 0 1 30px; max-width: 30px; }
+.bar-stack .bar { width: 100%; }
+.bar-bars { gap: 5px; }
 .bar-stack .bar-top-val { margin-bottom: 5px; }
 
 /* ═══ DESKTOP GRIDS ═══ */
@@ -1171,12 +1177,18 @@ tr{transition:background .12s}
 
   /* Área das barras — flex grow para ocupar o espaço disponível */
   .bar-bars {
-    gap: 2px !important;
+    gap: 3px !important;
     align-items: flex-end !important;
     min-height: 60px !important;
     flex: 1 !important;
     width: 100% !important;
     justify-content: center !important;
+  }
+
+  /* Par receita/despesa junto; a folga fica entre os meses (ver bloco desktop) */
+  .bar-stack {
+    flex: 0 1 14px !important;
+    max-width: 14px !important;
   }
 
   .bar {
@@ -1591,6 +1603,45 @@ tr{transition:background .12s}
   }
   .modal-body * {
     max-width: 100% !important;
+  }
+
+  /* ╔══════════════════════════════════════════╗
+     ║  FORM DE LANÇAMENTO — PROPORÇÃO MOBILE   ║
+     ╚══════════════════════════════════════════╝ */
+  /* O form ficava alto e "gordo" no celular: uma coluna so, rotulos
+     grandes e muito respiro. Aqui compacta a caixa (padding, gap,
+     rotulos) e usa 2 colunas para os campos curtos.
+     ATENCAO: o font-size do proprio input continua 16px de proposito —
+     abaixo disso o iOS aplica zoom automatico no foco (ver bloco
+     anti-zoom acima). O ganho de proporcao vem do padding e dos
+     rotulos, nao do texto digitado. */
+  #modalNovoLanc .modal-header,
+  #modalEditLanc .modal-header { padding: 12px 16px !important; }
+  #modalNovoLanc .modal-header h3,
+  #modalEditLanc .modal-header h3 { font-size: .88em !important; }
+
+  #modalNovoLanc .modal-body,
+  #modalEditLanc .modal-body { padding: 14px 16px !important; }
+
+  #modalNovoLanc .form-grid,
+  #modalEditLanc .form-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+  /* Descricao e Observacao ocupam a linha inteira */
+  .form-grid .fg-full { grid-column: 1 / -1 !important; }
+
+  #modalNovoLanc .form-group,
+  #modalEditLanc .form-group { gap: 3px !important; }
+  #modalNovoLanc .form-group label,
+  #modalEditLanc .form-group label {
+    font-size: .68em !important;
+    letter-spacing: .3px !important;
+  }
+  #modalNovoLanc .form-control,
+  #modalEditLanc .form-control {
+    padding: 8px 10px !important;
+    border-radius: 8px !important;
   }
 
   /* ╔══════════════════════════════════════════╗
