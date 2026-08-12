@@ -405,7 +405,7 @@ td{font-size:.86em;}
      chegava depois da primeira pintura.
      Vem DEPOIS do <style> acima de proposito: e essa ordem que os
      modulos tinham antes, e trocar isso inverteria a precedencia. -->
-<link rel="stylesheet" href="app.css?v=6">
+<link rel="stylesheet" href="app.css?v=12">
 </head>
 <body class="theme-dark">
 
@@ -556,7 +556,7 @@ td{font-size:.86em;}
     <div class="form-group"><label>Descri&ccedil;&atilde;o</label><input id="cpDesc" class="form-control"></div>
     <div class="form-group"><label>Categoria</label><select id="cpCat" class="form-control"></select></div>
     <div class="form-group"><label>Valor Total (R$)</label><input id="cpValor" class="form-control" placeholder="0,00" inputmode="decimal"></div>
-    <div class="form-group"><label>Data</label><input type="date" id="cpData" class="form-control"></div>
+    <div class="form-group fg-full"><label>Data</label><input type="date" id="cpData" class="form-control"></div>
     <div class="form-group"><label>Parcelas</label><input type="number" id="cpParc" class="form-control" min="1" max="48" value="1"></div>
     <div class="form-group"><label>&nbsp;</label><button class="btn btn-primary" onclick="addCompra()">Adicionar</button></div>
   </div></div>
@@ -693,8 +693,8 @@ td{font-size:.86em;}
     <div class="form-group"><label>Tipo</label><select id="lTipo" class="form-control" onchange="updLCats()"><option value="despesa">Despesa</option><option value="receita">Receita</option></select></div>
     <div class="form-group"><label>Valor (R$)</label><input id="lValor" class="form-control" placeholder="0,00" inputmode="decimal"></div>
     <div class="form-group fg-full"><label>Descri&ccedil;&atilde;o</label><input id="lDesc" class="form-control"></div>
-    <div class="form-group"><label>Categoria</label><select id="lCat" class="form-control"></select></div>
-    <div class="form-group"><label>Data</label><input type="date" id="lData" class="form-control"></div>
+    <div class="form-group fg-full"><label>Categoria</label><select id="lCat" class="form-control"></select></div>
+    <div class="form-group fg-full"><label>Data</label><input type="date" id="lData" class="form-control"></div>
     <div class="form-group fg-full"><label>Observa&ccedil;&atilde;o</label><input id="lObs" class="form-control"></div>
   </div></div>
   <div class="modal-footer"><button class="btn btn-outline" onclick="closeM('modalNovoLanc')">Cancelar</button><button class="btn btn-primary" onclick="addLanc()">Adicionar</button></div>
@@ -707,8 +707,8 @@ td{font-size:.86em;}
     <div class="form-group"><label>Tipo</label><select id="elTipo" class="form-control" onchange="updElCats()"><option value="receita">Receita</option><option value="despesa">Despesa</option></select></div>
     <div class="form-group"><label>Valor</label><input id="elValor" class="form-control" inputmode="decimal"></div>
     <div class="form-group fg-full"><label>Descri&ccedil;&atilde;o</label><input id="elDesc" class="form-control"></div>
-    <div class="form-group"><label>Categoria</label><select id="elCat" class="form-control"></select></div>
-    <div class="form-group"><label>Data</label><input type="date" id="elData" class="form-control"></div>
+    <div class="form-group fg-full"><label>Categoria</label><select id="elCat" class="form-control"></select></div>
+    <div class="form-group fg-full"><label>Data</label><input type="date" id="elData" class="form-control"></div>
     <div class="form-group fg-full"><label>Obs</label><input id="elObs" class="form-control"></div>
   </div>
   <input type="hidden" id="elId"><button class="btn btn-primary" onclick="updateLanc()" style="width:100%;margin-top:14px">Salvar</button>

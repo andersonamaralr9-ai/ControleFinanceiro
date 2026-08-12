@@ -1638,13 +1638,37 @@ tr{transition:background .12s}
   #modalNovoLanc .modal-body,
   #modalEditLanc .modal-body { padding: 14px 16px !important; }
 
+  /* Formularios de pagina em coluna unica no mobile.
+     O auto-fit minmax(175px,1fr) do desktop rendia 2 colunas de ~164px no
+     celular, e com a fonte travada em 16px (anti-zoom do iOS) os selects
+     nao cabiam: "Cloud/Armazenamento" pede 220px, "Cartao de Credito"
+     181px. Select e input[type=date] nao rolam o texto, entao o corte era
+     permanente — o usuario nunca via o valor inteiro.
+     Os modais de lancamento seguem em 2 colunas pela regra abaixo, que
+     ganha por especificidade de ID. */
+  .form-grid { grid-template-columns: 1fr !important; }
+
   #modalNovoLanc .form-grid,
   #modalEditLanc .form-grid {
     grid-template-columns: 1fr 1fr !important;
     gap: 10px !important;
   }
-  /* Descricao e Observacao ocupam a linha inteira */
   .form-grid .fg-full { grid-column: 1 / -1 !important; }
+
+  /* Item de grid nao encolhe abaixo do min-content por padrao, entao um
+     campo mais largo que a celula ESTOURA a caixa em vez de apertar — era
+     o que cortava a Data para fora do modal. min-width:0 contem o
+     vazamento; quem garante que o texto aparece inteiro e a largura
+     dada a cada campo abaixo. */
+  .form-grid .form-group { min-width: 0 !important; }
+
+  /* Duas colunas (142px cada) so servem para os campos curtos.
+     Medido com a fonte real (Inter 16px, travada pelo anti-zoom do iOS):
+       Data no formato longo do iOS ("12 de ago. de 2026") = 170px
+       Categoria "Cartao de Credito"                       = 179px
+     O texto sozinho ja passa de 142px, entao esses dois campos precisam
+     da linha inteira — nao ha padding a cortar que resolva. Tipo (110px)
+     e Valor cabem e seguem pareados. */
 
   #modalNovoLanc .form-group,
   #modalEditLanc .form-group { gap: 3px !important; }
@@ -1682,6 +1706,23 @@ tr{transition:background .12s}
 
 /* === ULTRA-SMALL SCREENS === */
 @media (max-width: 380px) {
+  /* Numa tela de 320px o par Tipo|Valor fica com exatamente a largura que
+     o texto precisa (110px para 110px) — margem zero, e qualquer diferenca
+     de metrica da fonte do sistema no iOS cortaria o texto. Abaixo de
+     380px, uma coluna so.
+     Precisa ficar NESTE bloco (depois do @media 768px) e nao no bloco de
+     380px que vem antes: as duas regras tem a mesma especificidade e
+     !important, entao quem vence e a ultima do arquivo. */
+  #modalNovoLanc .form-grid,
+  #modalEditLanc .form-grid { grid-template-columns: 1fr !important; }
+
+  /* Mesmo motivo nas barras de filtro: elas pedem font-size .8/.82em, mas
+     a regra anti-zoom forca 16px nos .form-control, e a 320px os selects
+     ("Todas categorias", "Descricao A-Z", "Valor Parc.") nao cabem em
+     duas colunas. */
+  .filter-grid { grid-template-columns: 1fr !important; }
+  .cp-filter-row { grid-template-columns: 1fr !important; }
+
   .pl-summary {
     grid-template-columns: 1fr !important;
     gap: 6px !important;
