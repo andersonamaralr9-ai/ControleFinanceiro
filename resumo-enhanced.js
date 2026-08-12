@@ -174,14 +174,16 @@ window.renderResumo = function() {
   g('barChart').innerHTML = dt.map(function(x) {
     var rUnit = isMob ? Math.max(Math.round((x.r / gM) * maxBarPx), 3) + 'px' : Math.max((x.r / gM) * 100, 2) + '%';
     var dUnit = isMob ? Math.max(Math.round((x.d / gM) * maxBarPx), 3) + 'px' : Math.max((x.d / gM) * 100, 2) + '%';
-    // Mobile: formatar valores de forma mais curta
+    // Rotulo sem "R$": os dois valores ficam lado a lado sobre barras
+    // estreitas e o prefixo fazia um encostar no outro. A moeda ja esta
+    // implicita no titulo do grafico.
     var rv, dv;
     if (isMob) {
       rv = x.r >= 1000 ? Math.round(x.r / 1000) + 'k' : Math.round(x.r);
       dv = x.d >= 1000 ? Math.round(x.d / 1000) + 'k' : Math.round(x.d);
     } else {
-      rv = fmtI(x.r);
-      dv = fmtI(x.d);
+      rv = Math.round(x.r || 0).toLocaleString('pt-BR');
+      dv = Math.round(x.d || 0).toLocaleString('pt-BR');
     }
     return '<div class="bar-group">' +
       '<div class="bar-bars">' +

@@ -1029,8 +1029,22 @@ tr{transition:background .12s}
    fica junto e a folga sobra entre os meses, que e a leitura correta. */
 .bar-stack { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; flex: 0 1 30px; max-width: 30px; }
 .bar-stack .bar { width: 100%; }
-.bar-bars { gap: 5px; }
+/* Gap dimensionado pelo ROTULO, nao pela barra: os valores ficam
+   centralizados sobre barras de 30px mas sao mais largos que isso, e
+   com gap pequeno um encostava no outro.
+   O grupo tem ~91px e os dois rotulos ~33px cada, entao sobram ~25px
+   para repartir. 15px aqui deixa ~12px de folga tanto entre os dois
+   rotulos do mes quanto entre meses vizinhos — o equilibrio possivel
+   mantendo o numero cheio. Quem agrupa de fato e a divisoria abaixo. */
+.bar-bars { gap: 15px; }
 .bar-stack .bar-top-val { margin-bottom: 5px; }
+
+/* Divisoria entre meses — o agrupamento visual nao depende mais so do
+   espacamento. .bar-chart com gap:0 para a linha cair exatamente no meio
+   entre dois pares (o par e centralizado dentro do proprio grupo). */
+.bar-chart { gap: 0 !important; }
+.bar-group { box-sizing: border-box; }
+.bar-group + .bar-group { border-left: 1px solid rgba(255, 255, 255, .18); }
 
 /* ═══ DESKTOP GRIDS ═══ */
 .rg-main { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 16px; }
@@ -1176,8 +1190,9 @@ tr{transition:background .12s}
   }
 
   /* Área das barras — flex grow para ocupar o espaço disponível */
+  /* gap folgado o suficiente para os rotulos ("20k") nao se encostarem */
   .bar-bars {
-    gap: 3px !important;
+    gap: 9px !important;
     align-items: flex-end !important;
     min-height: 60px !important;
     flex: 1 !important;
@@ -1185,7 +1200,7 @@ tr{transition:background .12s}
     justify-content: center !important;
   }
 
-  /* Par receita/despesa junto; a folga fica entre os meses (ver bloco desktop) */
+  /* Par receita/despesa junto; a divisoria separa os meses (ver bloco desktop) */
   .bar-stack {
     flex: 0 1 14px !important;
     max-width: 14px !important;
