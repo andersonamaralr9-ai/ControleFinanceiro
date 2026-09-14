@@ -15,7 +15,13 @@ var relState = {
   recorrentes_mes: mesAtual(),
   orcamento_mes: mesAtual(),
   detalhado_de: addMes(mesAtual(), -2),
-  detalhado_ate: mesAtual()
+  detalhado_ate: mesAtual(),
+  // Extrato de investimentos: o "de" comeca vazio e e preenchido com o
+  // mes do primeiro evento, para abrir ja com todo o historico.
+  investext_ativo: '',
+  investext_de: '',
+  investext_ate: mesAtual(),
+  investativo_sel: ''
 };
 
 window._relChgMes = function(report, n){
@@ -66,7 +72,9 @@ window.renderRelatorios = function(){
     {id:'anual',icon:'&#128197;',title:'Resumo Anual',desc:'Vis&atilde;o consolidada do ano corrente.'},
     {id:'inadimplencia',icon:'&#9888;',title:'Alertas',desc:'Vencimentos, parcelas e compromissos futuros.'},
     {id:'detalhado',icon:'&#128203;',title:'Extrato Detalhado (Excel)',desc:'Todos os lan&ccedil;amentos por categoria, data e compet&ecirc;ncia para an&aacute;lise em Excel.'},
-    {id:'invest',icon:'&#128184;',title:'Investimentos',desc:'Evolu&ccedil;&atilde;o do saldo, aportes, resgates e rentabilidade por m&ecirc;s e por ativo.'}
+    {id:'invest',icon:'&#128184;',title:'Investimentos',desc:'Evolu&ccedil;&atilde;o do saldo, aportes, resgates e rentabilidade por m&ecirc;s e por ativo.'},
+    {id:'investextrato',icon:'&#128181;',title:'Extrato de Investimentos',desc:'Todo o hist&oacute;rico de aportes, resgates e rentabilidade com saldo acumulado e exporta&ccedil;&atilde;o para Excel.'},
+    {id:'investativo',icon:'&#127974;',title:'Hist&oacute;rico por Ativo',desc:'Posi&ccedil;&atilde;o atual, retorno e linha do tempo completa de cada investimento.'}
   ];
 
   var h = '<div class="rel-opts">';
@@ -99,6 +107,8 @@ window.openReport = function(id){
     case 'inadimplencia': el.innerHTML = back + buildAlertas(); break;
     case 'detalhado': el.innerHTML = back + buildDetalhado(); break;
     case 'invest': el.innerHTML = back + buildInvest(); break;
+    case 'investextrato': el.innerHTML = back + buildInvestExtrato(); break;
+    case 'investativo': el.innerHTML = back + buildInvestAtivo(); break;
   }
 };
 
@@ -569,6 +579,280 @@ function buildInvest(){
   h += '</div>';
   return h;
 }
+
+// ================================================================
+// 11. INVESTIMENTOS — EXTRATO E HISTORICO POR ATIVO
+// ================================================================
+// O relatorio 10 (buildInvest) e um consolidado dos ultimos 12 meses.
+// Os dois abaixo cobrem o historico COMPLETO, movimento a movimento.
+
+// Linha do tempo de todos os eventos de investimento, em ordem
+// cronologica e com saldo acumulado. O sufixo do campo `ord` desempata
+// eventos do mesmo dia: aplicacao inicial (0), movimentacoes (1) e
+// rentabilidade (2), que e mensal e fecha o mes.
+function _invEventos(ativoId){
+  var evs = [];
+  (S.investimentos || []).forEach(function(inv){
+    if(ativoId && inv.id !== ativoId) return;
+    var nome = inv.nome || 'Investimento';
+
+    var vIni = Number(inv.valor) || 0;
+    if(vIni){
+      evs.push({
+        ord: (inv.data || '') + '-0', data: inv.data || '', dataLabel: fmtD(inv.data),
+        mes: (inv.data || '').substring(0, 7), ativo: nome, ativoId: inv.id,
+        tipo: 'Aplicação inicial', entrada: vIni, saida: 0, obs: inv.obs || ''
+      });
+    }
+
+    (inv.movimentacoes || []).forEach(function(m){
+      var v = Number(m.valor) || 0;
+      var isRes = m.tipo === 'resgate';
+      evs.push({
+        ord: (m.data || '') + '-1', data: m.data || '', dataLabel: fmtD(m.data),
+        mes: (m.data || '').substring(0, 7), ativo: nome, ativoId: inv.id,
+        tipo: isRes ? 'Resgate' : 'Aporte',
+        entrada: isRes ? 0 : v, saida: isRes ? v : 0, obs: m.obs || ''
+      });
+    });
+
+    // Rentabilidade e por competencia mensal (nao tem dia): entra no fim
+    // do mes e e exibida com o rotulo do mes, nao como data.
+    (inv.rentabilidade || []).forEach(function(r){
+      var v = Number(r.valor) || 0;
+      if(!v) return;
+      evs.push({
+        ord: (r.mes || '') + '-31-2', data: (r.mes || '') + '-31', dataLabel: mesNome(r.mes),
+        mes: r.mes || '', ativo: nome, ativoId: inv.id, tipo: 'Rentabilidade',
+        entrada: v > 0 ? v : 0, saida: v < 0 ? -v : 0, obs: ''
+      });
+    });
+  });
+
+  evs.sort(function(a, b){ return a.ord.localeCompare(b.ord); });
+
+  // Saldo acumulado calculado sobre a serie inteira. Se o usuario filtrar
+  // por periodo depois, o saldo de cada linha continua correto.
+  var acc = 0;
+  evs.forEach(function(e){ acc += e.entrada - e.saida; e.saldo = acc; });
+  return evs;
+}
+
+function _invPrimeiroMes(){
+  var evs = _invEventos();
+  return evs.length ? evs[0].mes : mesAtual();
+}
+
+function _invSelectAtivos(id, sel){
+  var h = '<select id="' + id + '" class="form-control">';
+  h += '<option value="">Todos os ativos</option>';
+  (S.investimentos || []).forEach(function(inv){
+    h += '<option value="' + inv.id + '"' + (sel === inv.id ? ' selected' : '') + '>' + (inv.nome || '-') + '</option>';
+  });
+  return h + '</select>';
+}
+
+function buildInvestExtrato(){
+  var invs = S.investimentos || [];
+  if(!invs.length) return '<div class="rel-area"><h3>&#128181; Extrato de Investimentos</h3><p style="color:var(--tx3)">Nenhum investimento cadastrado.</p></div>';
+
+  if(!relState.investext_de) relState.investext_de = _invPrimeiroMes();
+
+  var h = '<div class="rel-area"><h3>&#128181; Extrato de Investimentos</h3>';
+  h += '<p style="font-size:.8em;color:var(--tx3);margin-bottom:14px">Aportes, resgates e rentabilidade em ordem cronol&oacute;gica, com saldo acumulado.</p>';
+
+  h += '<div class="rel-filters">';
+  h += '<div class="form-group"><label>Ativo</label>' + _invSelectAtivos('relInvExAtivo', relState.investext_ativo) + '</div>';
+  h += '<div class="form-group"><label>De</label><input type="month" id="relInvExDe" class="form-control" value="' + relState.investext_de + '"></div>';
+  h += '<div class="form-group"><label>At&eacute;</label><input type="month" id="relInvExAte" class="form-control" value="' + relState.investext_ate + '"></div>';
+  h += '<div class="form-group"><label>&nbsp;</label><button class="btn btn-primary" onclick="window._relInvExGerar()">Aplicar</button></div>';
+  h += '<div class="form-group"><label>&nbsp;</label><button class="btn btn-outline" onclick="window._relInvExTudo()">Todo o hist&oacute;rico</button></div>';
+  h += '<div class="form-group"><label>&nbsp;</label><button class="btn btn-success" onclick="window._relInvExExportXLS()">&#128229; Exportar Excel</button></div>';
+  h += '</div>';
+
+  h += '<div id="relInvExPreview"></div>';
+  h += '</div>';
+
+  setTimeout(function(){ window._relInvExGerar(); }, 100);
+  return h;
+}
+
+window._relInvExLerFiltros = function(){
+  var a = document.getElementById('relInvExAtivo');
+  var de = document.getElementById('relInvExDe');
+  var ate = document.getElementById('relInvExAte');
+  if(a) relState.investext_ativo = a.value;
+  if(de && de.value) relState.investext_de = de.value;
+  if(ate && ate.value) relState.investext_ate = ate.value;
+};
+
+window._relInvExTudo = function(){
+  relState.investext_de = _invPrimeiroMes();
+  relState.investext_ate = mesAtual();
+  var de = document.getElementById('relInvExDe'); if(de) de.value = relState.investext_de;
+  var ate = document.getElementById('relInvExAte'); if(ate) ate.value = relState.investext_ate;
+  window._relInvExGerar();
+};
+
+function _relInvExLinhas(){
+  window._relInvExLerFiltros();
+  var todos = _invEventos(relState.investext_ativo);
+  var de = relState.investext_de, ate = relState.investext_ate;
+  return {
+    todos: todos,
+    visiveis: todos.filter(function(e){ return e.mes >= de && e.mes <= ate; })
+  };
+}
+
+window._relInvExGerar = function(){
+  var prev = document.getElementById('relInvExPreview');
+  if(!prev) return;
+  var d = _relInvExLinhas();
+  var rows = d.visiveis;
+
+  if(!rows.length){
+    prev.innerHTML = '<p style="color:var(--tx3);text-align:center;padding:24px">Nenhuma movimenta&ccedil;&atilde;o no per&iacute;odo.</p>';
+    return;
+  }
+
+  var totAporte = 0, totResgate = 0, totRent = 0, totIni = 0;
+  rows.forEach(function(e){
+    if(e.tipo === 'Aporte') totAporte += e.entrada;
+    else if(e.tipo === 'Resgate') totResgate += e.saida;
+    else if(e.tipo === 'Rentabilidade') totRent += e.entrada - e.saida;
+    else totIni += e.entrada;
+  });
+
+  // Saldo imediatamente antes da primeira linha exibida
+  var idx = d.todos.indexOf(rows[0]);
+  var saldoAnterior = idx > 0 ? d.todos[idx - 1].saldo : 0;
+  var saldoFinal = rows[rows.length - 1].saldo;
+
+  var h = '<div class="rel-mini-cards">';
+  h += '<div class="rel-mc"><div class="rmc-label">Aplica&ccedil;&atilde;o inicial</div><div class="rmc-val rt-blue">' + fmtV(totIni) + '</div></div>';
+  h += '<div class="rel-mc"><div class="rmc-label">Aportes</div><div class="rmc-val rt-blue">' + fmtV(totAporte) + '</div></div>';
+  h += '<div class="rel-mc"><div class="rmc-label">Resgates</div><div class="rmc-val rt-red">' + fmtV(totResgate) + '</div></div>';
+  h += '<div class="rel-mc"><div class="rmc-label">Rentabilidade</div><div class="rmc-val ' + (totRent >= 0 ? 'rt-purple' : 'rt-red') + '">' + fmtV(totRent) + '</div></div>';
+  h += '<div class="rel-mc"><div class="rmc-label">Saldo final</div><div class="rmc-val rt-green">' + fmtV(saldoFinal) + '</div></div>';
+  h += '</div>';
+
+  h += '<div style="overflow-x:auto"><table class="rel-table"><thead><tr>';
+  h += '<th>Data</th><th>Ativo</th><th>Movimenta&ccedil;&atilde;o</th><th style="text-align:right">Entrada</th><th style="text-align:right">Sa&iacute;da</th><th style="text-align:right">Saldo</th><th class="rel-col-obs">Obs</th>';
+  h += '</tr></thead><tbody>';
+
+  h += '<tr class="rt-total"><td colspan="5">Saldo anterior</td><td style="text-align:right">' + fmtV(saldoAnterior) + '</td><td class="rel-col-obs"></td></tr>';
+
+  rows.forEach(function(e){
+    var cls = e.tipo === 'Resgate' ? 'rt-red' : e.tipo === 'Rentabilidade' ? 'rt-purple' : 'rt-blue';
+    h += '<tr>';
+    h += '<td style="white-space:nowrap">' + e.dataLabel + '</td>';
+    h += '<td>' + e.ativo + '</td>';
+    h += '<td class="' + cls + '">' + e.tipo + '</td>';
+    h += '<td style="text-align:right" class="rt-green">' + (e.entrada ? fmtV(e.entrada) : '-') + '</td>';
+    h += '<td style="text-align:right" class="rt-red">' + (e.saida ? fmtV(e.saida) : '-') + '</td>';
+    h += '<td style="text-align:right;font-weight:600">' + fmtV(e.saldo) + '</td>';
+    h += '<td class="rel-col-obs" style="font-size:.9em;color:var(--tx3)">' + (e.obs || '') + '</td>';
+    h += '</tr>';
+  });
+
+  h += '</tbody></table></div>';
+  h += '<p style="font-size:.78em;color:var(--tx3)">' + rows.length + ' movimenta&ccedil;&otilde;es no per&iacute;odo.</p>';
+  prev.innerHTML = h;
+};
+
+window._relInvExExportXLS = function(){
+  if(typeof XLSX === 'undefined') return alert('Biblioteca de Excel não carregada.');
+  var rows = _relInvExLinhas().visiveis;
+  if(!rows.length) return alert('Nenhuma movimentação no período.');
+
+  var xls = rows.map(function(e){
+    return {
+      'Data': e.dataLabel, 'Competência': mesNome(e.mes), 'Ativo': e.ativo,
+      'Movimentação': e.tipo, 'Entrada': e.entrada || 0, 'Saída': e.saida || 0,
+      'Saldo acumulado': e.saldo, 'Observação': e.obs || ''
+    };
+  });
+
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(xls), 'Extrato Investimentos');
+  XLSX.writeFile(wb, 'extrato_investimentos_' + relState.investext_de + '_a_' + relState.investext_ate + '.xlsx', {compression: true});
+};
+
+// ---- Historico / posicao por ativo ------------------------------
+function buildInvestAtivo(){
+  var invs = S.investimentos || [];
+  if(!invs.length) return '<div class="rel-area"><h3>&#127974; Hist&oacute;rico por Ativo</h3><p style="color:var(--tx3)">Nenhum investimento cadastrado.</p></div>';
+
+  var h = '<div class="rel-area"><h3>&#127974; Hist&oacute;rico por Ativo</h3>';
+  h += '<p style="font-size:.8em;color:var(--tx3);margin-bottom:14px">Posi&ccedil;&atilde;o atual e linha do tempo completa de cada investimento.</p>';
+  h += '<div class="rel-filters"><div class="form-group"><label>Ativo</label>' + _invSelectAtivos('relInvAtSel', relState.investativo_sel) + '</div>';
+  h += '<div class="form-group"><label>&nbsp;</label><button class="btn btn-primary" onclick="window._relInvAtGerar()">Aplicar</button></div></div>';
+  h += '<div id="relInvAtPreview"></div></div>';
+
+  setTimeout(function(){ window._relInvAtGerar(); }, 100);
+  return h;
+}
+
+window._relInvAtGerar = function(){
+  var sel = document.getElementById('relInvAtSel');
+  if(sel) relState.investativo_sel = sel.value;
+  var prev = document.getElementById('relInvAtPreview');
+  if(!prev) return;
+
+  var alvo = (S.investimentos || []).filter(function(inv){
+    return !relState.investativo_sel || inv.id === relState.investativo_sel;
+  });
+
+  var h = '';
+  alvo.forEach(function(inv){
+    var evs = _invEventos(inv.id);
+    var aportado = 0, resgatado = 0, rent = 0;
+    evs.forEach(function(e){
+      if(e.tipo === 'Resgate') resgatado += e.saida;
+      else if(e.tipo === 'Rentabilidade') rent += e.entrada - e.saida;
+      else aportado += e.entrada;
+    });
+    var saldo = evs.length ? evs[evs.length - 1].saldo : 0;
+    // Retorno sobre o capital aportado (aplicacao inicial + aportes).
+    var retPct = aportado > 0 ? (rent / aportado * 100) : 0;
+
+    h += '<div class="rel-inv-bloco">';
+    h += '<div class="rel-inv-head"><strong>' + (inv.nome || '-') + '</strong>';
+    h += '<span class="badge badge-info" style="font-size:.7em">' + (inv.tipo || 'Outro') + '</span>';
+    h += '<span class="rel-inv-desde">desde ' + fmtD(inv.data) + '</span></div>';
+
+    h += '<div class="rel-mini-cards">';
+    h += '<div class="rel-mc"><div class="rmc-label">Total aportado</div><div class="rmc-val rt-blue">' + fmtV(aportado) + '</div></div>';
+    h += '<div class="rel-mc"><div class="rmc-label">Total resgatado</div><div class="rmc-val rt-red">' + fmtV(resgatado) + '</div></div>';
+    h += '<div class="rel-mc"><div class="rmc-label">Rentabilidade</div><div class="rmc-val ' + (rent >= 0 ? 'rt-purple' : 'rt-red') + '">' + fmtV(rent) + '</div></div>';
+    h += '<div class="rel-mc"><div class="rmc-label">Retorno</div><div class="rmc-val ' + (retPct >= 0 ? 'rt-green' : 'rt-red') + '">' + (retPct >= 0 ? '+' : '') + retPct.toFixed(2) + '%</div></div>';
+    h += '<div class="rel-mc"><div class="rmc-label">Saldo atual</div><div class="rmc-val rt-green">' + fmtV(saldo) + '</div></div>';
+    h += '</div>';
+
+    if(!evs.length){
+      h += '<p style="color:var(--tx3);font-size:.82em">Sem movimenta&ccedil;&otilde;es registradas.</p>';
+    } else {
+      h += '<div style="overflow-x:auto"><table class="rel-table"><thead><tr>';
+      h += '<th>Data</th><th>Movimenta&ccedil;&atilde;o</th><th style="text-align:right">Entrada</th><th style="text-align:right">Sa&iacute;da</th><th style="text-align:right">Saldo</th><th class="rel-col-obs">Obs</th>';
+      h += '</tr></thead><tbody>';
+      evs.forEach(function(e){
+        var cls = e.tipo === 'Resgate' ? 'rt-red' : e.tipo === 'Rentabilidade' ? 'rt-purple' : 'rt-blue';
+        h += '<tr>';
+        h += '<td style="white-space:nowrap">' + e.dataLabel + '</td>';
+        h += '<td class="' + cls + '">' + e.tipo + '</td>';
+        h += '<td style="text-align:right" class="rt-green">' + (e.entrada ? fmtV(e.entrada) : '-') + '</td>';
+        h += '<td style="text-align:right" class="rt-red">' + (e.saida ? fmtV(e.saida) : '-') + '</td>';
+        h += '<td style="text-align:right;font-weight:600">' + fmtV(e.saldo) + '</td>';
+        h += '<td class="rel-col-obs" style="font-size:.9em;color:var(--tx3)">' + (e.obs || '') + '</td>';
+        h += '</tr>';
+      });
+      h += '</tbody></table></div>';
+    }
+    h += '</div>';
+  });
+
+  prev.innerHTML = h;
+};
 
 // ================================================================
 // Init
