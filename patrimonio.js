@@ -139,6 +139,9 @@ window.delPatrimonio = function(id) {
   if (alvo && typeof paraLixeira === 'function')
     paraLixeira('patrimonio', alvo, null, alvo.nome || alvo.desc,
       typeof fmtV === 'function' ? fmtV(alvo.valor) : String(alvo.valor || ''));
+  // Agora que patrimonios entra no merge, a exclusao precisa de tombstone:
+  // sem ele o item voltaria do outro dispositivo no proximo sync.
+  if (typeof markDeleted === 'function') markDeleted(id);
   S.patrimonios = (S.patrimonios || []).filter(function(p) { return p.id !== id; });
   salvar();
   renderPatrimonio();

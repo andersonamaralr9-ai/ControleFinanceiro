@@ -53,6 +53,17 @@ function detectDevice(){
 }
 
 // ================================================================
+// COLECOES SINCRONIZADAS
+// ================================================================
+// Lista unica, usada pelo merge, pelo carimbo de _ts e pelo ensureArrays.
+// Antes esse mesmo array estava escrito nos tres lugares, e foi por isso que
+// 'patrimonios' ficou de fora dos tres: o merge usa o estado REMOTO como
+// base, entao patrimonio nao era mesclado — valia sempre o que estava na
+// nuvem e uma inclusao feita num aparelho sumia sem aviso se o outro
+// sincronizasse antes. Colecao nova entra aqui e passa a valer nos tres.
+var _SYNC_COLS=['lancamentos','cartoes','comprasCartao','assinaturas','contratos','investimentos','caixa','patrimonios'];
+
+// ================================================================
 // DEEP MERGE
 // ================================================================
 function deepMergeState(local,remote){
@@ -67,7 +78,7 @@ function deepMergeState(local,remote){
   Object.keys(lDel).forEach(function(id){delIds[id]=lDel[id];});
   Object.keys(rDel).forEach(function(id){delIds[id]=Math.max(delIds[id]||0,rDel[id]);});
 
-  ['lancamentos','cartoes','comprasCartao','assinaturas','contratos','investimentos','caixa'].forEach(function(k){
+  _SYNC_COLS.forEach(function(k){
     var ra=Array.isArray(r[k])?r[k]:[],la=Array.isArray(l[k])?l[k]:[];
     var map={};
     ra.forEach(function(i){if(i.id)map[i.id]=i;});
@@ -137,7 +148,7 @@ function deepMergeState(local,remote){
 // Aqui marcamos _ts apenas nos itens que realmente mudaram, comparando
 // com um retrato do ultimo estado salvo/mesclado.
 // ================================================================
-var _TS_COLS=['lancamentos','cartoes','comprasCartao','assinaturas','contratos','investimentos','caixa'];
+var _TS_COLS=_SYNC_COLS;
 var _tsSnap={};
 
 function _tsFingerprint(it){
@@ -178,7 +189,7 @@ window._tsReset=_tsReset;
 window._tsStamp=_tsStamp;
 window.deepMergeState=deepMergeState; // exposto para inspecao/teste do merge
 function ensureArrays(st){
-  ['lancamentos','cartoes','comprasCartao','assinaturas','contratos','investimentos','caixa'].forEach(function(k){
+  _SYNC_COLS.forEach(function(k){
     if(!Array.isArray(st[k]))st[k]=[];
   });
   if(!st.planejamento||Array.isArray(st.planejamento))st.planejamento={};
