@@ -83,6 +83,22 @@ function deepMergeState(local,remote){
     r[k]=Object.values(map);
   });
   r._deletedIds=delIds;
+
+  // Lixeira: uniao por lixoId. Nao entra no laco acima porque nao usa _ts
+  // nem tombstone — a entrada e imutavel depois de criada.
+  // "purgado" vence dos dois lados: apagar de vez num aparelho tem que valer
+  // no outro. A remocao fisica fica so por conta da retencao de tempo, que
+  // e a mesma nos dois lados, entao ambos convergem sem precisar sincronizar
+  // a remocao (se um lado apagasse fisicamente, a uniao traria de volta).
+  var lixMap={};
+  (Array.isArray(r.lixeira)?r.lixeira:[]).forEach(function(it){if(it&&it.lixoId)lixMap[it.lixoId]=it;});
+  (Array.isArray(l.lixeira)?l.lixeira:[]).forEach(function(it){
+    if(!it||!it.lixoId)return;
+    if(lixMap[it.lixoId])lixMap[it.lixoId].purgado=!!(lixMap[it.lixoId].purgado||it.purgado);
+    else lixMap[it.lixoId]=it;
+  });
+  var limiteLix=Date.now()-(window.LIXEIRA_RETENCAO_DIAS||30)*86400000;
+  r.lixeira=Object.values(lixMap).filter(function(it){return (it.excluidoEm||0)>limiteLix;});
   if(!r.planejamento||Array.isArray(r.planejamento))r.planejamento={};
   if(l.planejamento&&typeof l.planejamento==='object'&&!Array.isArray(l.planejamento))
     Object.keys(l.planejamento).forEach(function(k){
@@ -160,6 +176,7 @@ function _tsStamp(st){
 }
 window._tsReset=_tsReset;
 window._tsStamp=_tsStamp;
+window.deepMergeState=deepMergeState; // exposto para inspecao/teste do merge
 function ensureArrays(st){
   ['lancamentos','cartoes','comprasCartao','assinaturas','contratos','investimentos','caixa'].forEach(function(k){
     if(!Array.isArray(st[k]))st[k]=[];
@@ -169,6 +186,7 @@ function ensureArrays(st){
   Object.keys(defCats).forEach(function(k){if(!Array.isArray(st.cats[k]))st.cats[k]=defCats[k].slice();});
   if(!st.config)st.config={theme:'dark'};
   if(!st._deletedIds||typeof st._deletedIds!=='object'||Array.isArray(st._deletedIds))st._deletedIds={};
+  if(!Array.isArray(st.lixeira))st.lixeira=[];
   return st;
 }
 

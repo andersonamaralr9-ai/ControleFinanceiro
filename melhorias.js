@@ -175,6 +175,11 @@ window._histExcluir = function(idx){
     return;
   }
   if(!confirm('Excluir este ajuste do histórico?')) return;
+  var ajuste = item.historico[idx];
+  if(ajuste && typeof paraLixeira === 'function')
+    paraLixeira('historico', ajuste, { alvo: _histCtx.tipo, itemId: _histCtx.itemId, idx: idx },
+      (item.desc || item.nome || '-') + ' — ' + (ajuste.de || ''),
+      typeof fmtV === 'function' ? fmtV(ajuste.valor) : String(ajuste.valor || ''));
   item.historico.splice(idx, 1);
   _histSincronizaValor(item);
   salvar();

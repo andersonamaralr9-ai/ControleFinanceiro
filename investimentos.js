@@ -606,6 +606,10 @@ window.invDelRent = function(invId, mes){
   if(!confirm('Remover rentabilidade de ' + _invFmtMes(mes) + '?')) return;
   var inv = (S.investimentos || []).find(function(x){ return x.id === invId; });
   if(!inv) return;
+  var alvo = (inv.rentabilidade || []).find(function(r){ return r.mes === mes; });
+  if(alvo && typeof paraLixeira === 'function')
+    paraLixeira('invest-rent', alvo, { invId: inv.id }, (inv.nome || '-') + ' — ' + _invFmtMes(mes),
+      'Rentabilidade de ' + _invFmt(Number(alvo.valor) || 0));
   inv.rentabilidade = (inv.rentabilidade || []).filter(function(r){ return r.mes !== mes; });
   salvar(); _invRenderPanel(); renderInvest();
 };
@@ -630,6 +634,10 @@ window.invDelMovById = function(invId, movId){
   if(!confirm('Remover movimentação?')) return;
   var inv = (S.investimentos || []).find(function(x){ return x.id === invId; });
   if(!inv) return;
+  var alvo = (inv.movimentacoes || []).find(function(m){ return m.id === movId; });
+  if(alvo && typeof paraLixeira === 'function')
+    paraLixeira('invest-mov', alvo, { invId: inv.id }, (inv.nome || '-') + ' — ' + (alvo.tipo === 'resgate' ? 'Resgate' : 'Aporte'),
+      _invFmt(Number(alvo.valor) || 0) + ' · ' + (typeof fmtD === 'function' ? fmtD(alvo.data) : alvo.data));
   inv.movimentacoes = (inv.movimentacoes || []).filter(function(m){ return m.id !== movId; });
   salvar(); _invRenderPanel(); renderInvest();
 };
@@ -658,7 +666,13 @@ window.invEditarAtivo = function(){
 };
 window.invExcluirAtivo = function(){
   if(!_invAtivoSel) return;
-  if(!confirm('Excluir "' + (_invAtivoSel.nome||'-') + '"?\nEsta ação não pode ser desfeita.')) return;
+  if(!confirm('Excluir "' + (_invAtivoSel.nome||'-') + '"?\nO ativo vai para a Lixeira.')) return;
+  if(typeof paraLixeira === 'function')
+    paraLixeira('investimento', _invAtivoSel, null, _invAtivoSel.nome,
+      (_invAtivoSel.tipo || '-') + ' · ' + _invFmt(Number(_invAtivoSel.valor) || 0));
+  // Sem markDeleted a exclusao nao gerava tombstone e o ativo voltava do
+  // outro dispositivo no proximo merge (o delInvest do index.html ja fazia).
+  if(typeof markDeleted === 'function') markDeleted(_invAtivoSel.id);
   S.investimentos = (S.investimentos || []).filter(function(x){ return x.id !== _invAtivoSel.id; });
   _invAtivoSel = null;
   salvar();

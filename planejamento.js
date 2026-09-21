@@ -109,6 +109,10 @@ window._plEditLimit = function(cat){
 window._plDelLimit = function(cat){
   if(!confirm('Remover limite de "' + cat + '"?')) return;
   if(S.planejamento[planMes]){
+    var v = S.planejamento[planMes][cat];
+    if(v !== undefined && typeof paraLixeira === 'function')
+      paraLixeira('planejamento', v, { mes: planMes, cat: cat }, cat,
+        'Limite de ' + (typeof fmtV === 'function' ? fmtV(v) : v) + ' · ' + (typeof mesNome === 'function' ? mesNome(planMes) : planMes));
     delete S.planejamento[planMes][cat];
   }
   salvar();

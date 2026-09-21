@@ -1910,3 +1910,26 @@ tr{transition:background .12s}
   .rel-mini-cards{grid-template-columns:1fr 1fr;}
   .rel-mc .rmc-val{font-size:.85em;}
 }
+
+/* ═══════════════════════════════════════════════════════════
+   Origem: lixeira.js
+   ═══════════════════════════════════════════════════════════ */
+.lix-aviso{background:var(--bg3);border:1px solid var(--bg4);border-radius:10px;padding:12px 14px;font-size:.82em;color:var(--tx2);margin-bottom:16px;}
+.lix-acoes{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
+.lix-conta{font-size:.82em;color:var(--tx3);font-weight:600;}
+.lix-lista{display:flex;flex-direction:column;gap:10px;}
+.lix-item{background:var(--bg2);border:1px solid var(--bg4);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:14px;}
+.lix-item-info{flex:1;min-width:0;}
+.lix-item-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px;}
+.lix-tag{font-size:.62em;text-transform:uppercase;letter-spacing:.6px;font-weight:700;color:var(--pri2);background:rgba(108,92,231,.14);padding:3px 8px;border-radius:20px;white-space:nowrap;}
+.lix-item-nome{font-size:.92em;font-weight:600;overflow-wrap:anywhere;}
+.lix-item-det{font-size:.8em;color:var(--tx2);margin-bottom:3px;overflow-wrap:anywhere;}
+.lix-item-meta{font-size:.72em;color:var(--tx3);}
+.lix-item-btns{display:flex;gap:8px;flex-shrink:0;}
+.lix-vazia{text-align:center;padding:48px 16px;color:var(--tx3);}
+.lix-vazia-ic{font-size:2.6em;margin-bottom:10px;opacity:.5;}
+@media(max-width:768px){
+  .lix-item{flex-direction:column;align-items:stretch;gap:10px;padding:12px;}
+  .lix-item-btns{justify-content:stretch;}
+  .lix-item-btns .btn{flex:1;}
+}

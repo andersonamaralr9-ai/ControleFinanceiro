@@ -135,6 +135,10 @@ window.salvarEditPat = function() {
 
 window.delPatrimonio = function(id) {
   if (!confirm('Remover este ativo?')) return;
+  var alvo = (S.patrimonios || []).find(function(p) { return p.id === id; });
+  if (alvo && typeof paraLixeira === 'function')
+    paraLixeira('patrimonio', alvo, null, alvo.nome || alvo.desc,
+      typeof fmtV === 'function' ? fmtV(alvo.valor) : String(alvo.valor || ''));
   S.patrimonios = (S.patrimonios || []).filter(function(p) { return p.id !== id; });
   salvar();
   renderPatrimonio();
