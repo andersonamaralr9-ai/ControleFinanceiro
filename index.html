@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<!-- Cor da barra do navegador no mobile. O design-packs.js troca o content
+     conforme o visual escolhido; sem a tag ele nao tinha o que atualizar. -->
+<meta name="theme-color" content="#14151d">
 <title>Financeiro Pro v5.9</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="https://st3.depositphotos.com/11956860/18392/v/450/depositphotos_183927972-stock-illustration-logo-icon-communication-media-information.jpg">
@@ -983,7 +986,7 @@ function addInvest(){let nome=g('invNome').value.trim(),tipo=g('invTipo').value,
 function delInvest(id){if(!confirm('Excluir?'))return;let it=S.investimentos.find(x=>x.id===id);paraLixeira('investimento',it,null,it&&it.nome,it?`${it.tipo||'-'} · ${fmtV(it.valor)}`:'');markDeleted(id);S.investimentos=S.investimentos.filter(x=>x.id!==id);salvar();renderInvest();}
 
 const THEMES=[{id:'dark',nome:'Escuro',cor:'#1a1d27'},{id:'light',nome:'Claro',cor:'#f5f6fa'},{id:'midnight',nome:'Meia-Noite',cor:'#0f1528'},{id:'forest',nome:'Floresta',cor:'#0f1c15'},{id:'wine',nome:'Vinho',cor:'#1e1219'},{id:'coffee',nome:'Caf\u00e9',cor:'#1c1714'}];
-function renderConfig(){let html='';Object.keys(catLabels).forEach(tipo=>{let cats=S.cats[tipo]||[];html+=`<div class="form-section"><h3 style="margin-bottom:14px">${catLabels[tipo]}</h3><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">${cats.map(c=>`<span class="cat-tag">${c}<span class="x" onclick="delCat('${tipo}','${c.replace(/'/g,"\\'")}')">&times;</span></span>`).join('')}</div><div style="display:flex;gap:8px"><input id="newCat_${tipo}" class="form-control" placeholder="Nova categoria" style="max-width:200px"><button class="btn btn-sm ${tipo==='receita'?'btn-success':'btn-danger'}" onclick="addCat('${tipo}')">+</button></div></div>`;});g('configCatsArea').innerHTML=html;let cur=S.config.theme||'dark';g('themeGrid').innerHTML=THEMES.map(t=>`<div class="theme-opt ${t.id===cur?'sel':''}" onclick="setTheme('${t.id}')"><div class="dot" style="background:${t.cor}"></div>${t.nome}</div>`).join('');}
+function renderConfig(){let html='';Object.keys(catLabels).forEach(tipo=>{let cats=S.cats[tipo]||[];html+=`<div class="form-section"><h3 style="margin-bottom:14px">${catLabels[tipo]}</h3><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">${cats.map(c=>`<span class="cat-tag">${c}<span class="x" onclick="delCat('${tipo}','${c.replace(/'/g,"\\'")}')">&times;</span></span>`).join('')}</div><div style="display:flex;gap:8px"><input id="newCat_${tipo}" class="form-control" placeholder="Nova categoria" style="max-width:200px"><button class="btn btn-sm ${tipo==='receita'?'btn-success':'btn-danger'}" onclick="addCat('${tipo}')">+</button></div></div>`;});g('configCatsArea').innerHTML=html;let cur=S.config.theme||'dark';g('themeGrid').innerHTML=THEMES.map(t=>`<div class="theme-opt ${t.id===cur?'sel':''}" onclick="setTheme('${t.id}')"><div class="dot" style="background:${t.cor}"></div>${t.nome}</div>`).join('');runHooks('config');}
 function addCat(tipo){let inp=g('newCat_'+tipo);if(!inp)return;let v=inp.value.trim();if(!v)return;if(!S.cats[tipo])S.cats[tipo]=[];if(!S.cats[tipo].includes(v)){S.cats[tipo].push(v);salvar();renderConfig();}inp.value='';}
 function delCat(tipo,cat){if(!confirm('Remover "'+cat+'"?'))return;paraLixeira('categoria',cat,{catTipo:tipo},cat,'Categoria de '+tipo);S.cats[tipo]=(S.cats[tipo]||[]).filter(c=>c!==cat);salvar();renderConfig();}
 function setTheme(t){let keep=document.body.className.split(' ').filter(c=>!c.startsWith('theme-'));document.body.className=[...keep,'theme-'+t].join(' ').trim();S.config.theme=t;salvar();renderConfig();}
@@ -1023,14 +1026,14 @@ g('extAte').value=hojeStr();
 <script src="planejamento.js?v=4"></script>
 <script src="patrimonio.js?v=5"></script>
 <script src="cartoes-fix.js?v=3"></script>  <!-- NOVO -->
-<script src="design-packs.js"></script>
+<script src="design-packs.js?v=3"></script>
 <script src="resumo-enhanced.js?v=17"></script>
 <script src="mobile-global-fix.js?v=4"></script>
 <script src="assinaturas-enhanced.js?v=3"></script>
 <script src="contratos-enhanced.js?v=4"></script>    <!-- NOVO -->
 <script src="relatorios.js?v=8"></script>
 <script src="lixeira.js?v=1"></script>
-<script src="theme-persist.js"></script>
+<script src="theme-persist.js?v=2"></script>
 
 
 </body>

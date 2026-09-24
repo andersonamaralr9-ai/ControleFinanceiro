@@ -76,13 +76,17 @@ function restoreTheme(){
   }
 
   // Aplicar design pack
-  if(savedPack && savedPack !== 'classic'){
-    var packs = ['neon','glass','minimal','gradient'];
-    packs.forEach(function(p){
-      document.body.classList.remove('pack-' + p);
-    });
+  // Só os packs da v2 do design-packs.js. 'classic'/'atual' e os ids antigos
+  // (neon/glass/minimal/gradient) sao o visual base: nenhuma classe pack-*.
+  // Sem essa checagem, quem estivesse num pack antigo teria a classe
+  // re-adicionada aqui a cada restoreTheme, sem CSS correspondente, desfazendo
+  // a normalizacao que o design-packs.js faz.
+  var packs = ['grafite','bruma','noturno'];
+  packs.forEach(function(p){
+    document.body.classList.remove('pack-' + p);
+  });
+  if(savedPack && packs.indexOf(savedPack) >= 0){
     document.body.classList.add('pack-' + savedPack);
-
     if(typeof S !== 'undefined' && S && S.config){
       S.config.designPack = savedPack;
     }
