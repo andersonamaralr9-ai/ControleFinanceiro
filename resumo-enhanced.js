@@ -102,8 +102,14 @@ window.renderResumo = function() {
   h += '</div>';
 
   // --- SALDO HERO (destaque, estilo neobank) ---
+  // Quanto da receita do mes ja esta comprometida com despesas. O elemento
+  // fica sempre no DOM, mas so aparece nos visuais que o desenho previa
+  // (regra em app.css) — o visual Atual continua como foi aprovado.
+  var pctComp = rec > 0 ? Math.min(Math.round(desp / rec * 100), 100) : 0;
   h += '<div class="r-hero">';
   h += '<div><div class="r-hero-lbl">Saldo do mes</div><div class="r-hero-val">' + fmtV(sal) + '</div>';
+  h += '<div class="r-hero-prog"><div class="r-hero-prog-bg"><div class="r-hero-prog-fill" style="width:' + pctComp + '%"></div></div>';
+  h += '<span class="r-hero-prog-lbl">' + pctComp + '% da receita j&aacute; comprometida</span></div>';
   h += '<div class="r-hero-sub">Receitas ' + fmtV(rec) + ' &minus; Despesas ' + fmtV(desp) + '</div></div>';
   h += '<div><span class="r-hero-tag">' + mesNome(curMes) + '</span></div>';
   h += '</div>';
@@ -204,7 +210,9 @@ window.renderResumo = function() {
   g('topCats').innerHTML = tp.length ? tp.map(function(t, i) {
     var ic = catIcons[t[0]] || '💸';
     var cl = catColors[i % catColors.length];
-    return '<div class="rc-item"><div class="rc-ic" style="background:' + cl + '22">' + ic + '</div>' +
+    // data-rank permite que um visual mostre a posicao (01..05) no lugar do
+    // emoji, como nos desenhos, sem precisar de outro render.
+    return '<div class="rc-item"><div class="rc-ic" data-rank="' + ('0' + (i + 1)).slice(-2) + '" style="background:' + cl + '22">' + ic + '</div>' +
       '<div class="rc-body"><div class="rc-top"><span class="rc-name">' + t[0] + '</span><span class="rc-val" style="color:' + cl + '">' + fmtV(t[1]) + '</span></div>' +
       '<div class="rc-bar-bg"><div class="rc-bar-fill" style="background:' + cl + ';width:' + (t[1] / mC) * 100 + '%"></div></div></div></div>';
   }).join('') : '<p style="color:var(--tx3)">Sem despesas</p>';
@@ -292,7 +300,11 @@ window.renderResumoInvest = function() {
   dh += '<div class="ih-top"><div class="ih-title">Investimentos &mdash; ' + mesNomeFull(ma) + '</div><div class="ih-link" onclick="nav(\'investimentos\')">Ver detalhes &rarr;</div></div>';
   dh += '<div class="ih-grid">';
   dh += '<div class="ih-item"><div class="ih-lbl">Saldo Inicial</div><div class="ih-val" style="color:var(--inf2)">' + fmtV(saldoInicial) + '</div><div class="ih-sub">Abertura de ' + mesNome(ma) + '</div></div>';
-  dh += '<div class="ih-item"><div class="ih-lbl">Rentabilidade</div><div class="ih-val" style="color:' + rentColor + '">' + (rentMes >= 0 ? '+' : '') + fmtV(rentMes) + '</div><div class="ih-sub">Aportes ' + fmtV(aporteMes) + ' &middot; Resgates ' + fmtV(resgateMes) + '</div></div>';
+  dh += '<div class="ih-item"><div class="ih-lbl">Rentabilidade</div><div class="ih-val" style="color:' + rentColor + '">' + (rentMes >= 0 ? '+' : '') + fmtV(rentMes) + '</div><div class="ih-sub">' + (saldoInicial > 0 ? (rentMes / saldoInicial * 100).toFixed(2).replace('.', ',') + '% no m&ecirc;s' : '&mdash;') + '</div></div>';
+  // Aportes/resgates em coluna propria (nos tres desenhos e uma coluna, nao
+  // um subtitulo da rentabilidade).
+  var nMov = (aporteMes ? 1 : 0) + (resgateMes ? 1 : 0);
+  dh += '<div class="ih-item"><div class="ih-lbl">Aportes / Resgates</div><div class="ih-val">' + fmtV(aporteMes) + ' / ' + fmtV(resgateMes) + '</div><div class="ih-sub">' + nMov + ' movimenta&ccedil;' + (nMov === 1 ? '&atilde;o' : '&otilde;es') + '</div></div>';
   dh += '<div class="ih-item"><div class="ih-lbl">Saldo Fechamento</div><div class="ih-val" style="color:var(--pri2)">' + fmtV(saldoFechamento) + '</div><div class="ih-sub" style="color:' + salColor + '">' + (diff >= 0 ? '+' : '') + fmtV(diff) + ' no mes</div></div>';
   dh += '</div></div>';
 

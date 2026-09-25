@@ -67,6 +67,63 @@ body.pack-grafite .modal-content{background:#111215!important;border:1px solid #
    branco fixo. Com acento claro (ambar) o branco fica ilegivel — medido 1,76:1.
    Mesmo tratamento do .btn-primary deste pack: texto escuro sobre o acento. */
 body.pack-grafite .ivt-btn.on,body.pack-grafite .inv-af-pill.on{color:#0b0c0e!important}
+
+/* ── Trilho de icones (desenho do Grafite) ───────────────────────────
+   A sidebar de 240px vira uma coluna de 68px com codigos de 2 letras.
+   O rotulo textual e o emoji saem; o codigo entra por ::after, por id,
+   para nao precisar mudar a marcacao compartilhada com os outros visuais. */
+@media(min-width:769px){
+  body.pack-grafite .sidebar{width:68px!important;padding:14px 0!important;align-items:center!important;overflow-x:hidden!important}
+  body.pack-grafite .main{margin-left:68px!important}
+  body.pack-grafite .sidebar .group-label,
+  body.pack-grafite .sidebar .sb-name,
+  body.pack-grafite .sidebar .sync-bar span:last-child,
+  body.pack-grafite .sidebar a .nav-ic,
+  body.pack-grafite .sidebar a span:not(.nav-ic){display:none!important}
+  body.pack-grafite .sidebar-brand{justify-content:center!important;padding:0 0 12px!important;border:none!important}
+  body.pack-grafite .sb-logo{width:38px!important;height:38px!important;border-radius:10px!important;background:#ffb547!important;color:#0b0c0e!important;font-weight:700!important}
+  body.pack-grafite .sidebar a{width:38px!important;height:34px!important;min-height:34px!important;margin:3px auto!important;padding:0!important;border-radius:9px!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:0!important;font-size:11px!important;font-weight:500!important;letter-spacing:.04em!important;color:#85868f!important;background:none!important}
+  body.pack-grafite .sidebar a.active{background:#ffb547!important;color:#0b0c0e!important;font-weight:600!important}
+  body.pack-grafite .sidebar a::after{content:attr(data-rail)}
+  body.pack-grafite .sidebar .sync-bar{justify-content:center!important;padding:10px 0!important}
+}
+
+/* ── Saldo na mesma linha dos 3 indicadores (desenho) ──
+   No layout base o .r-hero ocupa a largura toda e os 3 cards vem abaixo.
+   O desenho poe os quatro lado a lado. Em vez de mexer no render, o #resWrap
+   vira a grade e o .rg-main usa display:contents, entregando seus 3 cards
+   direto para essa grade. */
+@media(min-width:769px){
+  body.pack-grafite #resWrap{display:grid!important;grid-template-columns:1.25fr 1fr 1fr 1fr!important;gap:12px!important;align-items:stretch!important}
+  body.pack-grafite #resWrap>.rq-row{grid-column:1/-1!important}
+  body.pack-grafite #resWrap>.r-hero{margin-bottom:0!important}
+  body.pack-grafite #resWrap>.rg-main{display:contents!important}
+}
+
+/* ── Hero com barra de comprometimento (desenho) ── */
+body.pack-grafite .r-hero{flex-direction:column!important;align-items:stretch!important;gap:4px!important;padding:18px 20px!important}
+body.pack-grafite .r-hero-val{font-family:'Geist Mono',monospace!important;font-size:2.1em!important;font-weight:500!important}
+body.pack-grafite .r-hero-prog{display:flex!important}
+body.pack-grafite .r-hero-prog-bg{background:#26272d!important}
+body.pack-grafite .r-hero-prog-fill{background:#5fd4a0!important}
+body.pack-grafite .r-hero-prog-lbl{color:#85868f!important}
+body.pack-grafite .r-hero-sub{display:none!important}
+body.pack-grafite .r-hero-tag{align-self:flex-start!important}
+
+/* ── Top categorias: posicao no lugar do emoji (desenho) ── */
+body.pack-grafite .rc-ic{background:transparent!important;font-size:0!important;width:auto!important;min-width:22px!important}
+body.pack-grafite .rc-ic::before{content:attr(data-rank);font-family:'Geist Mono',monospace;font-size:11px;color:#85868f}
+body.pack-grafite .rc-bar-fill{background:#ffb547!important}
+
+/* ── Faixa de investimentos ── */
+body.pack-grafite .ih-card{background:#111215!important;border:1px solid #1e1f24!important}
+body.pack-grafite .ih-lbl{color:#85868f!important}
+body.pack-grafite .ih-val{font-family:'Geist Mono',monospace!important;font-weight:500!important}
+/* O render crava cor inline (azul/roxo) nesses valores; no desenho so a
+   rentabilidade tem cor, o resto e neutro. */
+body.pack-grafite .ih-item:nth-child(1) .ih-val,
+body.pack-grafite .ih-item:nth-child(3) .ih-val,
+body.pack-grafite .ih-item:nth-child(4) .ih-val{color:var(--tx)!important}
 `;
 
 packCSS.bruma = base('bruma') + `
@@ -167,6 +224,28 @@ styleEl.id = 'design-pack-styles';
 styleEl.textContent = Object.keys(packCSS).map(function(k){ return packCSS[k]; }).join('\n') + selCSS;
 if(!styleEl.parentNode) document.head.appendChild(styleEl);
 
+// ── Codigos do trilho de icones (Grafite) ──
+// O CSS le data-rail via attr(). Fica no JS porque os links de Relatorios,
+// Lixeira e Check de Pagamentos sao criados pelos proprios modulos: assim
+// qualquer pagina nova ganha um codigo sem precisar editar o CSS.
+var RAIL = {
+  resumo:'RE', lancs:'LA', contratos:'CO', extrato:'EX', balancete:'BA',
+  cartoes:'CA', compras:'CP', assinaturas:'AS', planejamento:'PL',
+  investimentos:'IN', patrimonio:'PA', relatorios:'RL', lixeira:'LX',
+  checkpag:'CK', extratocat:'XC', config:'CF', backup:'BK'
+};
+function marcaTrilho(){
+  var sb = document.getElementById('sidebar');
+  if(!sb) return;
+  sb.querySelectorAll('a[id^="nav-"]').forEach(function(a){
+    // minusculas: os ids nao seguem um padrao unico (ha 'nav-extratoCat'),
+    // e sem isso ele caia no fallback e repetia o 'EX' do Extrato.
+    var chave = a.id.replace('nav-', '').toLowerCase();
+    a.setAttribute('data-rail', RAIL[chave] || chave.substring(0, 2).toUpperCase());
+    if(!a.getAttribute('title')) a.setAttribute('title', (a.textContent || '').trim());
+  });
+}
+
 // ── Aplicar ──
 function aplica(id){
   id = normaliza(id);
@@ -175,6 +254,7 @@ function aplica(id){
   document.body.className = keep.join(' ');
   var meta = document.querySelector('meta[name="theme-color"]');
   if(meta) meta.setAttribute('content', { atual:'#14151d', grafite:'#0b0c0e', bruma:'#eef0ec', noturno:'#0e1726' }[id]);
+  marcaTrilho();
   return id;
 }
 
