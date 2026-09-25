@@ -27,6 +27,10 @@ if(!document.getElementById('dp-fonts')){
 
 // Base comum aos packs novos: sem gradientes, cores fixas do JS viram tokens.
 function base(p){ return `
+/* O icone do item ativo tinha cor propria (var(--pri2)); dependendo de qual
+   regra de fundo vencia a cascata, ele ficava quase invisivel. Herdando a cor
+   do link, acompanha sempre o texto — que ja e legivel sobre aquele fundo. */
+body.pack-${p} .sidebar a.active .nav-ic{color:inherit!important;opacity:1!important}
 body.pack-${p} .r-hero-val,body.pack-${p} .rc6-val,body.pack-${p} .ih-val,body.pack-${p} .card-value{font-variant-numeric:tabular-nums}
 body.pack-${p} [style*="#e65100"]{color:var(--wn)!important}
 body.pack-${p} [style*="#e6510022"]{background:var(--bg3)!important}
@@ -66,7 +70,7 @@ body.pack-grafite .modal-content{background:#111215!important;border:1px solid #
 /* Pills "ativos" da tela de Investimentos usam var(--pri) de fundo com texto
    branco fixo. Com acento claro (ambar) o branco fica ilegivel — medido 1,76:1.
    Mesmo tratamento do .btn-primary deste pack: texto escuro sobre o acento. */
-body.pack-grafite .ivt-btn.on,body.pack-grafite .inv-af-pill.on{color:#0b0c0e!important}
+body.pack-grafite .ivt-btn.on,body.pack-grafite .inv-af-pill.on,body.pack-grafite .inv-integ-btn{color:#0b0c0e!important}
 
 /* ── Sidebar ──────────────────────────────────────────────────────────
    Mantem a largura e os nomes completos: so a marca e o item ativo seguem
@@ -192,6 +196,35 @@ body.pack-bruma .rc-ic{background:#f4f5f2!important;font-size:0!important;border
 body.pack-bruma .rc-ic::before{content:attr(data-rank);font-family:'Spline Sans Mono',monospace;font-size:11px;color:#4a524e}
 body.pack-bruma .rc-bar-bg{background:#eef0ec!important}
 body.pack-bruma .rc-bar-fill{background:#0f766e!important}
+
+/* ── Branco demais fora do Resumo ─────────────────────────────────────
+   O desenho e da tela inicial, onde o card escuro do saldo e a faixa menta
+   quebram o branco. Nas demais telas sobram grandes superficies brancas sem
+   borda (tabelas, formularios, relatorios) que se fundem num bloco so.
+   Aqui a aresta volta, a tabela ganha faixa zebrada e os blocos de apoio
+   usam o cinza-verde do fundo. O Resumo continua sem borda, como desenhado. */
+body.pack-bruma .table-wrap,
+body.pack-bruma .form-section,
+body.pack-bruma .rel-area,
+body.pack-bruma .sub-box,
+body.pack-bruma .cc-card,
+body.pack-bruma .chart-box,
+body.pack-bruma .lix-item,
+body.pack-bruma .rel-inv-bloco,
+body.pack-bruma .modal-content{border:1px solid #e1e5df!important}
+body.pack-bruma #pg-resumo .rc6,
+body.pack-bruma #pg-resumo .chart-box,
+body.pack-bruma #pg-resumo .card{border:none!important}
+/* tabela longa deixa de ser uma parede branca */
+body.pack-bruma tbody tr:nth-child(even) td{background:#f7f8f6!important}
+body.pack-bruma tbody tr:hover td{background:#eaeee9!important}
+body.pack-bruma th{border-bottom:1px solid #e1e5df!important}
+/* blocos de apoio saem do branco puro */
+body.pack-bruma .rel-mc,
+body.pack-bruma .lix-aviso,
+body.pack-bruma .rel-analysis,
+body.pack-bruma .rel-inv-bloco{background:#f4f5f2!important}
+body.pack-bruma .rel-inv-bloco .rel-mc{background:#fff!important;border:1px solid #e9ece7!important}
 `;
 
 packCSS.noturno = base('noturno') + `
@@ -228,28 +261,13 @@ body.pack-noturno .modal-content{background:#142035!important;border:1px solid #
 /* Mesmo caso do Grafite: acento dourado com texto branco fixo dava 2,02:1. */
 body.pack-noturno .ivt-btn.on,body.pack-noturno .inv-af-pill.on{color:#0e1726!important}
 
-/* ── Navegacao no topo (desenho) ─────────────────────────────────────
-   A sidebar fixa vira uma barra horizontal. Os rotulos continuam por
-   extenso; some so o agrupamento vertical, que nao cabe em linha.
-   So a partir de 769px: no mobile a sidebar off-canvas continua valendo. */
-@media(min-width:769px){
-  body.pack-noturno .sidebar{position:static!important;width:100%!important;height:auto!important;flex-direction:row!important;align-items:center!important;gap:6px!important;padding:14px 30px!important;overflow:visible!important;background:#0e1726!important;border-right:none!important;border-bottom:1px solid #d4b26a!important;transform:none!important}
-  /* o body e flex-row por causa da sidebar fixa; em barra no topo vira bloco */
-  body.pack-noturno{display:block!important}
-  body.pack-noturno .main{margin-left:0!important}
-  body.pack-noturno .sidebar .group-label,
-  body.pack-noturno .sidebar .sync-bar,
-  body.pack-noturno .sidebar a .nav-ic{display:none!important}
-  body.pack-noturno .sidebar-brand{padding:0 26px 0 0!important;border:none!important;flex-shrink:0!important}
-  body.pack-noturno .sb-logo{display:none!important}
-  body.pack-noturno .sb-name{display:block!important;font-family:'Bodoni Moda',serif!important;font-style:italic!important;font-size:1.3em!important;color:#eae6dc!important}
-  body.pack-noturno .sidebar a{padding:5px 0!important;margin:0 9px!important;min-height:0!important;font-size:.68em!important;letter-spacing:.1em!important;text-transform:uppercase!important;color:#8d97a8!important;background:none!important;white-space:nowrap!important}
-  body.pack-noturno .sidebar a.active{color:#eae6dc!important;background:none!important;border:none!important}
-  /* O desenho tem 7 destinos e um "Mais"; o app tem 17, que somam ~1967px e
-     nao cabem em 1280. Sem o menu de excedente, a barra quebra em duas
-     linhas — melhor que empurrar scroll horizontal para a pagina inteira. */
-  body.pack-noturno .sidebar{flex-wrap:wrap!important;row-gap:2px!important}
-}
+/* ── Barra lateral ────────────────────────────────────────────────────
+   O desenho trazia a navegacao numa barra no topo, mas com 17 destinos
+   (contra os 7 desenhados) ela quebrava em duas linhas. Mantida a lateral,
+   como nos demais visuais: marca em serifa e item ativo com filete dourado. */
+body.pack-noturno .sb-name{font-family:'Bodoni Moda',serif!important;font-style:italic!important;letter-spacing:0!important}
+body.pack-noturno .sb-logo{background:transparent!important;border:1px solid #d4b26a!important;color:#d4b26a!important}
+body.pack-noturno .sidebar a{letter-spacing:.06em!important}
 
 /* ── Saldo e indicadores na mesma linha, como no desenho ── */
 @media(min-width:769px){
@@ -262,7 +280,8 @@ body.pack-noturno .ivt-btn.on,body.pack-noturno .inv-af-pill.on{color:#0e1726!im
 /* ── Hero: numero em serifa, centavos reduzidos, sem caixa ── */
 body.pack-noturno .r-hero{background:transparent!important;border:none!important;border-bottom:1px solid #2a3850!important;border-radius:0!important;padding:4px 0 20px!important;box-shadow:none!important;align-items:flex-end!important}
 body.pack-noturno .r-hero-lbl{letter-spacing:.16em!important;color:#8d97a8!important}
-body.pack-noturno .r-hero-val{font-family:'Bodoni Moda',serif!important;font-size:3.4em!important;font-weight:400!important;line-height:1!important;color:#eae6dc!important}
+/* nowrap: em 3.4em o "R$" caia numa linha e o numero na seguinte */
+body.pack-noturno .r-hero-val{font-family:'Bodoni Moda',serif!important;font-size:3.1em!important;font-weight:400!important;line-height:1.05!important;color:#eae6dc!important;white-space:nowrap!important}
 /* os centavos entram menores, como no desenho */
 body.pack-noturno .r-hero-val .cent{font-size:.45em!important;color:#c3c8d2!important}
 body.pack-noturno .r-hero-sub{color:#8d97a8!important}

@@ -696,7 +696,9 @@ tr{transition:background .12s}
 /* ── INTEGRAÇÃO INVEST ↔ LANÇ ── */
 
 .inv-integ-btn{
-  background:linear-gradient(135deg,#6c5ce7,#a29bfe);
+  /* usa o token, nao o roxo cravado: assim o botao acompanha o visual
+     escolhido em vez de ficar roxo no Grafite, Bruma e Noturno */
+  background:var(--priG);
   color:#fff;border:none;border-radius:8px;
   padding:10px 20px;font-size:.83em;font-weight:600;
   cursor:pointer;transition:all .2s;
