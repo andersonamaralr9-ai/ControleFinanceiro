@@ -107,7 +107,11 @@ window.renderResumo = function() {
   // (regra em app.css) — o visual Atual continua como foi aprovado.
   var pctComp = rec > 0 ? Math.min(Math.round(desp / rec * 100), 100) : 0;
   h += '<div class="r-hero">';
-  h += '<div><div class="r-hero-lbl">Saldo do mes</div><div class="r-hero-val">' + fmtV(sal) + '</div>';
+  // Centavos num span proprio: o visual Noturno os desenha menores que os
+  // reais. Sem estilo proprio, .cent nao muda nada nos outros visuais.
+  var salFmt = fmtV(sal), iVir = salFmt.lastIndexOf(',');
+  if(iVir > -1) salFmt = salFmt.slice(0, iVir) + '<span class="cent">' + salFmt.slice(iVir) + '</span>';
+  h += '<div><div class="r-hero-lbl">Saldo do mes</div><div class="r-hero-val">' + salFmt + '</div>';
   h += '<div class="r-hero-prog"><div class="r-hero-prog-bg"><div class="r-hero-prog-fill" style="width:' + pctComp + '%"></div></div>';
   h += '<span class="r-hero-prog-lbl">' + pctComp + '% da receita j&aacute; comprometida</span></div>';
   h += '<div class="r-hero-sub">Receitas ' + fmtV(rec) + ' &minus; Despesas ' + fmtV(desp) + '</div></div>';

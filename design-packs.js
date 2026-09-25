@@ -68,25 +68,11 @@ body.pack-grafite .modal-content{background:#111215!important;border:1px solid #
    Mesmo tratamento do .btn-primary deste pack: texto escuro sobre o acento. */
 body.pack-grafite .ivt-btn.on,body.pack-grafite .inv-af-pill.on{color:#0b0c0e!important}
 
-/* ── Trilho de icones (desenho do Grafite) ───────────────────────────
-   A sidebar de 240px vira uma coluna de 68px com codigos de 2 letras.
-   O rotulo textual e o emoji saem; o codigo entra por ::after, por id,
-   para nao precisar mudar a marcacao compartilhada com os outros visuais. */
-@media(min-width:769px){
-  body.pack-grafite .sidebar{width:68px!important;padding:14px 0!important;align-items:center!important;overflow-x:hidden!important}
-  body.pack-grafite .main{margin-left:68px!important}
-  body.pack-grafite .sidebar .group-label,
-  body.pack-grafite .sidebar .sb-name,
-  body.pack-grafite .sidebar .sync-bar span:last-child,
-  body.pack-grafite .sidebar a .nav-ic,
-  body.pack-grafite .sidebar a span:not(.nav-ic){display:none!important}
-  body.pack-grafite .sidebar-brand{justify-content:center!important;padding:0 0 12px!important;border:none!important}
-  body.pack-grafite .sb-logo{width:38px!important;height:38px!important;border-radius:10px!important;background:#ffb547!important;color:#0b0c0e!important;font-weight:700!important}
-  body.pack-grafite .sidebar a{width:38px!important;height:34px!important;min-height:34px!important;margin:3px auto!important;padding:0!important;border-radius:9px!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:0!important;font-size:11px!important;font-weight:500!important;letter-spacing:.04em!important;color:#85868f!important;background:none!important}
-  body.pack-grafite .sidebar a.active{background:#ffb547!important;color:#0b0c0e!important;font-weight:600!important}
-  body.pack-grafite .sidebar a::after{content:attr(data-rail)}
-  body.pack-grafite .sidebar .sync-bar{justify-content:center!important;padding:10px 0!important}
-}
+/* ── Sidebar ──────────────────────────────────────────────────────────
+   Mantem a largura e os nomes completos: so a marca e o item ativo seguem
+   o acento do pack. (O desenho trazia um trilho de 2 letras; abreviar o
+   menu foi recusado.) */
+body.pack-grafite .sb-logo{background:#ffb547!important;color:#0b0c0e!important}
 
 /* ── Saldo na mesma linha dos 3 indicadores (desenho) ──
    No layout base o .r-hero ocupa a largura toda e os 3 cards vem abaixo.
@@ -167,6 +153,45 @@ body.pack-bruma .modal-content{background:#fff!important;border:none!important;b
    texto passa a ser escuro. */
 body.pack-bruma .cat-badge{color:var(--tx)!important}
 body.pack-bruma .rc-val{color:var(--tx)!important}
+
+/* ── Sidebar em pilulas (desenho) ── */
+body.pack-bruma .sidebar a{border-radius:12px!important;margin:1px 10px!important}
+body.pack-bruma .sb-logo{background:#0f766e!important;color:#fff!important;border-radius:9px!important}
+
+/* ── Saldo na mesma linha dos 3 cards (desenho) ── */
+@media(min-width:769px){
+  body.pack-bruma #resWrap{display:grid!important;grid-template-columns:1.15fr 1fr 1fr 1fr!important;gap:12px!important;align-items:stretch!important}
+  body.pack-bruma #resWrap>.rq-row{grid-column:1/-1!important}
+  body.pack-bruma #resWrap>.r-hero{margin-bottom:0!important}
+  body.pack-bruma #resWrap>.rg-main{display:contents!important}
+}
+
+/* ── Card de saldo escuro sobre fundo claro (desenho) ── */
+body.pack-bruma .r-hero{background:#1d2320!important;border-radius:20px!important;flex-direction:column!important;align-items:stretch!important;gap:6px!important;padding:20px 22px!important;box-shadow:none!important}
+body.pack-bruma .r-hero *{color:#fff!important}
+body.pack-bruma .r-hero-val{font-size:2.1em!important;font-weight:700!important}
+body.pack-bruma .r-hero-prog{display:flex!important}
+body.pack-bruma .r-hero-prog-bg{background:rgba(255,255,255,.18)!important}
+body.pack-bruma .r-hero-prog-fill{background:#7fd4bd!important}
+body.pack-bruma .r-hero-prog-lbl{color:#c9d2cd!important}
+body.pack-bruma .r-hero-sub{display:none!important}
+body.pack-bruma .r-hero-tag{align-self:flex-start!important;background:rgba(255,255,255,.14)!important}
+
+/* ── Faixa de investimentos em menta, com cartoes brancos dentro ── */
+body.pack-bruma .ih-card{background:#d6ebe4!important;border:none!important;border-radius:20px!important}
+body.pack-bruma .ih-item{background:#fff!important;border-radius:14px!important;padding:14px 16px!important}
+body.pack-bruma .ih-lbl{color:#4a524e!important}
+body.pack-bruma .ih-val{font-family:'Spline Sans Mono',monospace!important;font-weight:500!important}
+body.pack-bruma .ih-item:nth-child(1) .ih-val,
+body.pack-bruma .ih-item:nth-child(3) .ih-val,
+body.pack-bruma .ih-item:nth-child(4) .ih-val{color:var(--tx)!important}
+body.pack-bruma .ih-title{color:#0b3a35!important}
+
+/* ── Ranking numerado no lugar do emoji (desenho) ── */
+body.pack-bruma .rc-ic{background:#f4f5f2!important;font-size:0!important;border-radius:8px!important}
+body.pack-bruma .rc-ic::before{content:attr(data-rank);font-family:'Spline Sans Mono',monospace;font-size:11px;color:#4a524e}
+body.pack-bruma .rc-bar-bg{background:#eef0ec!important}
+body.pack-bruma .rc-bar-fill{background:#0f766e!important}
 `;
 
 packCSS.noturno = base('noturno') + `
@@ -202,6 +227,72 @@ body.pack-noturno .form-control:focus{border-color:#d4b26a!important;box-shadow:
 body.pack-noturno .modal-content{background:#142035!important;border:1px solid #d4b26a!important;border-radius:2px!important}
 /* Mesmo caso do Grafite: acento dourado com texto branco fixo dava 2,02:1. */
 body.pack-noturno .ivt-btn.on,body.pack-noturno .inv-af-pill.on{color:#0e1726!important}
+
+/* ── Navegacao no topo (desenho) ─────────────────────────────────────
+   A sidebar fixa vira uma barra horizontal. Os rotulos continuam por
+   extenso; some so o agrupamento vertical, que nao cabe em linha.
+   So a partir de 769px: no mobile a sidebar off-canvas continua valendo. */
+@media(min-width:769px){
+  body.pack-noturno .sidebar{position:static!important;width:100%!important;height:auto!important;flex-direction:row!important;align-items:center!important;gap:6px!important;padding:14px 30px!important;overflow:visible!important;background:#0e1726!important;border-right:none!important;border-bottom:1px solid #d4b26a!important;transform:none!important}
+  /* o body e flex-row por causa da sidebar fixa; em barra no topo vira bloco */
+  body.pack-noturno{display:block!important}
+  body.pack-noturno .main{margin-left:0!important}
+  body.pack-noturno .sidebar .group-label,
+  body.pack-noturno .sidebar .sync-bar,
+  body.pack-noturno .sidebar a .nav-ic{display:none!important}
+  body.pack-noturno .sidebar-brand{padding:0 26px 0 0!important;border:none!important;flex-shrink:0!important}
+  body.pack-noturno .sb-logo{display:none!important}
+  body.pack-noturno .sb-name{display:block!important;font-family:'Bodoni Moda',serif!important;font-style:italic!important;font-size:1.3em!important;color:#eae6dc!important}
+  body.pack-noturno .sidebar a{padding:5px 0!important;margin:0 9px!important;min-height:0!important;font-size:.68em!important;letter-spacing:.1em!important;text-transform:uppercase!important;color:#8d97a8!important;background:none!important;white-space:nowrap!important}
+  body.pack-noturno .sidebar a.active{color:#eae6dc!important;background:none!important;border:none!important}
+  /* O desenho tem 7 destinos e um "Mais"; o app tem 17, que somam ~1967px e
+     nao cabem em 1280. Sem o menu de excedente, a barra quebra em duas
+     linhas — melhor que empurrar scroll horizontal para a pagina inteira. */
+  body.pack-noturno .sidebar{flex-wrap:wrap!important;row-gap:2px!important}
+}
+
+/* ── Saldo e indicadores na mesma linha, como no desenho ── */
+@media(min-width:769px){
+  body.pack-noturno #resWrap{display:grid!important;grid-template-columns:1.2fr 1fr 1fr 1fr!important;gap:0!important;align-items:start!important}
+  body.pack-noturno #resWrap>.rq-row{grid-column:1/-1!important}
+  body.pack-noturno #resWrap>.r-hero{margin-bottom:0!important;padding-right:26px!important}
+  body.pack-noturno #resWrap>.rg-main{display:contents!important}
+}
+
+/* ── Hero: numero em serifa, centavos reduzidos, sem caixa ── */
+body.pack-noturno .r-hero{background:transparent!important;border:none!important;border-bottom:1px solid #2a3850!important;border-radius:0!important;padding:4px 0 20px!important;box-shadow:none!important;align-items:flex-end!important}
+body.pack-noturno .r-hero-lbl{letter-spacing:.16em!important;color:#8d97a8!important}
+body.pack-noturno .r-hero-val{font-family:'Bodoni Moda',serif!important;font-size:3.4em!important;font-weight:400!important;line-height:1!important;color:#eae6dc!important}
+/* os centavos entram menores, como no desenho */
+body.pack-noturno .r-hero-val .cent{font-size:.45em!important;color:#c3c8d2!important}
+body.pack-noturno .r-hero-sub{color:#8d97a8!important}
+body.pack-noturno .r-hero-prog{display:flex!important;max-width:420px!important}
+body.pack-noturno .r-hero-prog-bg{background:#2a3850!important;height:2px!important;border-radius:0!important}
+body.pack-noturno .r-hero-prog-fill{background:#d4b26a!important;border-radius:0!important}
+body.pack-noturno .r-hero-prog-lbl{color:#8d97a8!important}
+body.pack-noturno .r-hero-tag{background:transparent!important;border:1px solid #d4b26a!important;color:#d4b26a!important;border-radius:2px!important}
+
+/* ── Indicadores separados por filete, sem caixa (desenho) ── */
+body.pack-noturno .rc6{border-left:1px solid #2a3850!important;border-top:none!important;border-right:none!important;border-bottom:none!important;border-radius:0!important}
+body.pack-noturno .rc6-val{font-family:'Bodoni Moda',serif!important;font-weight:400!important}
+body.pack-noturno .rc6-lbl{letter-spacing:.14em!important}
+
+/* ── Carteira: caixa com borda dourada ── */
+body.pack-noturno .ih-card{background:transparent!important;border:1px solid #d4b26a!important;border-radius:0!important}
+body.pack-noturno .ih-item{border-left:1px solid #2a3850!important;padding-left:18px!important}
+body.pack-noturno .ih-item:first-child{border-left:none!important;padding-left:0!important}
+body.pack-noturno .ih-lbl{letter-spacing:.14em!important;text-transform:uppercase!important}
+body.pack-noturno .ih-val{font-family:'Bodoni Moda',serif!important;font-weight:400!important}
+body.pack-noturno .ih-item:nth-child(1) .ih-val,
+body.pack-noturno .ih-item:nth-child(3) .ih-val,
+body.pack-noturno .ih-item:nth-child(4) .ih-val{color:var(--tx)!important}
+body.pack-noturno .ih-title{font-family:'Bodoni Moda',serif!important;font-style:italic!important;font-size:1.2em!important}
+
+/* ── Maiores despesas: filetes, numeros em serifa, sem barra ── */
+body.pack-noturno .rc-ic{display:none!important}
+body.pack-noturno .rc-bar-bg{display:none!important}
+body.pack-noturno .rc-item{border-bottom:1px solid #2a3850!important;padding:12px 0!important}
+body.pack-noturno .rc-val{font-family:'Bodoni Moda',serif!important;font-size:1.25em!important;color:var(--tx)!important}
 `;
 
 // ── Seletor (Configurações) ──
@@ -224,28 +315,6 @@ styleEl.id = 'design-pack-styles';
 styleEl.textContent = Object.keys(packCSS).map(function(k){ return packCSS[k]; }).join('\n') + selCSS;
 if(!styleEl.parentNode) document.head.appendChild(styleEl);
 
-// ── Codigos do trilho de icones (Grafite) ──
-// O CSS le data-rail via attr(). Fica no JS porque os links de Relatorios,
-// Lixeira e Check de Pagamentos sao criados pelos proprios modulos: assim
-// qualquer pagina nova ganha um codigo sem precisar editar o CSS.
-var RAIL = {
-  resumo:'RE', lancs:'LA', contratos:'CO', extrato:'EX', balancete:'BA',
-  cartoes:'CA', compras:'CP', assinaturas:'AS', planejamento:'PL',
-  investimentos:'IN', patrimonio:'PA', relatorios:'RL', lixeira:'LX',
-  checkpag:'CK', extratocat:'XC', config:'CF', backup:'BK'
-};
-function marcaTrilho(){
-  var sb = document.getElementById('sidebar');
-  if(!sb) return;
-  sb.querySelectorAll('a[id^="nav-"]').forEach(function(a){
-    // minusculas: os ids nao seguem um padrao unico (ha 'nav-extratoCat'),
-    // e sem isso ele caia no fallback e repetia o 'EX' do Extrato.
-    var chave = a.id.replace('nav-', '').toLowerCase();
-    a.setAttribute('data-rail', RAIL[chave] || chave.substring(0, 2).toUpperCase());
-    if(!a.getAttribute('title')) a.setAttribute('title', (a.textContent || '').trim());
-  });
-}
-
 // ── Aplicar ──
 function aplica(id){
   id = normaliza(id);
@@ -254,7 +323,6 @@ function aplica(id){
   document.body.className = keep.join(' ');
   var meta = document.querySelector('meta[name="theme-color"]');
   if(meta) meta.setAttribute('content', { atual:'#14151d', grafite:'#0b0c0e', bruma:'#eef0ec', noturno:'#0e1726' }[id]);
-  marcaTrilho();
   return id;
 }
 
