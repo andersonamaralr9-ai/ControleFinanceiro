@@ -175,6 +175,16 @@ mês) → aportes/resgates/rentabilidade do mês → fechamento.
 - **590 KB sem minificação**, 20 scripts sequenciais. Só pesa em 3G.
 - **Sem importação de OFX/CSV** — decisão do usuário: ele lança conforme
   gasta, para ter noção do limite em tempo real. Não sugerir de novo.
+- **Ler o Wallet do iPhone não é possível** (avaliado em set/2026). Três
+  motivos, do mais decisivo ao menos: (1) isto é uma página web estática —
+  não existe permissão de navegador para acessar o Wallet; (2) mesmo em app
+  nativo a Apple não expõe compras do Apple Pay, o PassKit só *adiciona*
+  cartões; (3) o FinanceKit (iOS 17.4+) lê transações, mas só de Apple Card,
+  Apple Cash e poupança da Apple, em app nativo e com autorização caso a
+  caso — e **Apple Card não existe no Brasil**. O que está no Wallet aqui são
+  tokens dos cartões dos bancos, cujas transações ficam no banco.
+  Conciliar por extrato exportado seria viável, mas esbarra na decisão
+  acima; só retomar se o usuário pedir.
 
 ---
 
