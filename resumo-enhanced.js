@@ -93,12 +93,19 @@ window.renderResumo = function() {
 
   var h = '<div id="resWrap">';
 
-  // Quick actions (discreet)
+  // Acoes rapidas.
+  // Eram <div onclick> com a classe propria .rq-btn: nao recebiam foco pelo
+  // teclado (Tab pulava), nao eram anunciados como botao, e .rq-btn era um
+  // sistema de botao paralelo que cada visual precisava remendar junto do
+  // .btn-primary — por isso destoavam do resto do app. Agora sao <button>
+  // com as classes de botao do proprio app, entao herdam o tratamento de
+  // cada tema sem nenhuma regra extra.
+  var icoA = typeof iconeSVG === 'function' ? iconeSVG : function(){ return ''; };
   h += '<div class="rq-row">';
-  h += '<div class="rq-btn" onclick="nav(\'checkpag\')">&#9989; Check pagamentos</div>';
+  h += '<button type="button" class="btn btn-outline btn-ico" onclick="nav(\'checkpag\')">' + icoA('checkpag') + 'Check de pagamentos</button>';
   // Abre direto o modal (o modal vive no body, nao dentro de #pg-lancs),
   // para lancar sem sair do Resumo.
-  h += '<div class="rq-btn primary" onclick="abrirNovoLanc()">&#65291; Lançar</div>';
+  h += '<button type="button" class="btn btn-primary btn-ico" onclick="abrirNovoLanc()">' + icoA('mais') + 'Lan&ccedil;ar</button>';
   h += '</div>';
 
   // --- SALDO HERO (destaque, estilo neobank) ---

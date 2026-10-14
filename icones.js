@@ -56,7 +56,9 @@ var ICONES = {
   // lixeira
   lixeira: svg('<path d="M4 7h16M9.5 7V5h5v2M6.5 7l.8 13h9.4l.8-13"/><path d="M10.5 11v5M13.5 11v5"/>'),
   // nuvem
-  backup: svg('<path d="M7 18a4 4 0 0 1-.4-8 5.5 5.5 0 0 1 10.6 1.1A3.5 3.5 0 0 1 17 18z"/>')
+  backup: svg('<path d="M7 18a4 4 0 0 1-.4-8 5.5 5.5 0 0 1 10.6 1.1A3.5 3.5 0 0 1 17 18z"/>'),
+  // acoes (fora do menu)
+  mais: svg('<path d="M12 5v14M5 12h14"/>')
 };
 
 function aplicar(){

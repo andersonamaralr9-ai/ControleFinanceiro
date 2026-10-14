@@ -59,7 +59,7 @@ body.pack-grafite .sidebar a.active::before{display:none!important}
 body.pack-grafite .r-hero{background:#17181c!important;border:1px solid #26272d!important;color:var(--tx)!important;box-shadow:none!important}
 body.pack-grafite .r-hero-tag{background:#26272d!important;color:var(--tx)!important}
 body.pack-grafite .rc6,body.pack-grafite .card,body.pack-grafite .chart-box,body.pack-grafite .ih-card,body.pack-grafite .sub-box,body.pack-grafite .table-wrap,body.pack-grafite .form-section,body.pack-grafite .cc-card{background:#111215!important;border:1px solid #1e1f24!important;box-shadow:none!important;border-image:none!important}
-body.pack-grafite .btn-primary,body.pack-grafite .rq-btn.primary{background:#ffb547!important;color:#0b0c0e!important;box-shadow:none!important}
+body.pack-grafite .btn-primary{background:#ffb547!important;color:#0b0c0e!important;box-shadow:none!important}
 /* Despesa era #2e2f36: contraste 1,31:1 contra a superficie, praticamente
    invisivel. #5a5b66 sobe para 2,59:1 e mantem a separacao (DeltaE 31,9 em
    deuteranopia) sem deixar de ser a serie recessiva. */
@@ -141,8 +141,8 @@ body.pack-bruma .r-hero *{color:#fff}
 body.pack-bruma .r-hero-tag{background:rgba(255,255,255,.12)!important}
 body.pack-bruma .rc6,body.pack-bruma .card,body.pack-bruma .chart-box,body.pack-bruma .sub-box,body.pack-bruma .table-wrap,body.pack-bruma .form-section,body.pack-bruma .cc-card{background:#ffffff!important;border:none!important;box-shadow:none!important;border-image:none!important}
 body.pack-bruma .ih-card{background:#d6ebe4!important;border:none!important;box-shadow:none!important}
-body.pack-bruma .btn,body.pack-bruma .rq-btn{border-radius:999px!important}
-body.pack-bruma .btn-primary,body.pack-bruma .rq-btn.primary{background:#0f766e!important;color:#fff!important;box-shadow:none!important}
+body.pack-bruma .btn{border-radius:999px!important}
+body.pack-bruma .btn-primary{background:#0f766e!important;color:#fff!important;box-shadow:none!important}
 body.pack-bruma .bar{border-radius:8px!important}
 body.pack-bruma .bar.rec,body.pack-bruma .cl-dot.rec{background:#0f766e!important}
 body.pack-bruma .bar.desp,body.pack-bruma .cl-dot.desp{background:#f2c3a8!important}
@@ -250,7 +250,7 @@ body.pack-noturno .r-hero-tag{background:transparent!important;border:1px solid 
 body.pack-noturno .rc6{background:transparent!important;border:none!important;border-left:1px solid #d4b26a!important;box-shadow:none!important}
 body.pack-noturno .card,body.pack-noturno .chart-box,body.pack-noturno .sub-box,body.pack-noturno .table-wrap,body.pack-noturno .form-section,body.pack-noturno .cc-card{background:#142035!important;border:1px solid #2a3850!important;box-shadow:none!important;border-image:none!important}
 body.pack-noturno .ih-card{background:#121d31!important;border:1px solid #d4b26a!important;box-shadow:none!important}
-body.pack-noturno .btn-primary,body.pack-noturno .rq-btn.primary{background:transparent!important;border:1px solid #d4b26a!important;color:#d4b26a!important;box-shadow:none!important;text-transform:uppercase;letter-spacing:.12em}
+body.pack-noturno .btn-primary{background:transparent!important;border:1px solid #d4b26a!important;color:#d4b26a!important;box-shadow:none!important;text-transform:uppercase;letter-spacing:.12em}
 body.pack-noturno .bar{border-radius:0!important}
 /* O par #8cc4a4/#e39a88 reprovou feio: DeltaE 3,9 em deuteranopia e 14,9 na
    visao normal — abaixo de 15, ou seja, dificil de distinguir mesmo com visao

@@ -130,7 +130,9 @@ body.page-resumo .sidebar-saldo,body.page-resumo .sidebar-stats{opacity:0;pointe
 .btn-primary{background:var(--priG);}.btn-primary:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 4px 16px rgba(108,92,231,.3);}
 .btn-success{background:var(--okG);}.btn-warning{background:var(--wnG);color:#333;}.btn-danger{background:var(--dnG);}
 .btn-sm{padding:5px 12px;font-size:.73em;}
-.btn-outline{background:transparent;border:1px solid rgba(255,255,255,.09);color:var(--tx2);}.btn-outline:hover{border-color:var(--pri);color:var(--pri);background:rgba(108,92,231,.06);}
+/* borda via token: a branca translucida sumia nos visuais claros
+   (Bruma e theme-light), onde o botao ficava sem contorno nenhum */
+.btn-outline{background:transparent;border:1px solid var(--bg4);color:var(--tx2);}.btn-outline:hover{border-color:var(--pri);color:var(--pri);background:rgba(108,92,231,.06);}
 
 /* ── TABLES ──────────────────────────────────────── */
 .table-wrap{background:var(--bg2);border:1px solid rgba(255,255,255,.08);border-radius:var(--rad-lg);overflow:hidden;overflow-x:auto;margin-bottom:22px;-webkit-overflow-scrolling:touch;}
@@ -416,7 +418,7 @@ td{font-size:.86em;}
      chegava depois da primeira pintura.
      Vem DEPOIS do <style> acima de proposito: e essa ordem que os
      modulos tinham antes, e trocar isso inverteria a precedencia. -->
-<link rel="stylesheet" href="app.css?v=19">
+<link rel="stylesheet" href="app.css?v=20">
 </head>
 <body class="theme-dark">
 
@@ -1039,14 +1041,14 @@ g('extAte').value=hojeStr();
 <script src="planejamento.js?v=4"></script>
 <script src="patrimonio.js?v=5"></script>
 <script src="cartoes-fix.js?v=3"></script>  <!-- NOVO -->
-<script src="design-packs.js?v=15"></script>
-<script src="resumo-enhanced.js?v=20"></script>
+<script src="design-packs.js?v=16"></script>
+<script src="resumo-enhanced.js?v=21"></script>
 <script src="mobile-global-fix.js?v=4"></script>
 <script src="assinaturas-enhanced.js?v=3"></script>
 <script src="contratos-enhanced.js?v=4"></script>    <!-- NOVO -->
 <script src="relatorios.js?v=8"></script>
 <script src="lixeira.js?v=1"></script>
-<script src="icones.js?v=2"></script>
+<script src="icones.js?v=3"></script>
 <script src="theme-persist.js?v=2"></script>
 
 

@@ -984,9 +984,11 @@ tr{transition:background .12s}
 
 /* ═══ QUICK ACTIONS (estilo neobank: normais, alinhados à esquerda) ═══ */
 .rq-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; justify-content: flex-start; }
-.rq-btn { background: var(--bg2); border: 1px solid var(--bg4); border-radius:var(--rad-md); padding: 8px 15px; font-size: .78em; color: var(--tx2); cursor: pointer; transition: all .15s; display: flex; align-items: center; gap: 6px; font-weight: 600; white-space: nowrap; }
-.rq-btn:hover { border-color: var(--pri); color: var(--pri2); transform: translateY(-1px); }
-.rq-btn.primary { background: var(--priG); border-color: transparent; color: #fff; }
+/* .rq-btn saiu: era um sistema de botao paralelo ao .btn, que cada visual
+   tinha de remendar separado. As acoes rapidas agora usam .btn do app.
+   .btn-ico so acrescenta o alinhamento do icone. */
+.btn-ico { display: inline-flex; align-items: center; gap: 7px; }
+.btn-ico svg { width: 15px; height: 15px; flex-shrink: 0; }
 
 /* ═══ SALDO HERO (destaque estilo neobank) ═══ */
 /* O hero era uma lamina de gradiente roxo. Dois problemas: e o tratamento
@@ -1130,7 +1132,9 @@ tr{transition:background .12s}
     padding-bottom: 2px;
   }
   .rq-row::-webkit-scrollbar { display: none; }
-  .rq-btn { flex-shrink: 0; padding: 4px 8px; font-size: .62em; border-radius:var(--rad-sm); }
+    /* Nao encolher: com padding 4px e fonte .62em o alvo de toque ficava bem
+     abaixo do minimo utilizavel. Mantem o tamanho do botao do app. */
+  .rq-row .btn { flex-shrink: 0; }
 
   .rm-list {
     display: flex !important;
@@ -1259,7 +1263,6 @@ tr{transition:background .12s}
 @media (max-width: 380px) {
   .rm-vl { font-size: .7em; }
   .rm-lb { font-size: .62em; }
-  .rq-btn { font-size: .56em; padding: 3px 6px; }
   .bar-top-val { font-size: .4em !important; }
   .bar-label { font-size: .45em !important; }
   .bar-bars { min-height: 45px !important; }
