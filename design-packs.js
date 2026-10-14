@@ -49,7 +49,7 @@ body.pack-grafite{
   --ok:#5fd4a0;--ok2:#7fe0b4;--okG:linear-gradient(#5fd4a0,#5fd4a0);
   --wn:#f2c14e;--wn2:#f5d07a;--wnG:linear-gradient(#f2c14e,#f2c14e);
   --dn:#ff7a6b;--dn2:#ff7a6b;--dnG:linear-gradient(#ff7a6b,#ff7a6b);
-  --inf:#8ab4ff;--inf2:#a8c7ff;--rad:12px;--sh:none;
+  --inf:#8ab4ff;--inf2:#a8c7ff;--rad:12px;--rad-sm:7px;--rad-md:10px;--rad-lg:14px;--sh:none;
   font-family:'Geist',system-ui,sans-serif!important;background:#0b0c0e!important;
 }
 body.pack-grafite .r-hero-val,body.pack-grafite .rc6-val,body.pack-grafite .ih-val,body.pack-grafite .card-value,body.pack-grafite .rc-val,body.pack-grafite .rf-val,body.pack-grafite td{font-family:'Geist Mono',monospace!important;letter-spacing:-.02em}
@@ -60,8 +60,11 @@ body.pack-grafite .r-hero{background:#17181c!important;border:1px solid #26272d!
 body.pack-grafite .r-hero-tag{background:#26272d!important;color:var(--tx)!important}
 body.pack-grafite .rc6,body.pack-grafite .card,body.pack-grafite .chart-box,body.pack-grafite .ih-card,body.pack-grafite .sub-box,body.pack-grafite .table-wrap,body.pack-grafite .form-section,body.pack-grafite .cc-card{background:#111215!important;border:1px solid #1e1f24!important;box-shadow:none!important;border-image:none!important}
 body.pack-grafite .btn-primary,body.pack-grafite .rq-btn.primary{background:#ffb547!important;color:#0b0c0e!important;box-shadow:none!important}
-body.pack-grafite .bar.rec{background:#5fd4a0!important}
-body.pack-grafite .bar.desp{background:#2e2f36!important}
+/* Despesa era #2e2f36: contraste 1,31:1 contra a superficie, praticamente
+   invisivel. #5a5b66 sobe para 2,59:1 e mantem a separacao (DeltaE 31,9 em
+   deuteranopia) sem deixar de ser a serie recessiva. */
+body.pack-grafite .bar.rec,body.pack-grafite .cl-dot.rec{background:#5fd4a0!important}
+body.pack-grafite .bar.desp,body.pack-grafite .cl-dot.desp{background:#5a5b66!important}
 body.pack-grafite .rc-bar-fill,body.pack-grafite .top-cat-fill{background:#ffb547!important}
 body.pack-grafite .rc-ic,body.pack-grafite .rf-ic{background:#1e1f24!important}
 body.pack-grafite .form-control{background:#17181c!important;border:1px solid #26272d!important}
@@ -70,7 +73,9 @@ body.pack-grafite .modal-content{background:#111215!important;border:1px solid #
 /* Pills "ativos" da tela de Investimentos usam var(--pri) de fundo com texto
    branco fixo. Com acento claro (ambar) o branco fica ilegivel — medido 1,76:1.
    Mesmo tratamento do .btn-primary deste pack: texto escuro sobre o acento. */
-body.pack-grafite .ivt-btn.on,body.pack-grafite .inv-af-pill.on,body.pack-grafite .inv-integ-btn{color:#0b0c0e!important}
+/* O inv-integ-btn saiu daqui: virou secundario (fundo transparente), entao
+   texto escuro sobre o ambar nao se aplica mais. */
+body.pack-grafite .ivt-btn.on,body.pack-grafite .inv-af-pill.on{color:#0b0c0e!important}
 
 /* ── Sidebar ──────────────────────────────────────────────────────────
    Mantem a largura e os nomes completos: so a marca e o item ativo seguem
@@ -101,8 +106,6 @@ body.pack-grafite .r-hero-sub{display:none!important}
 body.pack-grafite .r-hero-tag{align-self:flex-start!important}
 
 /* ── Top categorias: posicao no lugar do emoji (desenho) ── */
-body.pack-grafite .rc-ic{background:transparent!important;font-size:0!important;width:auto!important;min-width:22px!important}
-body.pack-grafite .rc-ic::before{content:attr(data-rank);font-family:'Geist Mono',monospace;font-size:11px;color:#85868f}
 body.pack-grafite .rc-bar-fill{background:#ffb547!important}
 
 /* ── Faixa de investimentos ── */
@@ -124,7 +127,7 @@ body.pack-bruma{
   --ok:#0f766e;--ok2:#128a80;--okG:linear-gradient(#0f766e,#0f766e);
   --wn:#b7791f;--wn2:#c98b2e;--wnG:linear-gradient(#b7791f,#b7791f);
   --dn:#c25a26;--dn2:#c25a26;--dnG:linear-gradient(#c25a26,#c25a26);
-  --inf:#2563a8;--inf2:#2563a8;--rad:20px;--sh:none;
+  --inf:#2563a8;--inf2:#2563a8;--rad:20px;--rad-sm:10px;--rad-md:16px;--rad-lg:22px;--sh:none;
   font-family:'Hanken Grotesk',system-ui,sans-serif!important;background:#eef0ec!important;color:#1d2320!important;
 }
 body.pack-bruma .r-hero-val,body.pack-bruma .rc6-val,body.pack-bruma .ih-val,body.pack-bruma .card-value,body.pack-bruma .rc-val,body.pack-bruma .rf-val{font-family:'Spline Sans Mono',monospace!important;letter-spacing:-.02em}
@@ -141,8 +144,8 @@ body.pack-bruma .ih-card{background:#d6ebe4!important;border:none!important;box-
 body.pack-bruma .btn,body.pack-bruma .rq-btn{border-radius:999px!important}
 body.pack-bruma .btn-primary,body.pack-bruma .rq-btn.primary{background:#0f766e!important;color:#fff!important;box-shadow:none!important}
 body.pack-bruma .bar{border-radius:8px!important}
-body.pack-bruma .bar.rec{background:#0f766e!important}
-body.pack-bruma .bar.desp{background:#f2c3a8!important}
+body.pack-bruma .bar.rec,body.pack-bruma .cl-dot.rec{background:#0f766e!important}
+body.pack-bruma .bar.desp,body.pack-bruma .cl-dot.desp{background:#f2c3a8!important}
 body.pack-bruma .rc-bar-fill,body.pack-bruma .top-cat-fill{background:#0f766e!important}
 body.pack-bruma .rc-ic,body.pack-bruma .rf-ic{background:#eef0ec!important;border-radius:11px!important}
 body.pack-bruma .form-control{background:#f4f5f2!important;border:1px solid #e1e5df!important;color:#1d2320!important;border-radius:12px!important}
@@ -192,8 +195,6 @@ body.pack-bruma .ih-item:nth-child(4) .ih-val{color:var(--tx)!important}
 body.pack-bruma .ih-title{color:#0b3a35!important}
 
 /* ── Ranking numerado no lugar do emoji (desenho) ── */
-body.pack-bruma .rc-ic{background:#f4f5f2!important;font-size:0!important;border-radius:8px!important}
-body.pack-bruma .rc-ic::before{content:attr(data-rank);font-family:'Spline Sans Mono',monospace;font-size:11px;color:#4a524e}
 body.pack-bruma .rc-bar-bg{background:#eef0ec!important}
 body.pack-bruma .rc-bar-fill{background:#0f766e!important}
 
@@ -235,7 +236,7 @@ body.pack-noturno{
   --ok:#8cc4a4;--ok2:#a5d4b9;--okG:linear-gradient(#8cc4a4,#8cc4a4);
   --wn:#e0b85c;--wn2:#e8c87c;--wnG:linear-gradient(#e0b85c,#e0b85c);
   --dn:#e39a88;--dn2:#e39a88;--dnG:linear-gradient(#e39a88,#e39a88);
-  --inf:#9db8e0;--inf2:#b3c9ea;--rad:2px;--sh:none;
+  --inf:#9db8e0;--inf2:#b3c9ea;--rad:2px;--rad-sm:2px;--rad-md:2px;--rad-lg:3px;--sh:none;
   font-family:'Figtree',system-ui,sans-serif!important;background:#0e1726!important;
 }
 body.pack-noturno .r-hero-val,body.pack-noturno .rc6-val,body.pack-noturno .ih-val,body.pack-noturno .card-value,body.pack-noturno .page-title{font-family:'Bodoni Moda',serif!important;font-weight:400!important;letter-spacing:0}
@@ -251,8 +252,13 @@ body.pack-noturno .card,body.pack-noturno .chart-box,body.pack-noturno .sub-box,
 body.pack-noturno .ih-card{background:#121d31!important;border:1px solid #d4b26a!important;box-shadow:none!important}
 body.pack-noturno .btn-primary,body.pack-noturno .rq-btn.primary{background:transparent!important;border:1px solid #d4b26a!important;color:#d4b26a!important;box-shadow:none!important;text-transform:uppercase;letter-spacing:.12em}
 body.pack-noturno .bar{border-radius:0!important}
-body.pack-noturno .bar.rec{background:#8cc4a4!important}
-body.pack-noturno .bar.desp{background:#e39a88!important}
+/* O par #8cc4a4/#e39a88 reprovou feio: DeltaE 3,9 em deuteranopia e 14,9 na
+   visao normal — abaixo de 15, ou seja, dificil de distinguir mesmo com visao
+   de cor completa, o unico caso que rotulo nenhum resolve. #9ad3b0/#a84f32
+   sobe para 28,0 e 33,4, separando por luminosidade e nao so por matiz.
+   O #e39a88 continua como cor de TEXTO para valores negativos. */
+body.pack-noturno .bar.rec,body.pack-noturno .cl-dot.rec{background:#9ad3b0!important}
+body.pack-noturno .bar.desp,body.pack-noturno .cl-dot.desp{background:#a84f32!important}
 body.pack-noturno .rc-bar-fill,body.pack-noturno .top-cat-fill{background:#d4b26a!important}
 body.pack-noturno .rc-ic,body.pack-noturno .rf-ic{background:transparent!important;border:1px solid #2a3850!important}
 body.pack-noturno .form-control{background:#0e1726!important;border:1px solid #2a3850!important;border-radius:2px!important}

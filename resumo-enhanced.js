@@ -195,29 +195,37 @@ window.renderResumo = function() {
       rv = Math.round(x.r || 0).toLocaleString('pt-BR');
       dv = Math.round(x.d || 0).toLocaleString('pt-BR');
     }
+    // Os rotulos saem da cor da serie e vao para tinta neutra: quem carrega a
+    // identidade e a barra e a legenda, nao o numero. Com o par verde/vermelho
+    // em DeltaE 6,2 (deuteranopia), numero colorido nao ajudava a distinguir —
+    // so repetia a informacao ja fraca.
+    var tt = mesNome(x.m) + ' · receitas ' + fmtV(x.r) + ' · despesas ' + fmtV(x.d);
     return '<div class="bar-group">' +
       '<div class="bar-bars">' +
-        '<div class="bar-stack"><div class="bar-top-val g">' + rv + '</div><div class="bar rec" style="height:' + rUnit + '"></div></div>' +
-        '<div class="bar-stack"><div class="bar-top-val r">' + dv + '</div><div class="bar desp" style="height:' + dUnit + '"></div></div>' +
+        '<div class="bar-stack"><div class="bar-top-val">' + rv + '</div><div class="bar rec" title="' + tt + '"style="height:' + rUnit + '"></div></div>' +
+        '<div class="bar-stack"><div class="bar-top-val">' + dv + '</div><div class="bar desp" title="' + tt + '"style="height:' + dUnit + '"></div></div>' +
       '</div>' +
       '<div class="bar-bottom"><div class="bar-label">' + mesNome(x.m) + '</div></div>' +
     '</div>';
   }).join('');
 
-  // Top categorias — linhas com ícone
-  var catIcons = { 'Moradia': '🏠', 'Alimentação': '🛒', 'Transporte': '🚗', 'Saúde': '❤️', 'Assinaturas': '📺', 'Lazer': '🎉', 'Educação': '📚' };
+  // Top categorias — ranking. A posição substituiu o emoji: emoji não
+  // acompanha cor nem peso da tipografia e destoava nos quatro visuais.
+  // Numerar aqui é legítimo porque isto É uma sequência — maior gasto
+  // primeiro —, não um enfeite.
   var catColors = ['#f87171', '#fbbf24', '#a78bfa', '#38bdf8', '#2dd4bf', '#e65100'];
   var cM = {};
   E.filter(function(e) { return e.tipo === 'despesa'; }).forEach(function(e) { cM[e.cat] = (cM[e.cat] || 0) + e.valor; });
   var tp = Object.entries(cM).sort(function(a, b) { return b[1] - a[1]; }).slice(0, 5);
   var mC = tp.length ? tp[0][1] : 1;
   g('topCats').innerHTML = tp.length ? tp.map(function(t, i) {
-    var ic = catIcons[t[0]] || '💸';
     var cl = catColors[i % catColors.length];
-    // data-rank permite que um visual mostre a posicao (01..05) no lugar do
-    // emoji, como nos desenhos, sem precisar de outro render.
-    return '<div class="rc-item"><div class="rc-ic" data-rank="' + ('0' + (i + 1)).slice(-2) + '" style="background:' + cl + '22">' + ic + '</div>' +
-      '<div class="rc-body"><div class="rc-top"><span class="rc-name">' + t[0] + '</span><span class="rc-val" style="color:' + cl + '">' + fmtV(t[1]) + '</span></div>' +
+    var pos = ('0' + (i + 1)).slice(-2);
+    // O valor fica em tinta neutra: quem identifica a categoria e o nome e a
+    // barra, nao o numero pintado. Antes cada valor saia numa cor diferente,
+    // o que dava cinco matizes sem significado na mesma lista.
+    return '<div class="rc-item"><div class="rc-ic" data-rank="' + pos + '">' + pos + '</div>' +
+      '<div class="rc-body"><div class="rc-top"><span class="rc-name">' + t[0] + '</span><span class="rc-val">' + fmtV(t[1]) + '</span></div>' +
       '<div class="rc-bar-bg"><div class="rc-bar-fill" style="background:' + cl + ';width:' + (t[1] / mC) * 100 + '%"></div></div></div></div>';
   }).join('') : '<p style="color:var(--tx3)">Sem despesas</p>';
 
