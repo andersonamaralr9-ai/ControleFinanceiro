@@ -989,17 +989,26 @@ tr{transition:background .12s}
 .rq-btn.primary { background: var(--priG); border-color: transparent; color: #fff; }
 
 /* ═══ SALDO HERO (destaque estilo neobank) ═══ */
-.r-hero { background: var(--priG); border-radius:var(--rad-lg); padding: 24px 28px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 12px 30px -10px rgba(108,92,231,.4); }
-.r-hero-lbl { font-size: .7em; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,.75); font-weight: 700; margin-bottom: 6px; }
-.r-hero-val { font-size: 2em; font-weight: 800; letter-spacing: -.5px; color: #fff; }
-.r-hero-sub { font-size: .76em; color: rgba(255,255,255,.85); margin-top: 6px; }
-.r-hero-tag { display: inline-block; background: rgba(255,255,255,.18); padding: 5px 13px; border-radius:var(--rad-lg); font-size: .7em; font-weight: 700; color: #fff; }
+/* O hero era uma lamina de gradiente roxo. Dois problemas: e o tratamento
+   mais generico que existe, e colocava o numero mais importante da tela
+   dentro de uma caixa festiva — com saldo negativo, a cor dizia uma coisa e
+   o numero dizia outra. Agora ele e uma superficie como os demais cartoes,
+   e segue a mesma regra que o CLAUDE.md ja fixou para os cards do Resumo:
+   numero principal em neutro, cor so no ponto do rotulo e nos valores de
+   status. Saldo negativo e um valor de status, entao recebe cor. */
+.r-hero { background: var(--bg2); border: 1px solid var(--bg4); border-radius:var(--rad-lg); padding: 22px 26px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+.r-hero-lbl { display: flex; align-items: center; gap: 7px; font-size: .7em; text-transform: uppercase; letter-spacing: 1px; color: var(--tx3); font-weight: 700; margin-bottom: 8px; }
+.r-hero-lbl::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--pri2); flex-shrink: 0; }
+.r-hero-val { font-size: 2.1em; font-weight: 800; letter-spacing: -.5px; color: var(--tx); }
+.r-hero.negativo .r-hero-val { color: var(--dn2); }
+.r-hero-sub { font-size: .76em; color: var(--tx3); margin-top: 6px; }
+.r-hero-tag { display: inline-block; background: var(--bg3); padding: 5px 13px; border-radius:var(--rad-lg); font-size: .7em; font-weight: 700; color: var(--tx2); }
 /* Barra "x% da receita comprometida": existe sempre no DOM, mas so aparece
    nos visuais cujo desenho a previa. O Atual (Neobanco) fica como foi
    aprovado. Cada pack liga com display:flex. */
 .r-hero-prog { display: none; align-items: center; gap: 10px; margin-top: 10px; }
-.r-hero-prog-bg { flex: 1; height: 5px; border-radius:var(--rad-sm); background: rgba(255,255,255,.2); overflow: hidden; }
-.r-hero-prog-fill { height: 100%; border-radius:var(--rad-sm); background: #fff; }
+.r-hero-prog-bg { flex: 1; height: 5px; border-radius:var(--rad-sm); background: var(--bg4); overflow: hidden; }
+.r-hero-prog-fill { height: 100%; border-radius:var(--rad-sm); background: var(--pri2); }
 .r-hero-prog-lbl { font-size: .7em; white-space: nowrap; opacity: .85; }
 
 /* ═══ INVESTMENT HERO CARD ═══ */
@@ -1016,7 +1025,9 @@ tr{transition:background .12s}
 /* ═══ FEED CARD (fatura / contratos / assinaturas) ═══ */
 .rf-item { display: flex; align-items: center; gap: 10px; padding: 9px 0; }
 .rf-item + .rf-item { border-top: 1px solid var(--bg3); }
-.rf-ic { width: 30px; height: 30px; border-radius:var(--rad-md); display: flex; align-items: center; justify-content: center; font-size: .82em; flex-shrink: 0; }
+.rf-ic { width: 30px; height: 30px; border-radius:var(--rad-md); display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; background: var(--bg3); color: var(--tx3); }
+.rf-ic svg { display: block; width: 16px; height: 16px; }
 .rf-mid { flex: 1; min-width: 0; cursor: pointer; }
 .rf-name { font-size: .76em; font-weight: 600; color: var(--tx); }
 .rf-sub { font-size: .64em; color: var(--tx3); margin-top: 1px; }
@@ -1987,3 +1998,6 @@ td, .rel-table td, .inv-panel-card-row .val, .ips-val, .proj-val {
 .nav-ic{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;opacity:.9;}
 .sidebar a.active .nav-ic{opacity:1;color:inherit;}
 .nav-ic svg{display:block;}
+
+/* Estado vazio dos compromissos: um convite a agir, nao tres linhas de zero. */
+.rf-vazio{display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:18px 4px;font-size:.84em;color:var(--tx3);}

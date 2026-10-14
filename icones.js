@@ -74,6 +74,8 @@ function aplicar(){
 }
 
 window.aplicarIcones = aplicar;
+// Mesmo vocabulário de ícones para quem monta HTML fora do menu.
+window.iconeSVG = function(nome){ return ICONES[nome] || ''; };
 
 aplicar();
 // Modulos criam links depois (Relatorios, Lixeira, Check de Pagamentos).

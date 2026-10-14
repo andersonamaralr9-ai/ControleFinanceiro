@@ -198,3 +198,33 @@ mês) → aportes/resgates/rentabilidade do mês → fechamento.
 - O visual aprovado é o "Neobanco": fundo `#14151d`, acento roxo
   `#8b5cf6`, número principal do card em neutro (branco), cor só no ponto
   do rótulo e nos valores de status.
+  Desde out/2026 o **hero do Resumo segue essa mesma regra**: era a única
+  peça que a violava (lâmina de gradiente roxo com o número dentro, o que
+  ficava semanticamente errado quando o saldo era negativo). Virou
+  superfície como os demais cartões, com ponto roxo no rótulo; o saldo fica
+  branco e só recebe cor quando negativo, que é um valor de status.
+
+---
+
+## Sistema visual (revisão de out/2026)
+
+Antes disso o visual era um acúmulo de valores soltos. O que ficou fixo:
+
+- **Raio**: três degraus, `--rad-sm` / `--rad-md` / `--rad-lg` (controle /
+  cartão / superfície grande). Eram 16 valores literais em 145
+  declarações. Cada visual redefine os três — o arredondamento é parte da
+  identidade do tema. Não introduza `border-radius` literal.
+- **Números**: todo valor monetário usa figuras tabulares (regra no topo do
+  bloco de tokens em `app.css`). Sem isso coluna de valor não alinha.
+- **Ícones**: `icones.js` tem o vocabulário, em SVG de traço com
+  `currentColor`. Use `iconeSVG('<chave>')` em vez de emoji ou glifo
+  Unicode — e nunca pinte o ícone separado do texto: ele herda a cor do
+  elemento, que é o que mantém o contraste correto em qualquer visual.
+- **Gráfico**: com duas séries a legenda é obrigatória, e o rótulo usa cor
+  de texto, nunca a cor da série. Antes de trocar cor de série, rode o
+  validador de paleta da skill `dataviz` — foi ele que pegou o par do
+  Noturno em ΔE 3,9 (deuteranopia) e 14,9 na visão normal.
+
+**Ao auditar contraste, recarregue a página por visual.** Trocar de tema em
+laço lê valores no meio da transição de 0,3s e produz falso positivo — isso
+me enganou três vezes.

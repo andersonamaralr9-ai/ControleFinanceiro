@@ -106,7 +106,7 @@ window.renderResumo = function() {
   // fica sempre no DOM, mas so aparece nos visuais que o desenho previa
   // (regra em app.css) — o visual Atual continua como foi aprovado.
   var pctComp = rec > 0 ? Math.min(Math.round(desp / rec * 100), 100) : 0;
-  h += '<div class="r-hero">';
+  h += '<div class="r-hero' + (sal < 0 ? ' negativo' : '') + '">';
   // Centavos num span proprio: o visual Noturno os desenha menores que os
   // reais. Sem estilo proprio, .cent nao muda nada nos outros visuais.
   var salFmt = fmtV(sal), iVir = salFmt.lastIndexOf(',');
@@ -232,11 +232,30 @@ window.renderResumo = function() {
   // Feed: fatura / contratos / assinaturas
   var feedEl = g('resumoFeed');
   if (feedEl) {
-    var fh = '';
-    fh += '<div class="rf-item"><div class="rf-ic" style="background:#e6510022">💳</div><div class="rf-mid" onclick="window._resFat()"><div class="rf-name">Fatura Cartão</div><div class="rf-sub">' + fI.length + ' compra' + (fI.length === 1 ? '' : 's') + '</div></div><div class="rf-val" style="color:#e65100">' + fmtV(fT) + '</div></div>';
-    fh += '<div class="rf-item"><div class="rf-ic" style="background:rgba(108,92,231,.15)">📄</div><div class="rf-mid" onclick="nav(\'contratos\')"><div class="rf-name">Contratos</div><div class="rf-sub">receita ' + fmtV(cR) + ' · despesa ' + fmtV(cD) + '</div></div><div class="rf-val" style="color:var(--pri2)">' + cA + ' ativos</div></div>';
-    fh += '<div class="rf-item"><div class="rf-ic" style="background:rgba(253,203,110,.15)">🔁</div><div class="rf-mid" onclick="nav(\'assinaturas\')"><div class="rf-name">Assinaturas</div><div class="rf-sub">' + aA + ' ativa' + (aA === 1 ? '' : 's') + '</div></div><div class="rf-val" style="color:var(--wn)">' + fmtV(aT) + '</div></div>';
-    feedEl.innerHTML = fh;
+    // Antes as tres linhas apareciam sempre, inclusive zeradas: "R$ 0,00",
+    // "0 ativos", "R$ 0,00" — tres linhas de nada ocupando a coluna. Agora so
+    // entra o que tem conteudo, e quando nao ha nada o bloco vira um convite a
+    // agir em vez de um relatorio de zeros.
+    // Os emojis sairam: usam o mesmo vocabulario de icone do menu. As cores
+    // cravadas (#e65100) viraram token, entao acompanham o visual escolhido.
+    var ico = typeof iconeSVG === 'function' ? iconeSVG : function(){ return ''; };
+    function linha(icone, acao, nome, sub, valor, cor){
+      return '<div class="rf-item"><div class="rf-ic">' + ico(icone) + '</div>' +
+        '<div class="rf-mid" onclick="' + acao + '"><div class="rf-name">' + nome + '</div>' +
+        '<div class="rf-sub">' + sub + '</div></div>' +
+        '<div class="rf-val" style="color:' + cor + '">' + valor + '</div></div>';
+    }
+    var linhas = [];
+    if (fI.length) linhas.push(linha('cartoes', 'window._resFat()', 'Fatura do cart&atilde;o',
+      fI.length + ' compra' + (fI.length === 1 ? '' : 's'), fmtV(fT), 'var(--wn)'));
+    if (cA) linhas.push(linha('contratos', "nav('contratos')", 'Contratos',
+      'receita ' + fmtV(cR) + ' &middot; despesa ' + fmtV(cD), cA + (cA === 1 ? ' ativo' : ' ativos'), 'var(--pri2)'));
+    if (aA) linhas.push(linha('assinaturas', "nav('assinaturas')", 'Assinaturas',
+      aA + ' ativa' + (aA === 1 ? '' : 's'), fmtV(aT), 'var(--tx)'));
+
+    feedEl.innerHTML = linhas.length ? linhas.join('') :
+      '<div class="rf-vazio">Nenhum compromisso em ' + mesNome(curMes) + '.' +
+      '<button type="button" class="btn btn-outline btn-sm" onclick="nav(\'contratos\')">Cadastrar contrato</button></div>';
   }
 
   window._resData = { rI: rI, dI: dI, fI: fI, fT: fT };
