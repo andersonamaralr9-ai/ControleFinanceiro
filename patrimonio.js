@@ -3,7 +3,7 @@
 var _patVinculandoId = null;
 var _patSaldoId = null;
 
-var _patTipoLabel = { imovel: '🏠 Imóvel', veiculo: '🚗 Veículo', outro: '📦 Outro' };
+var _patTipoLabel = { imovel: 'Imóvel', veiculo: 'Veículo', outro: 'Outro' };
 
 function _patFmt(v) {
   return 'R$ ' + (Number(v) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -210,7 +210,7 @@ window.abrirSaldo = function(id) {
       hh += '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--bg3);font-size:.83em">';
       hh += '<span>' + e.mes.replace('-', '/') + '</span>';
       hh += '<span style="font-weight:700">' + _patFmt(e.valor) + '</span>';
-      hh += '<button class="btn btn-sm btn-danger" onclick="delSaldo(\'' + id + '\',\'' + e.mes + '\')">✕</button>';
+ hh += '<button class="btn btn-sm btn-danger" onclick="delSaldo(\'' + id + '\',\'' + e.mes + '\')">'+(typeof iconeSVG==="function"?iconeSVG("lixeira"):"")+'</button>';
       hh += '</div>';
     });
     hh += '</div>';
@@ -341,8 +341,8 @@ window.renderPatrimonio = function() {
     if (pat.financiado) c += ' <span class="badge badge-warning" style="font-size:.65em">Financiado</span>';
     c += '</div>';
     c += '<div style="display:flex;gap:6px">';
-    c += '<button class="btn btn-sm btn-outline" onclick="editPatrimonio(\'' + pat.id + '\')">✏️</button>';
-    c += '<button class="btn btn-sm btn-danger" onclick="delPatrimonio(\'' + pat.id + '\')">🗑</button>';
+ c += '<button class="btn btn-sm btn-outline" onclick="editPatrimonio(\'' + pat.id + '\')">'+(typeof iconeSVG==="function"?iconeSVG("editar"):"")+'</button>';
+ c += '<button class="btn btn-sm btn-danger" onclick="delPatrimonio(\'' + pat.id + '\')">'+(typeof iconeSVG==="function"?iconeSVG("lixeira"):"")+'</button>';
     c += '</div>';
     c += '</div>';
 
@@ -366,7 +366,7 @@ window.renderPatrimonio = function() {
         c += '<span style="font-size:.72em;color:var(--tx3)">ref. ' + sdAtual.mes.replace('-', '/') + '</span>';
         c += '</div>';
         if (amortizado !== null && amortizado > 0) {
-          c += '<div style="font-size:.78em;color:var(--ok);margin-top:4px">✓ Amortizado: ' + _patFmt(amortizado) + ' (desde ' + sdInicial.mes.replace('-', '/') + ')</div>';
+ c += '<div style="font-size:.78em;color:var(--ok);margin-top:4px">Amortizado: ' + _patFmt(amortizado) + ' (desde ' + sdInicial.mes.replace('-', '/') + ')</div>';
         }
         if (pat.valorAquisicao && sdAtual.valor) {
           var equity = pat.valorAquisicao - sdAtual.valor;
@@ -376,7 +376,7 @@ window.renderPatrimonio = function() {
       } else {
         c += '<p style="font-size:.78em;color:var(--tx3)">Nenhum saldo devedor informado.</p>';
       }
-      c += '<button class="btn btn-sm btn-outline" style="margin-top:8px" onclick="abrirSaldo(\'' + pat.id + '\')">📝 Atualizar saldo devedor</button>';
+ c += '<button class="btn btn-sm btn-outline" style="margin-top:8px" onclick="abrirSaldo(\'' + pat.id + '\')">Atualizar saldo devedor</button>';
       c += '</div>';
     }
 
@@ -419,7 +419,7 @@ window.renderPatrimonio = function() {
 
     // Ações
     c += '<div class="sub-box-actions" style="margin-top:10px">';
-    c += '<button class="btn btn-sm btn-outline" onclick="abrirVinculo(\'' + pat.id + '\')">🔗 Vincular contratos</button>';
+ c += '<button class="btn btn-sm btn-outline" onclick="abrirVinculo(\'' + pat.id + '\')">Vincular contratos</button>';
     c += '</div>';
 
     c += '</div></div>';

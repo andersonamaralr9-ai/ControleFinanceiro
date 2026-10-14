@@ -287,7 +287,7 @@ ov.innerHTML='<div class="auth-box"><div class="auth-logo">&#128176;</div>'+
   '<div class="auth-keep"><input type="checkbox" id="authKeep"><label for="authKeep">Manter conectado</label></div>'+
   '<button class="auth-btn" id="authLoginBtn" onclick="window._authDoLogin()"><span>Entrar</span></button>'+
   '<div class="auth-error" id="authError"></div>'+
-  '<div class="auth-footer">&#128274; Acesso protegido \u00b7 Criptografia SHA-256</div></div>';
+  '<div class="auth-footer">Acesso protegido \u00b7 Criptografia SHA-256</div></div>';
 document.body.appendChild(ov);
 
 var ubar=document.createElement('div');ubar.className='auth-ubar';ubar.id='authUBar';
@@ -296,7 +296,7 @@ ubar.innerHTML='<div class="au-left">'+
   '<div class="au-info"><span class="au-name" id="auName"></span><span class="au-role" id="auRole"></span></div></div>'+
   '<div class="au-right">'+
   '<div class="au-sync-info" id="auSyncTimer"></div>'+
-  '<button class="au-logout" onclick="window._authDoLogout()">&#128682; Sair</button></div>';
+  '<button class="au-logout" onclick="window._authDoLogout()">Sair</button></div>';
 document.body.appendChild(ubar);
 
 document.getElementById('authPass').addEventListener('keydown',function(e){if(e.key==='Enter')window._authDoLogin();});
@@ -605,10 +605,10 @@ function switchToUserData(user,skipRender){
       localStorage.setItem(window._userSK,JSON.stringify(S));
       if(typeof renderAll==='function')renderAll();
       syncUI('on','Dados restaurados do Cloud');
-      if(typeof bkMsg==='function')bkMsg('✅ Dados restaurados do Cloud com sucesso!',true);
+      if(typeof bkMsg==='function')bkMsg('Dados restaurados do Cloud com sucesso!',true);
     }else{
       syncUI('on','Nenhum dado encontrado no Cloud');
-      if(typeof bkMsg==='function')bkMsg('❌ Nenhum dado encontrado no Cloud.',false);
+      if(typeof bkMsg==='function')bkMsg('Nenhum dado encontrado no Cloud.',false);
     }
   };
 
@@ -730,7 +730,7 @@ function applyRoleRestrictions(r){
   if(r==='admin')return;
   setTimeout(function(){
     var cc=document.getElementById('configCatsArea');
-    if(cc)cc.innerHTML='<div class="no-admin-msg">&#128274; Somente administradores podem gerenciar categorias.</div>';
+    if(cc)cc.innerHTML='<div class="no-admin-msg">Somente administradores podem gerenciar categorias.</div>';
     var aa=document.getElementById('authAdminSection');if(aa)aa.style.display='none';
     var ld=document.querySelector('#pg-config .btn-danger');if(ld){var p=ld.closest('.form-section');if(p)p.style.display='none';}
   },600);
@@ -743,7 +743,7 @@ setTimeout(function(){
   var cp=document.getElementById('pg-config');if(!cp)return;
 
   var sec=document.createElement('div');sec.className='form-section';sec.id='authAdminSection';
-  sec.innerHTML='<h3 style="margin-bottom:14px">&#128274; Gerenciar Usu\u00e1rios</h3>'+
+  sec.innerHTML='<h3 style="margin-bottom:14px">Gerenciar Usu\u00e1rios</h3>'+
     '<p style="font-size:.82em;color:var(--tx3);margin-bottom:14px">Cada usu\u00e1rio possui dados financeiros independentes e isolados.</p>'+
     '<div id="authUsersList"></div>'+
     '<div class="form-grid" style="margin-top:14px">'+
@@ -755,10 +755,10 @@ setTimeout(function(){
   cp.appendChild(sec);
 
   var ds=document.createElement('div');ds.className='form-section';ds.id='authDevicesSection';
-  ds.innerHTML='<h3 style="margin-bottom:14px">&#128241; Dispositivos Conectados</h3>'+
+  ds.innerHTML='<h3 style="margin-bottom:14px">Dispositivos Conectados</h3>'+
     '<p style="font-size:.82em;color:var(--tx3);margin-bottom:14px">Dispositivos com sess\u00e3o ativa.</p>'+
     '<div id="authDevicesList"><p style="color:var(--tx3);font-size:.85em">Carregando...</p></div>'+
-    '<button class="btn btn-sm btn-outline" onclick="window._authRefreshDevices()" style="margin-top:12px">&#128259; Atualizar lista</button>';
+    '<button class="btn btn-sm btn-outline" onclick="window._authRefreshDevices()" style="margin-top:12px">Atualizar lista</button>';
   cp.appendChild(ds);
 
   if(window._authCurrentUser){
@@ -847,7 +847,7 @@ window._authRenderUsers=async function(){
     var db=as.length>0?'<span class="badge badge-success">'+as.length+'</span>':'<span class="badge badge-warning">0</span>';
     h+='<tr><td><strong>'+u.username+'</strong></td><td><span class="badge '+bg+'">'+rl+'</span></td><td>'+dc+'</td><td>'+db+'</td>'+
       '<td><button class="btn btn-sm btn-outline" onclick="window._authChangePass(\''+u.username.replace(/'/g,"\\'")+'\')">Senha</button> '+
-      '<button class="btn btn-sm btn-danger" onclick="window._authDelUser(\''+u.username.replace(/'/g,"\\'")+'\')">&#128465;</button></td></tr>';
+      '<button class="btn btn-sm btn-danger" onclick="window._authDelUser(\''+u.username.replace(/'/g,"\\'")+'\')">'+(typeof iconeSVG==="function"?iconeSVG("lixeira"):"")+'</button></td></tr>';
   });
   h+='</tbody></table></div>';el.innerHTML=h;
 };

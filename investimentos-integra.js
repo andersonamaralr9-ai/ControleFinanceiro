@@ -148,9 +148,10 @@ function injectInvestPanel(){
   var acoes = pgLancs.querySelector('.page-actions');
   if(acoes){
     var btn = document.createElement('button');
-    btn.className = 'inv-integ-btn';
+    btn.className = 'btn btn-outline btn-ico';
+    btn.type = 'button';
     btn.setAttribute('onclick', 'window._toggleInvPanel()');
-    btn.innerHTML = '&#128184; Investir / Resgatar';
+    btn.innerHTML = ''+(typeof iconeSVG==="function"?iconeSVG("dinheiro"):"")+' Investir / Resgatar';
     acoes.appendChild(btn);
     acoes.parentNode.insertBefore(panel, acoes.nextSibling);
     return;
@@ -159,8 +160,8 @@ function injectInvestPanel(){
   // Fallback: mantém o comportamento antigo se a barra de ações não existir
   var btnWrap = document.createElement('div');
   btnWrap.style.cssText = 'margin-bottom:16px;display:flex;gap:10px;flex-wrap:wrap;';
-  btnWrap.innerHTML = '<button class="inv-integ-btn" onclick="window._toggleInvPanel()">'+
-    '&#128184; Investir / Resgatar</button>';
+  btnWrap.innerHTML = '<button type="button" class="btn btn-outline btn-ico" onclick="window._toggleInvPanel()">'+
+    ''+(typeof iconeSVG==="function"?iconeSVG("dinheiro"):"")+' Investir / Resgatar</button>';
   var formSection = pgLancs.querySelector('.form-section');
   if(formSection){
     formSection.parentNode.insertBefore(btnWrap, formSection.nextSibling);
@@ -191,7 +192,7 @@ function _renderInvPanel(){
   });
 
   var h = '';
-  h += '<h3>&#128184; Investimentos — Aporte & Resgate Rápido</h3>';
+  h += '<h3>'+(typeof iconeSVG==="function"?iconeSVG("dinheiro"):"")+' Investimentos — Aporte & Resgate Rápido</h3>';
 
   // Resumo
   h += '<div class="inv-panel-summary">';
@@ -272,7 +273,7 @@ window._invPanelCalcProj = function(invId){
   var corSaldo = saldoApos >= 0 ? 'var(--ok)' : 'var(--dn2)';
   var warn = '';
   if(tipo === 'resgate' && valor > saldoAtual){
-    warn = '<div style="color:var(--dn2);font-size:.75em;margin-top:4px">⚠️ Valor excede o saldo!</div>';
+ warn = '<div style="color:var(--dn2);font-size:.75em;margin-top:4px">Valor excede o saldo!</div>';
   }
 
   projValEl.innerHTML = '<span style="color:'+corSaldo+'">'+_fmt(saldoApos)+'</span>'+warn;

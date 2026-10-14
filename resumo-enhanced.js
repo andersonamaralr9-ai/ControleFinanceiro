@@ -155,18 +155,18 @@ window.renderResumo = function() {
   // ─── MOBILE LIST ───
   h += '<div class="rm-list">';
   h += '<div class="rm-sh">Principal</div>';
-  h += '<div class="rm-ln" onclick="window._resRec()"><span class="rm-ic">&#128200;</span><span class="rm-lb">Receitas</span><span class="rm-vl" style="color:var(--ok)">' + fc(rec) + '</span><span class="rm-sub"><span class="rm-b g">' + rcn + '</span><span class="rm-b y">' + rpnn + '</span></span></div>';
-  h += '<div class="rm-ln" onclick="window._resDesp()"><span class="rm-ic">&#128201;</span><span class="rm-lb">Despesas</span><span class="rm-vl" style="color:var(--dn2)">' + fc(desp) + '</span><span class="rm-sub"><span class="rm-b g">' + dcn + '</span><span class="rm-b y">' + dpnn + '</span></span></div>';
-  h += '<div class="rm-ln rm-sal"><span class="rm-ic">&#128176;</span><span class="rm-lb">Saldo</span><span class="rm-vl" style="color:' + (sal >= 0 ? 'var(--inf2)' : 'var(--dn2)') + '">' + fc(sal) + '</span></div>';
+  h += '<div class="rm-ln" onclick="window._resRec()"><span class="rm-ic">'+icoA('investimentos')+'</span><span class="rm-lb">Receitas</span><span class="rm-vl" style="color:var(--ok)">' + fc(rec) + '</span><span class="rm-sub"><span class="rm-b g">' + rcn + '</span><span class="rm-b y">' + rpnn + '</span></span></div>';
+  h += '<div class="rm-ln" onclick="window._resDesp()"><span class="rm-ic">'+icoA('baixa')+'</span><span class="rm-lb">Despesas</span><span class="rm-vl" style="color:var(--dn2)">' + fc(desp) + '</span><span class="rm-sub"><span class="rm-b g">' + dcn + '</span><span class="rm-b y">' + dpnn + '</span></span></div>';
+  h += '<div class="rm-ln rm-sal"><span class="rm-ic">'+icoA('dinheiro')+'</span><span class="rm-lb">Saldo</span><span class="rm-vl" style="color:' + (sal >= 0 ? 'var(--inf2)' : 'var(--dn2)') + '">' + fc(sal) + '</span></div>';
   h += '<div class="rm-sh">Detalhes</div>';
-  h += '<div class="rm-ln" onclick="window._resFat()"><span class="rm-ic">&#128179;</span><span class="rm-lb">Fatura Cart\u00e3o</span><span class="rm-vl" style="color:#e65100">' + fc(fT) + '</span></div>';
-  h += '<div class="rm-ln" onclick="nav(\'contratos\')"><span class="rm-ic">&#128196;</span><span class="rm-lb">Contratos</span><span class="rm-vl" style="color:var(--pri2)">' + cA + '</span></div>';
-  h += '<div class="rm-ln" onclick="nav(\'assinaturas\')"><span class="rm-ic">&#128257;</span><span class="rm-lb">Assinaturas</span><span class="rm-vl" style="color:var(--wn)">' + fc(aT) + '</span></div>';
+  h += '<div class="rm-ln" onclick="window._resFat()"><span class="rm-ic">'+icoA('cartoes')+'</span><span class="rm-lb">Fatura Cart\u00e3o</span><span class="rm-vl" style="color:var(--wn)">' + fc(fT) + '</span></div>';
+  h += '<div class="rm-ln" onclick="nav(\'contratos\')"><span class="rm-ic">'+icoA('contratos')+'</span><span class="rm-lb">Contratos</span><span class="rm-vl" style="color:var(--pri2)">' + cA + '</span></div>';
+  h += '<div class="rm-ln" onclick="nav(\'assinaturas\')"><span class="rm-ic">'+icoA('assinaturas')+'</span><span class="rm-lb">Assinaturas</span><span class="rm-vl" style="color:var(--wn)">' + fc(aT) + '</span></div>';
   h += '<div class="rm-sh">Status pagamentos</div>';
-  h += '<div class="rm-ln"><span class="rm-ic" style="color:var(--ok)">\u2713</span><span class="rm-lb">Recebido</span><span class="rm-vl" style="color:var(--ok)">' + fc(rcf) + '</span></div>';
-  h += '<div class="rm-ln"><span class="rm-ic" style="color:var(--wn)">\u23F3</span><span class="rm-lb">A receber</span><span class="rm-vl" style="color:var(--wn)">' + fc(rpn) + '</span></div>';
-  h += '<div class="rm-ln"><span class="rm-ic" style="color:var(--ok)">\u2713</span><span class="rm-lb">Pago</span><span class="rm-vl" style="color:var(--ok)">' + fc(dcf) + '</span></div>';
-  h += '<div class="rm-ln"><span class="rm-ic" style="color:var(--wn)">\u23F3</span><span class="rm-lb">A pagar</span><span class="rm-vl" style="color:var(--wn)">' + fc(dpn) + '</span></div>';
+  h += '<div class="rm-ln"><span class="rm-ic" style="color:var(--ok)">'+icoA('checkpag')+'</span><span class="rm-lb">Recebido</span><span class="rm-vl" style="color:var(--ok)">' + fc(rcf) + '</span></div>';
+  h += '<div class="rm-ln"><span class="rm-ic" style="color:var(--wn)">'+icoA('relogio')+'</span><span class="rm-lb">A receber</span><span class="rm-vl" style="color:var(--wn)">' + fc(rpn) + '</span></div>';
+  h += '<div class="rm-ln"><span class="rm-ic" style="color:var(--ok)">'+icoA('checkpag')+'</span><span class="rm-lb">Pago</span><span class="rm-vl" style="color:var(--ok)">' + fc(dcf) + '</span></div>';
+  h += '<div class="rm-ln"><span class="rm-ic" style="color:var(--wn)">'+icoA('relogio')+'</span><span class="rm-lb">A pagar</span><span class="rm-vl" style="color:var(--wn)">' + fc(dpn) + '</span></div>';
   h += '</div>';
 
   h += '</div>';
@@ -289,10 +289,10 @@ window._resFat = function() {
       var it = pc[c], st = it.reduce(function(s, i) { return s + (Number(i.valor) || 0); }, 0);
       h += '<div style="padding:8px 10px;background:var(--bg3);font-weight:700;font-size:.8em;border-bottom:1px solid var(--bg4);">&#128179; ' + c + ' <span style="float:right;color:#e65100">' + fmtV(st) + '</span></div>';
       it.forEach(function(x) {
-        h += '<div class="rd-item"><span class="rd-d">' + (x.desc || '-') + '</span><span class="rd-m">' + (x.tipo || '') + (x.cat ? ' \u00b7 ' + x.cat : '') + '</span><span class="rd-v" style="color:#e65100">' + fmtV(x.valor) + '</span></div>';
+        h += '<div class="rd-item"><span class="rd-d">' + (x.desc || '-') + '</span><span class="rd-m">' + (x.tipo || '') + (x.cat ? ' \u00b7 ' + x.cat : '') + '</span><span class="rd-v" style="color:var(--wn)">' + fmtV(x.valor) + '</span></div>';
       });
     });
-    h += '</div><div class="rd-tot"><span>Total</span><span style="color:#e65100">' + fmtV(d.fT || 0) + '</span></div>';
+    h += '</div><div class="rd-tot"><span>Total</span><span style="color:var(--wn)">' + fmtV(d.fT || 0) + '</span></div>';
   }
   document.getElementById('resDetBody').innerHTML = h;
   openM('modalResDet');

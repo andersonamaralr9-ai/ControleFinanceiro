@@ -58,23 +58,25 @@ function createPage(){
 // ================================================================
 // Menu de relatorios
 // ================================================================
+function _ico(n){ return typeof iconeSVG==='function' ? iconeSVG(n) : ''; }
+
 window.renderRelatorios = function(){
   var el = document.getElementById('relContent');
   if(!el) return;
 
   var reports = [
-    {id:'fluxo',icon:'&#128200;',title:'Fluxo de Caixa',desc:'Receitas, despesas, saldo e evolu&ccedil;&atilde;o nos &uacute;ltimos 12 meses.'},
-    {id:'despcat',icon:'&#128202;',title:'Despesas por Categoria',desc:'Ranking por categoria com navega&ccedil;&atilde;o mensal e compara&ccedil;&atilde;o.'},
-    {id:'recorrentes',icon:'&#128257;',title:'Custos Fixos',desc:'Contratos e assinaturas: total fixo mensal com navega&ccedil;&atilde;o de m&ecirc;s.'},
-    {id:'cartoes',icon:'&#128179;',title:'Cart&otilde;es de Cr&eacute;dito',desc:'Faturas, uso de limite e m&eacute;dia por cart&atilde;o.'},
-    {id:'evolucao',icon:'&#128200;',title:'Evolu&ccedil;&atilde;o Patrimonial',desc:'Saldo acumulado e proje&ccedil;&atilde;o de 6 meses.'},
-    {id:'orcamento',icon:'&#127919;',title:'Or&ccedil;amento',desc:'Planejado vs realizado com navega&ccedil;&atilde;o mensal.'},
-    {id:'anual',icon:'&#128197;',title:'Resumo Anual',desc:'Vis&atilde;o consolidada do ano corrente.'},
-    {id:'inadimplencia',icon:'&#9888;',title:'Alertas',desc:'Vencimentos, parcelas e compromissos futuros.'},
-    {id:'detalhado',icon:'&#128203;',title:'Extrato Detalhado (Excel)',desc:'Todos os lan&ccedil;amentos por categoria, data e compet&ecirc;ncia para an&aacute;lise em Excel.'},
-    {id:'invest',icon:'&#128184;',title:'Investimentos',desc:'Evolu&ccedil;&atilde;o do saldo, aportes, resgates e rentabilidade por m&ecirc;s e por ativo.'},
-    {id:'investextrato',icon:'&#128181;',title:'Extrato de Investimentos',desc:'Todo o hist&oacute;rico de aportes, resgates e rentabilidade com saldo acumulado e exporta&ccedil;&atilde;o para Excel.'},
-    {id:'investativo',icon:'&#127974;',title:'Hist&oacute;rico por Ativo',desc:'Posi&ccedil;&atilde;o atual, retorno e linha do tempo completa de cada investimento.'}
+    {id:'fluxo',icon:_ico('investimentos'),title:'Fluxo de Caixa',desc:'Receitas, despesas, saldo e evolu&ccedil;&atilde;o nos &uacute;ltimos 12 meses.'},
+    {id:'despcat',icon:_ico('relatorios'),title:'Despesas por Categoria',desc:'Ranking por categoria com navega&ccedil;&atilde;o mensal e compara&ccedil;&atilde;o.'},
+    {id:'recorrentes',icon:_ico('assinaturas'),title:'Custos Fixos',desc:'Contratos e assinaturas: total fixo mensal com navega&ccedil;&atilde;o de m&ecirc;s.'},
+    {id:'cartoes',icon:_ico('cartoes'),title:'Cart&otilde;es de Cr&eacute;dito',desc:'Faturas, uso de limite e m&eacute;dia por cart&atilde;o.'},
+    {id:'evolucao',icon:_ico('patrimonio'),title:'Evolu&ccedil;&atilde;o Patrimonial',desc:'Saldo acumulado e proje&ccedil;&atilde;o de 6 meses.'},
+    {id:'orcamento',icon:_ico('planejamento'),title:'Or&ccedil;amento',desc:'Planejado vs realizado com navega&ccedil;&atilde;o mensal.'},
+    {id:'anual',icon:_ico('calendario'),title:'Resumo Anual',desc:'Vis&atilde;o consolidada do ano corrente.'},
+    {id:'inadimplencia',icon:_ico('alerta'),title:'Alertas',desc:'Vencimentos, parcelas e compromissos futuros.'},
+    {id:'detalhado',icon:_ico('contratos'),title:'Extrato Detalhado (Excel)',desc:'Todos os lan&ccedil;amentos por categoria, data e compet&ecirc;ncia para an&aacute;lise em Excel.'},
+    {id:'invest',icon:_ico('dinheiro'),title:'Investimentos',desc:'Evolu&ccedil;&atilde;o do saldo, aportes, resgates e rentabilidade por m&ecirc;s e por ativo.'},
+    {id:'investextrato',icon:_ico('extrato'),title:'Extrato de Investimentos',desc:'Todo o hist&oacute;rico de aportes, resgates e rentabilidade com saldo acumulado e exporta&ccedil;&atilde;o para Excel.'},
+    {id:'investativo',icon:_ico('balancete'),title:'Hist&oacute;rico por Ativo',desc:'Posi&ccedil;&atilde;o atual, retorno e linha do tempo completa de cada investimento.'}
   ];
 
   var h = '<div class="rel-opts">';
@@ -136,7 +138,7 @@ function buildFluxoCaixa(){
   var best=data.reduce(function(b,d){return d.s>b.s?d:b;},data[0]);
   var worst=data.reduce(function(w,d){return d.s<w.s?d:w;},data[0]);
   var tp=tR>0?((tR-tD)/tR*100).toFixed(1):'0';
-  var h='<div class="rel-area"><h3>&#128200; Fluxo de Caixa &mdash; 12 Meses</h3>';
+  var h='<div class="rel-area"><h3>Fluxo de Caixa &mdash; 12 Meses</h3>';
   h+='<div class="rel-mini-cards"><div class="rel-mc"><div class="rmc-label">Total Receitas</div><div class="rmc-val rt-green">'+fmtV(tR)+'</div></div><div class="rel-mc"><div class="rmc-label">Total Despesas</div><div class="rmc-val rt-red">'+fmtV(tD)+'</div></div><div class="rel-mc"><div class="rmc-label">Saldo</div><div class="rmc-val '+(tR-tD>=0?'rt-green':'rt-red')+'">'+fmtV(tR-tD)+'</div></div><div class="rel-mc"><div class="rmc-label">M&eacute;dia Mensal</div><div class="rmc-val '+(mS>=0?'rt-green':'rt-red')+'">'+fmtV(mS)+'</div></div></div>';
   h+='<div style="overflow-x:auto"><table class="rel-table"><thead><tr><th>M&ecirc;s</th><th>Receitas</th><th>Despesas</th><th>Saldo</th><th>Acumulado</th></tr></thead><tbody>';
   data.forEach(function(d){ h+='<tr><td>'+mesNome(d.m)+'</td><td class="rt-green" style="font-weight:600">'+fmtV(d.r)+'</td><td class="rt-red" style="font-weight:600">'+fmtV(d.d)+'</td><td class="'+(d.s>=0?'rt-green':'rt-red')+'" style="font-weight:700">'+fmtV(d.s)+'</td><td class="'+(d.a>=0?'rt-green':'rt-red')+'" style="font-weight:700">'+fmtV(d.a)+'</td></tr>'; });
@@ -157,7 +159,7 @@ function buildDespCat(){
   var maxV = sorted.length ? sorted[0][1] : 1;
   var colors = ['var(--dn2)','var(--wn)','var(--pri2)','var(--inf2)','var(--ok)','var(--tx2)'];
 
-  var h = '<div class="rel-area"><h3>&#128202; Despesas por Categoria</h3>';
+  var h = '<div class="rel-area"><h3>Despesas por Categoria</h3>';
   h += monthNav('despcat', mes);
   h += '<div class="rel-mini-cards"><div class="rel-mc"><div class="rmc-label">Total Despesas</div><div class="rmc-val rt-red">'+fmtV(total)+'</div></div><div class="rel-mc"><div class="rmc-label">Categorias</div><div class="rmc-val rt-blue">'+sorted.length+'</div></div><div class="rel-mc"><div class="rmc-label">Maior</div><div class="rmc-val rt-purple">'+(sorted.length?sorted[0][0]:'-')+'</div></div></div>';
   sorted.forEach(function(item,idx){
@@ -194,7 +196,7 @@ function buildRecorrentes(){
   var totalDesp=0; allEntries(mes).forEach(function(e){if(e.tipo==='despesa')totalDesp+=e.valor;});
   var pF=totalDesp>0?((tF/totalDesp)*100).toFixed(1):'0';
 
-  var h='<div class="rel-area"><h3>&#128257; Custos Fixos</h3>';
+  var h='<div class="rel-area"><h3>'+(typeof iconeSVG==="function"?iconeSVG("assinaturas"):"")+' Custos Fixos</h3>';
   h+=monthNav('recorrentes',mes);
   h+='<div class="rel-mini-cards"><div class="rel-mc"><div class="rmc-label">Contratos Desp.</div><div class="rmc-val rt-red">'+fmtV(tCD)+'</div></div><div class="rel-mc"><div class="rmc-label">Assinaturas</div><div class="rmc-val rt-red">'+fmtV(tA)+'</div></div><div class="rel-mc"><div class="rmc-label">Contratos Rec.</div><div class="rmc-val rt-green">'+fmtV(tCR)+'</div></div><div class="rel-mc"><div class="rmc-label">Total Fixo</div><div class="rmc-val rt-purple">'+fmtV(tF)+'</div></div><div class="rel-mc"><div class="rmc-label">% Despesas</div><div class="rmc-val rt-blue">'+pF+'%</div></div></div>';
 
@@ -209,9 +211,9 @@ function buildRecorrentes(){
   h+='<tr class="rt-total"><td colspan="4">Total Fixo (Despesas)</td><td class="rt-red">'+fmtV(tF)+'</td></tr></tbody></table></div>';
 
   h+='<div class="rel-analysis"><h4>An&aacute;lise</h4><p><strong>'+pF+'%</strong> das despesas s&atilde;o fixas.</p>';
-  if(parseFloat(pF)>70) h+='<p>&#9888; Custos fixos muito altos (&gt;70%).</p>';
-  else if(parseFloat(pF)>50) h+='<p>&#128993; N&iacute;vel moderado (50-70%).</p>';
-  else h+='<p>&#128994; N&iacute;vel saud&aacute;vel (&lt;50%).</p>';
+  if(parseFloat(pF)>70) h+='<p>'+(typeof iconeSVG==="function"?iconeSVG("alerta"):"")+' Custos fixos muito altos (&gt;70%).</p>';
+  else if(parseFloat(pF)>50) h+='<p>N&iacute;vel moderado (50-70%).</p>';
+  else h+='<p>N&iacute;vel saud&aacute;vel (&lt;50%).</p>';
   h+='</div></div>';
   return h;
 }
@@ -221,7 +223,7 @@ function buildRecorrentes(){
 // ================================================================
 function buildCartoes(){
   var meses=getLast12();
-  var h='<div class="rel-area"><h3>&#128179; Cart&otilde;es de Cr&eacute;dito</h3>';
+  var h='<div class="rel-area"><h3>Cart&otilde;es de Cr&eacute;dito</h3>';
   if(!S.cartoes.length){h+='<p style="color:var(--tx3);text-align:center;padding:20px">Nenhum cart&atilde;o.</p></div>';return h;}
   S.cartoes.forEach(function(cart){
     var faturas=[];
@@ -253,7 +255,7 @@ function buildEvolucao(){
   var proj=[];var b=sA;for(var i=1;i<=6;i++){b+=mS;proj.push({m:addMes(mesAtual(),i),a:b});}
   var maxA=Math.max.apply(null,data.map(function(d){return Math.abs(d.a);}).concat([1]));
 
-  var h='<div class="rel-area"><h3>&#128200; Evolu&ccedil;&atilde;o Patrimonial</h3>';
+  var h='<div class="rel-area"><h3>Evolu&ccedil;&atilde;o Patrimonial</h3>';
   h+='<div class="rel-mini-cards"><div class="rel-mc"><div class="rmc-label">Saldo Acumulado</div><div class="rmc-val '+(sA>=0?'rt-green':'rt-red')+'">'+fmtV(sA)+'</div></div><div class="rel-mc"><div class="rmc-label">Investimentos</div><div class="rmc-val rt-blue">'+fmtV(inv)+'</div></div><div class="rel-mc"><div class="rmc-label">Patrim&ocirc;nio</div><div class="rmc-val rt-purple">'+fmtV(sA+inv)+'</div></div><div class="rel-mc"><div class="rmc-label">Poupan&ccedil;a/m&ecirc;s</div><div class="rmc-val '+(mS>=0?'rt-green':'rt-red')+'">'+fmtV(mS)+'</div></div></div>';
   data.forEach(function(d){var w=Math.max((Math.abs(d.a)/maxA)*100,2);var cor=d.a>=0?'var(--ok)':'var(--dn2)';h+='<div class="rel-hbar"><div class="rhb-label">'+mesNome(d.m)+'</div><div class="rhb-bar-bg"><div class="rhb-bar-fill" style="width:'+w+'%;background:'+cor+'"></div></div><div class="rhb-val" style="color:'+cor+'">'+fmtV(d.a)+'</div></div>';});
   h+='<div class="rel-analysis"><h4>Proje&ccedil;&atilde;o (6 meses)</h4><p>M&eacute;dia: <strong>'+fmtV(mS)+'/m&ecirc;s</strong></p>';
@@ -267,7 +269,7 @@ function buildEvolucao(){
 function buildOrcamento(){
   var mes=relState.orcamento_mes;
   var plan=S.planejamento[mes]||{};var cats=Object.keys(plan);
-  var h='<div class="rel-area"><h3>&#127919; Or&ccedil;amento</h3>';
+  var h='<div class="rel-area"><h3>Or&ccedil;amento</h3>';
   h+=monthNav('orcamento',mes);
   if(!cats.length){h+='<p style="color:var(--tx3);text-align:center;padding:20px">Nenhum or&ccedil;amento em '+mesNomeFull(mes)+'.</p></div>';return h;}
   var E=allEntries(mes),tP=0,tG=0,ok=0,wn=0,dn=0;
@@ -279,7 +281,7 @@ function buildOrcamento(){
   h+='<div class="rel-analysis"><h4>An&aacute;lise</h4>';
   if(dn>0) h+='<p>&#128308; '+dn+' categoria(s) estourou.</p>';
   if(wn>0) h+='<p>&#128993; '+wn+' categoria(s) &gt;80%.</p>';
-  h+='<p>&#127919; Cumprimento: <strong>'+cump+'%</strong></p></div></div>';
+  h+='<p>Cumprimento: <strong>'+cump+'%</strong></p></div></div>';
   return h;
 }
 
@@ -293,7 +295,7 @@ function buildAnual(){
   var comDados=data.filter(function(d){return d.m<=ma&&(d.r>0||d.d>0);});
   var best=comDados.length?comDados.reduce(function(b,d){return d.s>b.s?d:b;},comDados[0]):null;
   var worst=comDados.length?comDados.reduce(function(w,d){return d.s<w.s?d:w;},comDados[0]):null;
-  var h='<div class="rel-area"><h3>&#128197; Resumo '+year+'</h3>';
+  var h='<div class="rel-area"><h3>Resumo '+year+'</h3>';
   h+='<div class="rel-mini-cards"><div class="rel-mc"><div class="rmc-label">Receitas</div><div class="rmc-val rt-green">'+fmtV(tR)+'</div></div><div class="rel-mc"><div class="rmc-label">Despesas</div><div class="rmc-val rt-red">'+fmtV(tD)+'</div></div><div class="rel-mc"><div class="rmc-label">Saldo</div><div class="rmc-val '+(tR-tD>=0?'rt-green':'rt-red')+'">'+fmtV(tR-tD)+'</div></div>';
   if(best)h+='<div class="rel-mc"><div class="rmc-label">Melhor</div><div class="rmc-val rt-green">'+mesNome(best.m)+'</div></div>';
   if(worst)h+='<div class="rel-mc"><div class="rmc-label">Pior</div><div class="rmc-val rt-red">'+mesNome(worst.m)+'</div></div>';
@@ -312,12 +314,12 @@ function buildAlertas(){
   S.contratos.forEach(function(c){if(c.encerradoEm)return;if(c.dataFim){var fm=c.dataFim.substring(0,7);if(fm>=ma&&fm<=p3)alertas.push({icon:'&#128197;',tipo:'Contrato vencendo',desc:c.desc,det:'Vence em '+mesNomeFull(c.dataFim),cor:fm===ma?'var(--dn2)':fm===p1?'var(--wn)':'var(--inf2)',u:fm===ma?1:2});}});
   var pAtiv=0,vPar=0;
   S.comprasCartao.forEach(function(c){var p=c.parcelas||1;if(p<=1)return;var mC=getMes(c.data);for(var i=0;i<p;i++){if(addMes(mC,i)===ma){pAtiv++;vPar+=(Number(c.valor)||0)/p;}}var ult=addMes(mC,p-1);if(ult>=ma&&ult<=p3)alertas.push({icon:'&#128179;',tipo:'&Uacute;ltima parcela',desc:c.desc+' ('+p+'x)',det:mesNome(ult),cor:'var(--ok)',u:4});});
-  S.assinaturas.filter(function(s){return!s.encerradaEm;}).forEach(function(s){if(Number(s.valor)>200)alertas.push({icon:'&#128257;',tipo:'Assinatura alta',desc:s.nome,det:fmtV(s.valor)+'/m&ecirc;s',cor:'var(--wn)',u:5});});
+  S.assinaturas.filter(function(s){return!s.encerradaEm;}).forEach(function(s){if(Number(s.valor)>200)alertas.push({icon:''+(typeof iconeSVG==="function"?iconeSVG("assinaturas"):"")+'',tipo:'Assinatura alta',desc:s.nome,det:fmtV(s.valor)+'/m&ecirc;s',cor:'var(--wn)',u:5});});
   alertas.sort(function(a,b){return a.u-b.u;});
 
-  var h='<div class="rel-area"><h3>&#9888; Alertas e Vencimentos</h3>';
+  var h='<div class="rel-area"><h3>'+(typeof iconeSVG==="function"?iconeSVG("alerta"):"")+' Alertas e Vencimentos</h3>';
   h+='<div class="rel-mini-cards"><div class="rel-mc"><div class="rmc-label">Alertas</div><div class="rmc-val rt-red">'+alertas.length+'</div></div><div class="rel-mc"><div class="rmc-label">Parcelas Ativas</div><div class="rmc-val rt-blue">'+pAtiv+'</div></div><div class="rel-mc"><div class="rmc-label">Parcelas/m&ecirc;s</div><div class="rmc-val rt-red">'+fmtV(vPar)+'</div></div></div>';
-  if(!alertas.length){h+='<div class="rel-analysis"><p>&#128994; Nenhum alerta. Tudo sob controle.</p></div>';}
+  if(!alertas.length){h+='<div class="rel-analysis"><p>Nenhum alerta. Tudo sob controle.</p></div>';}
   else{h+='<div style="overflow-x:auto"><table class="rel-table"><thead><tr><th></th><th>Tipo</th><th>Descri&ccedil;&atilde;o</th><th>Detalhe</th></tr></thead><tbody>';alertas.forEach(function(a){h+='<tr><td>'+a.icon+'</td><td style="font-weight:600;color:'+a.cor+'">'+a.tipo+'</td><td>'+a.desc+'</td><td>'+a.det+'</td></tr>';});h+='</tbody></table></div>';}
   h+='<div class="rel-analysis"><h4>Pr&oacute;ximos 3 Meses</h4>';
   [p1,p2,p3].forEach(function(m){var E=allEntries(m);var d=E.filter(function(e){return e.tipo==='despesa';}).reduce(function(s,e){return s+e.valor;},0);var f=faturaCC(m).reduce(function(s,x){return s+x.valor;},0);h+='<p><strong>'+mesNomeFull(m)+':</strong> Desp. <span class="rt-red" style="font-weight:700">'+fmtV(d)+'</span>';if(f>0)h+=' | Fatura <span style="color:#e65100;font-weight:700">'+fmtV(f)+'</span>';h+='</p>';});
@@ -331,12 +333,12 @@ function buildDetalhado(){
   var de = relState.detalhado_de;
   var ate = relState.detalhado_ate;
 
-  var h = '<div class="rel-area"><h3>&#128203; Extrato Detalhado para Excel</h3>';
+  var h = '<div class="rel-area"><h3>'+(typeof iconeSVG==="function"?iconeSVG("copiar"):"")+' Extrato Detalhado para Excel</h3>';
   h += '<div class="rel-filters">';
   h += '<div class="form-group"><label>De</label><input type="month" id="relDetDe" class="form-control" value="' + de + '" onchange="window._relDetUpdateRange()"></div>';
   h += '<div class="form-group"><label>At&eacute;</label><input type="month" id="relDetAte" class="form-control" value="' + ate + '" onchange="window._relDetUpdateRange()"></div>';
   h += '<div class="form-group"><label>&nbsp;</label><button class="btn btn-primary" onclick="window._relDetGenerate()">Gerar Pr&eacute;via</button></div>';
-  h += '<div class="form-group"><label>&nbsp;</label><button class="btn btn-success" onclick="window._relDetExportXLS()">&#128229; Exportar Excel</button></div>';
+  h += '<div class="form-group"><label>&nbsp;</label><button class="btn btn-success" onclick="window._relDetExportXLS()">Exportar Excel</button></div>';
   h += '</div>';
   h += '<div id="relDetPreview"></div>';
   h += '</div>';
@@ -494,7 +496,7 @@ window._relDetExportXLS = function(){
 // ================================================================
 function buildInvest(){
   var invs = S.investimentos || [];
-  if(!invs.length) return '<div class="rel-area"><h3>&#128184; Investimentos</h3><p style="color:var(--tx3)">Nenhum investimento cadastrado.</p></div>';
+  if(!invs.length) return '<div class="rel-area"><h3>'+(typeof iconeSVG==="function"?iconeSVG("dinheiro"):"")+' Investimentos</h3><p style="color:var(--tx3)">Nenhum investimento cadastrado.</p></div>';
 
   var meses12 = getLast12();
   function getMes(d){ return d ? d.substring(0,7) : ''; }
@@ -525,7 +527,7 @@ function buildInvest(){
   var totRent = porMes.reduce(function(s,m){return s+m.rent;},0);
   var saldoAtual = porMes[porMes.length-1].fechamento;
 
-  var h = '<div class="rel-area"><h3>&#128184; Investimentos &mdash; &Uacute;ltimos 12 Meses</h3>';
+  var h = '<div class="rel-area"><h3>'+(typeof iconeSVG==="function"?iconeSVG("dinheiro"):"")+' Investimentos &mdash; &Uacute;ltimos 12 Meses</h3>';
 
   // Cards resumo
   h += '<div class="rel-mini-cards">';
@@ -654,11 +656,11 @@ function _invSelectAtivos(id, sel){
 
 function buildInvestExtrato(){
   var invs = S.investimentos || [];
-  if(!invs.length) return '<div class="rel-area"><h3>&#128181; Extrato de Investimentos</h3><p style="color:var(--tx3)">Nenhum investimento cadastrado.</p></div>';
+  if(!invs.length) return '<div class="rel-area"><h3>Extrato de Investimentos</h3><p style="color:var(--tx3)">Nenhum investimento cadastrado.</p></div>';
 
   if(!relState.investext_de) relState.investext_de = _invPrimeiroMes();
 
-  var h = '<div class="rel-area"><h3>&#128181; Extrato de Investimentos</h3>';
+  var h = '<div class="rel-area"><h3>Extrato de Investimentos</h3>';
   h += '<p style="font-size:.8em;color:var(--tx3);margin-bottom:14px">Aportes, resgates e rentabilidade em ordem cronol&oacute;gica, com saldo acumulado.</p>';
 
   h += '<div class="rel-filters">';
@@ -667,7 +669,7 @@ function buildInvestExtrato(){
   h += '<div class="form-group"><label>At&eacute;</label><input type="month" id="relInvExAte" class="form-control" value="' + relState.investext_ate + '"></div>';
   h += '<div class="form-group"><label>&nbsp;</label><button class="btn btn-primary" onclick="window._relInvExGerar()">Aplicar</button></div>';
   h += '<div class="form-group"><label>&nbsp;</label><button class="btn btn-outline" onclick="window._relInvExTudo()">Todo o hist&oacute;rico</button></div>';
-  h += '<div class="form-group"><label>&nbsp;</label><button class="btn btn-success" onclick="window._relInvExExportXLS()">&#128229; Exportar Excel</button></div>';
+  h += '<div class="form-group"><label>&nbsp;</label><button class="btn btn-success" onclick="window._relInvExExportXLS()">Exportar Excel</button></div>';
   h += '</div>';
 
   h += '<div id="relInvExPreview"></div>';
@@ -781,9 +783,9 @@ window._relInvExExportXLS = function(){
 // ---- Historico / posicao por ativo ------------------------------
 function buildInvestAtivo(){
   var invs = S.investimentos || [];
-  if(!invs.length) return '<div class="rel-area"><h3>&#127974; Hist&oacute;rico por Ativo</h3><p style="color:var(--tx3)">Nenhum investimento cadastrado.</p></div>';
+  if(!invs.length) return '<div class="rel-area"><h3>Hist&oacute;rico por Ativo</h3><p style="color:var(--tx3)">Nenhum investimento cadastrado.</p></div>';
 
-  var h = '<div class="rel-area"><h3>&#127974; Hist&oacute;rico por Ativo</h3>';
+  var h = '<div class="rel-area"><h3>Hist&oacute;rico por Ativo</h3>';
   h += '<p style="font-size:.8em;color:var(--tx3);margin-bottom:14px">Posi&ccedil;&atilde;o atual e linha do tempo completa de cada investimento.</p>';
   h += '<div class="rel-filters"><div class="form-group"><label>Ativo</label>' + _invSelectAtivos('relInvAtSel', relState.investativo_sel) + '</div>';
   h += '<div class="form-group"><label>&nbsp;</label><button class="btn btn-primary" onclick="window._relInvAtGerar()">Aplicar</button></div></div>';

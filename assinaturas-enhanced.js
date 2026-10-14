@@ -15,7 +15,7 @@ if(!document.getElementById('modalEditSub')){
   m.className = 'modal';
   m.id = 'modalEditSub';
   m.innerHTML = '<div class="modal-content"><div class="modal-header">' +
-    '<h3>&#9998; Editar Assinatura</h3>' +
+    '<h3>'+(typeof iconeSVG==="function"?iconeSVG("editar"):"")+' Editar Assinatura</h3>' +
     '<span class="modal-close" onclick="closeM(\'modalEditSub\')">&times;</span></div>' +
     '<div class="modal-body">' +
       '<div class="form-group"><label>Nome</label><input id="esNome" class="form-control"></div>' +
@@ -156,7 +156,7 @@ afterRender('assinaturas', function(){
   });
 
   existingResumo.innerHTML =
-    '<h3 style="font-size:.88em;color:var(--tx2);margin-bottom:10px;font-weight:600">&#128257; ' + mesLabel + '</h3>' +
+    '<h3 style="font-size:.88em;color:var(--tx2);margin-bottom:10px;font-weight:600">'+(typeof iconeSVG==="function"?iconeSVG("assinaturas"):"")+' ' + mesLabel + '</h3>' +
     '<div class="as-resumo">' +
       '<div class="card"><div class="card-label">Ativas</div><div class="card-value green">' + ativas + '</div></div>' +
       '<div class="card"><div class="card-label">Total Mensal</div><div class="card-value red">' + fmtV(totalValorMes) + '</div></div>' +
@@ -185,7 +185,7 @@ afterRender('assinaturas', function(){
 
     var btn = document.createElement('button');
     btn.className = 'btn btn-sm btn-outline btn-edit-sub';
-    btn.innerHTML = '&#9998; Editar';
+    btn.innerHTML = ''+(typeof iconeSVG==="function"?iconeSVG("editar"):"")+' Editar';
     btn.title = 'Editar assinatura';
     btn.onclick = function(){ editSub(subId); };
     actions.insertBefore(btn, actions.firstChild);

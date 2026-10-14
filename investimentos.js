@@ -30,8 +30,8 @@
         '<button class="inv-pmn-btn" onclick="invChgPMes(1)">&#9654;</button>' +
       '</div>' +
       '<div class="inv-panel-tabs">' +
-        '<button class="inv-tab on" id="invTabRent" onclick="invSwitchTab(\'rent\')">&#128200; Rentabilidade</button>' +
-        '<button class="inv-tab" id="invTabMov" onclick="invSwitchTab(\'mov\')">&#128260; Movimenta&ccedil;&otilde;es</button>' +
+        '<button class="inv-tab on" id="invTabRent" onclick="invSwitchTab(\'rent\')">Rentabilidade</button>' +
+        '<button class="inv-tab" id="invTabMov" onclick="invSwitchTab(\'mov\')">Movimenta&ccedil;&otilde;es</button>' +
       '</div>' +
       '<div class="inv-panel-body">' +
         '<div class="inv-tp on" id="invTpRent">' +
@@ -67,8 +67,8 @@
         '</div>' +
       '</div>' +
       '<div class="inv-panel-acts">' +
-        '<button class="inv-pa" onclick="invEditarAtivo()">&#9998; Editar</button>' +
-        '<button class="inv-pa danger" onclick="invExcluirAtivo()">&#128465; Excluir</button>' +
+        '<button class="inv-pa" onclick="invEditarAtivo()">'+(typeof iconeSVG==="function"?iconeSVG("editar"):"")+' Editar</button>' +
+        '<button class="inv-pa danger" onclick="invExcluirAtivo()">'+(typeof iconeSVG==="function"?iconeSVG("lixeira"):"")+' Excluir</button>' +
       '</div>' +
     '</div>';
   document.body.appendChild(ov);
@@ -249,7 +249,7 @@ window.renderInvest = function(){
     '<div></div>' +
     '<div class="inv-top-actions">' +
       '<div class="inv-view-toggle">' +
-        '<button class="ivt-btn' + (_invVistaAtual === 'lista' ? ' on' : '') + '" id="invBtnLista" onclick="invSetVista(\'lista\')">&#9776; Lista</button>' +
+        '<button class="ivt-btn' + (_invVistaAtual === 'lista' ? ' on' : '') + '" id="invBtnLista" onclick="invSetVista(\'lista\')">Lista</button>' +
         '<button class="ivt-btn' + (_invVistaAtual === 'detalhe' ? ' on' : '') + '" id="invBtnDetalhe" onclick="invSetVista(\'detalhe\')">&#9635; Detalhado</button>' +
       '</div>' +
       '<button onclick="invOpenNovoAtivo()" style="background:var(--priG);border:none;color:#fff;border-radius:10px;padding:9px 16px;font-size:.8em;font-weight:700;cursor:pointer;">&#65291; Novo ativo</button>' +
@@ -438,8 +438,8 @@ function _invBuildDetalhe(invs, ma){
         '<div class="inv-bar-chart">' + bars + '</div>' +
       '</div>' +
       '<div class="inv-card2-actions">' +
-        '<button class="inv-ca" onclick="invOpenPanel(\'' + idEsc + '\',\'mov\')">&#128260; Movimentações</button>' +
-        '<button class="inv-ca" onclick="invOpenPanel(\'' + idEsc + '\',\'rent\')">&#128200; Rentabilidade</button>' +
+        '<button class="inv-ca" onclick="invOpenPanel(\'' + idEsc + '\',\'mov\')">Movimentações</button>' +
+        '<button class="inv-ca" onclick="invOpenPanel(\'' + idEsc + '\',\'rent\')">Rentabilidade</button>' +
         '<button class="inv-ca pri" onclick="invOpenPanel(\'' + idEsc + '\',\'rent\')">Ver detalhe &rsaquo;</button>' +
       '</div>' +
     '</div>';

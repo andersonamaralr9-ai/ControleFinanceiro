@@ -186,7 +186,7 @@ window.renderPlan = function(){
 
   // ── BOTÃO COPIAR MÊS ANTERIOR ──
   h += '<div class="pl-btn-copy">';
-  h += '<button class="btn btn-outline" onclick="window._plCopyPrev()" title="Copiar limites do mês anterior">&#128203; Copiar Mês Anterior</button>';
+  h += '<button class="btn btn-outline" onclick="window._plCopyPrev()" title="Copiar limites do mês anterior">'+(typeof iconeSVG==="function"?iconeSVG("copiar"):"")+' Copiar Mês Anterior</button>';
   h += '</div>';
 
   // ── SUMMARY CARDS ──
@@ -219,11 +219,11 @@ window.renderPlan = function(){
       if(cd.pct > 100){
         barClass = 'pl-bar-danger';
         pctClass = 'pl-pct-danger';
-        icon = '<span class="pl-icon-alert">&#9888;&#65039;</span>';
+        icon = '<span class="pl-icon-alert">'+(typeof iconeSVG==="function"?iconeSVG("alerta"):"")+'&#65039;</span>';
       } else if(cd.pct > 80){
         barClass = 'pl-bar-warn';
         pctClass = 'pl-pct-warn';
-        icon = '<span class="pl-icon-alert">&#9888;</span>';
+        icon = '<span class="pl-icon-alert">'+(typeof iconeSVG==="function"?iconeSVG("alerta"):"")+'</span>';
       } else {
         barClass = 'pl-bar-ok';
         pctClass = 'pl-pct-ok';
@@ -243,8 +243,8 @@ window.renderPlan = function(){
       h += '<span>Disponível<br><span class="pl-val" style="color:' + (cd.disp >= 0 ? 'var(--ok)' : 'var(--dn2)') + '">' + fmtV(cd.disp) + '</span></span>';
       h += '</div>';
       h += '<div class="pl-cat-card-actions">';
-      h += '<button class="btn btn-sm btn-outline" onclick="window._plEditLimit(\'' + catEsc + '\')" title="Editar limite">&#9998;</button>';
-      h += '<button class="btn btn-sm btn-danger" onclick="window._plDelLimit(\'' + catEsc + '\')" title="Remover limite">&#128465;</button>';
+      h += '<button class="btn btn-sm btn-outline" onclick="window._plEditLimit(\'' + catEsc + '\')" title="Editar limite">'+(typeof iconeSVG==="function"?iconeSVG("editar"):"")+'</button>';
+      h += '<button class="btn btn-sm btn-danger" onclick="window._plDelLimit(\'' + catEsc + '\')" title="Remover limite">'+(typeof iconeSVG==="function"?iconeSVG("lixeira"):"")+'</button>';
       h += '</div>';
       h += '</div>';
     }
@@ -256,7 +256,7 @@ window.renderPlan = function(){
   // ── DESPESAS SEM ORÇAMENTO ──
   if(semOrc.length){
     h += '<div class="pl-section">';
-    h += '<h3>&#9888; Despesas sem Orçamento (' + semOrc.length + ')</h3>';
+    h += '<h3>'+(typeof iconeSVG==="function"?iconeSVG("alerta"):"")+' Despesas sem Orçamento (' + semOrc.length + ')</h3>';
     h += '<p style="font-size:.82em;color:var(--tx3);margin-bottom:14px">Categorias com gastos neste mês, mas sem limite definido.</p>';
     h += '<div class="pl-no-budget">';
     for(var n = 0; n < semOrc.length; n++){
@@ -288,7 +288,7 @@ window.renderPlan = function(){
 
   if(allCats3Arr.length){
     h += '<div class="pl-section">';
-    h += '<h3>&#128200; Comparativo — Últimos 3 Meses</h3>';
+    h += '<h3>Comparativo — Últimos 3 Meses</h3>';
     h += '<div style="overflow-x:auto">';
     h += '<table class="pl-comp-table">';
     h += '<thead><tr><th>Categoria</th>';

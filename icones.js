@@ -58,7 +58,25 @@ var ICONES = {
   // nuvem
   backup: svg('<path d="M7 18a4 4 0 0 1-.4-8 5.5 5.5 0 0 1 10.6 1.1A3.5 3.5 0 0 1 17 18z"/>'),
   // acoes (fora do menu)
-  mais: svg('<path d="M12 5v14M5 12h14"/>')
+  mais: svg('<path d="M12 5v14M5 12h14"/>'),
+  // em baixa (contraponto de "investimentos", que e em alta)
+  baixa: svg('<path d="M4 7.5 10 14l3.5-3.5L20 17"/><path d="M15 17h5v-5"/>'),
+  // cifra
+  dinheiro: svg('<path d="M12 3v18"/><path d="M16.5 7.5c0-1.7-2-3-4.5-3s-4.5 1.3-4.5 3 2 2.6 4.5 3 4.5 1.3 4.5 3-2 3-4.5 3-4.5-1.3-4.5-3"/>'),
+  // calendario
+  calendario: svg('<rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>'),
+  // alerta
+  alerta: svg('<path d="M12 4.5 21 19.5H3z"/><path d="M12 10v4"/><circle cx="12" cy="17" r=".7" fill="currentColor"/>'),
+  // veiculo
+  veiculo: svg('<path d="M5 16.5h14M6.5 16.5v2M17.5 16.5v2"/><path d="M4.5 16.5v-4l2-4.5h11l2 4.5v4"/><circle cx="8" cy="13.5" r="1.1"/><circle cx="16" cy="13.5" r="1.1"/>'),
+  // pendente
+  relogio: svg('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>'),
+  // editar
+  editar: svg('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14.5 5.5 18.5 9.5"/>'),
+  // copiar
+  copiar: svg('<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/>'),
+  // caixa / outro
+  caixa: svg('<path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5 12 12l8-4.5M12 12v9"/>')
 };
 
 function aplicar(){

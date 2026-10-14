@@ -198,8 +198,8 @@ window.renderCartoes = function(){
 
       // AÇÕES: Editar + Excluir
       r += '<div style="margin-top:10px;display:flex;gap:6px">';
-      r += '<button class="btn btn-sm btn-outline" onclick="window._editCartao(\'' + c.id + '\')" title="Editar cart\u00e3o">&#9998; Editar</button>';
-      r += '<button class="btn btn-sm btn-danger" onclick="delCartao(\'' + c.id + '\')" title="Excluir cart\u00e3o">&#128465;</button>';
+      r += '<button class="btn btn-sm btn-outline" onclick="window._editCartao(\'' + c.id + '\')" title="Editar cart\u00e3o">'+(typeof iconeSVG==="function"?iconeSVG("editar"):"")+' Editar</button>';
+      r += '<button class="btn btn-sm btn-danger" onclick="delCartao(\'' + c.id + '\')" title="Excluir cart\u00e3o">'+(typeof iconeSVG==="function"?iconeSVG("lixeira"):"")+'</button>';
       r += '</div>';
 
       r += '</div>';

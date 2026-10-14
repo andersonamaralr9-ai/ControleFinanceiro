@@ -21,7 +21,7 @@
       var cor=e.tipo==='receita'?'var(--ok)':'var(--dn2)';
       var sinal=e.tipo==='receita'?'+ ':'- ';
       var bc=e.tipo==='receita'?'badge-success':'badge-danger';
-      var acts=e.isManual?'<span class="mc-acts"><button class="btn btn-sm btn-outline" onclick="editLanc(\''+e.id+'\')">&#9998;</button><button class="btn btn-sm btn-danger" onclick="delLanc(\''+e.id+'\')">&#128465;</button></span>':'';
+      var acts=e.isManual?'<span class="mc-acts"><button class="btn btn-sm btn-outline" onclick="editLanc(\''+e.id+'\')">'+(typeof iconeSVG==="function"?iconeSVG("editar"):"")+'</button><button class="btn btn-sm btn-danger" onclick="delLanc(\''+e.id+'\')">'+(typeof iconeSVG==="function"?iconeSVG("lixeira"):"")+'</button></span>':'';
       return '<div class="mc"><div class="mc-top"><span class="mc-date">'+fmtD(e.data)+'</span><span class="mc-val" style="color:'+cor+'">'+sinal+fmtV(e.valor)+'</span></div><div class="mc-desc">'+e.desc+'</div><div class="mc-meta"><span class="mc-left"><span class="badge '+bc+'">'+e.tipo+'</span> '+e.cat+' &bull; '+e.origem+'</span>'+acts+'</div>'+(e.obs?'<div class="mc-obs">'+e.obs+'</div>':'')+'</div>';
     }).join('');
   };

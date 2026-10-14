@@ -91,7 +91,7 @@ function _cpRender(){
       '</div></div>' +
     '<div class="cp-totais-grid" id="cpTotaisGrid"></div>' +
     '<div class="cp-section">' +
-      '<h3>&#128722; Compras da Compet&ecirc;ncia <span class="cp-count" id="cpResultCount">0</span></h3>' +
+      '<h3>Compras da Compet&ecirc;ncia <span class="cp-count" id="cpResultCount">0</span></h3>' +
       '<div class="table-wrap"><table class="cp-table"><thead><tr>' +
         '<th>Data</th><th>Cart&atilde;o</th><th>Descri&ccedil;&atilde;o</th><th>Categoria</th>' +
         '<th>Total</th><th>Parcela</th><th>Valor Parc.</th><th>Status</th><th>A&ccedil;&otilde;es</th>' +
@@ -284,8 +284,8 @@ window._cpApplyFilter = function(){
           '<td>' + statusBadge + '</td>' +
           '<td>' +
             (it.temAntecipacao ? '<button class="btn btn-sm btn-warning" onclick="abrirAntecipacao(\'' + idEsc + '\')">&#9889;</button> ' : '') +
-            '<button class="btn btn-sm btn-outline" onclick="editCompra(\'' + idEsc + '\')">&#9998;</button> ' +
-            '<button class="btn btn-sm btn-danger" onclick="delCompra(\'' + idEsc + '\')">&#128465;</button>' +
+            '<button class="btn btn-sm btn-outline" onclick="editCompra(\'' + idEsc + '\')">'+(typeof iconeSVG==="function"?iconeSVG("editar"):"")+'</button> ' +
+            '<button class="btn btn-sm btn-danger" onclick="delCompra(\'' + idEsc + '\')">'+(typeof iconeSVG==="function"?iconeSVG("lixeira"):"")+'</button>' +
           '</td></tr>';
       });
       tbEl.innerHTML = h;
@@ -312,8 +312,8 @@ window._cpApplyFilter = function(){
           '</div>' +
           '<div class="cpm-acts">' +
             (it.temAntecipacao ? '<button class="btn btn-sm btn-warning" onclick="abrirAntecipacao(\'' + idEsc + '\')">&#9889;</button>' : '') +
-            '<button class="btn btn-sm btn-outline" onclick="editCompra(\'' + idEsc + '\')">&#9998;</button>' +
-            '<button class="btn btn-sm btn-danger" onclick="delCompra(\'' + idEsc + '\')">&#128465;</button>' +
+            '<button class="btn btn-sm btn-outline" onclick="editCompra(\'' + idEsc + '\')">'+(typeof iconeSVG==="function"?iconeSVG("editar"):"")+'</button>' +
+            '<button class="btn btn-sm btn-danger" onclick="delCompra(\'' + idEsc + '\')">'+(typeof iconeSVG==="function"?iconeSVG("lixeira"):"")+'</button>' +
           '</div></div>';
       }).join('');
     }

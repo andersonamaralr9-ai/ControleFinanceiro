@@ -112,7 +112,7 @@ var modalHist = document.createElement('div');
 modalHist.className = 'modal';
 modalHist.id = 'modalHistorico';
 modalHist.innerHTML = '<div class="modal-content" style="max-width:520px">'+
-  '<div class="modal-header"><h3 id="histTitle">&#128197; Histórico de Valores</h3>'+
+  '<div class="modal-header"><h3 id="histTitle">Histórico de Valores</h3>'+
   '<span class="modal-close" onclick="document.getElementById(\'modalHistorico\').classList.remove(\'show\')">&times;</span></div>'+
   '<div class="modal-body" id="histBody"></div></div>';
 document.body.appendChild(modalHist);
@@ -255,8 +255,8 @@ window.abrirHistorico = function(tipo, itemId, manterAberto){
         (isLast ? ' <span style="font-size:.68em;color:var(--tx3)">(original)</span>' : '')+
         diffHtml+
         '<span class="hist-acts">'+
-          '<button class="btn btn-sm btn-outline" title="Editar" onclick="_histEditar('+h._idx+')">&#9998;</button>'+
-          '<button class="btn btn-sm btn-danger" title="Excluir" onclick="_histExcluir('+h._idx+')">&#128465;</button>'+
+          '<button class="btn btn-sm btn-outline" title="Editar" onclick="_histEditar('+h._idx+')">'+(typeof iconeSVG==="function"?iconeSVG("editar"):"")+'</button>'+
+          '<button class="btn btn-sm btn-danger" title="Excluir" onclick="_histExcluir('+h._idx+')">'+(typeof iconeSVG==="function"?iconeSVG("lixeira"):"")+'</button>'+
         '</span>'+
       '</div>';
     }
@@ -328,7 +328,7 @@ window.abrirHistorico = function(tipo, itemId, manterAberto){
       if(!actions.querySelector('.btn-hist')){
         var btn = document.createElement('button');
         btn.className = 'btn btn-sm btn-outline btn-hist';
-        btn.innerHTML = '&#128197; Histórico';
+        btn.innerHTML = 'Histórico';
         btn.title = 'Ver histórico de valores';
         btn.onclick = function(){ abrirHistorico('assinatura', subId); };
         actions.appendChild(btn);
@@ -542,7 +542,7 @@ window.abrirHistorico = function(tipo, itemId, manterAberto){
     '<button class="btn btn-outline" onclick="chgECM(1)">&#9654;</button></div>'+
     '<div id="ecArea"></div>'+
     '<div class="comp-container" id="ecCompContainer">'+
-    '<div class="comp-header"><label>&#128200; Comparar com:</label>'+
+    '<div class="comp-header"><label>Comparar com:</label>'+
     '<input type="month" id="ecCompMes" class="form-control" style="max-width:180px" onchange="renderExtratoCat()">'+
     '<button class="btn btn-sm btn-outline" onclick="document.getElementById(\'ecCompMes\').value=\'\';renderExtratoCat()">Limpar</button></div>'+
     '<div id="ecCompArea"></div></div>';

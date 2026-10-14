@@ -225,6 +225,26 @@ Antes disso o visual era um acúmulo de valores soltos. O que ficou fixo:
   validador de paleta da skill `dataviz` — foi ele que pegou o par do
   Noturno em ΔE 3,9 (deuteranopia) e 14,9 na visão normal.
 
+### Acessibilidade (out/2026)
+
+O app era praticamente inutilizável sem mouse: 5 elementos alcançáveis por
+Tab na tela inteira e nenhum dos 17 itens do menu. O `a11y.js` faz uma
+passada no DOM após cada render e resolve isso de forma genérica:
+
+- Qualquer `[onclick]` que não seja botão/link nativo recebe `tabindex`,
+  `role` e passa a responder a Enter e Espaço. **Não adicione `tabindex` à
+  mão** — basta o `onclick` que o módulo cobre, inclusive em tela nova.
+- `.form-group` com um rótulo e um controle ganha o par `for`/`id`.
+- Botão só de ícone recebe nome acessível deduzido do handler
+  (`delX` → Excluir, `editX` → Editar).
+
+`openM`/`closeM` no `index.html` cuidam do modal: foco entra ao abrir, Esc
+fecha, Enter confirma, e o foco volta a quem abriu. São o ponto único por
+onde todo modal passa — não reimplemente isso por módulo.
+
+Foco visível usa `:focus-visible` em `app.css`; **não remova o outline sem
+pôr outra coisa no lugar**, que foi como ele sumiu antes.
+
 **Ao auditar contraste, recarregue a página por visual.** Trocar de tema em
 laço lê valores no meio da transição de 0,3s e produz falso positivo — isso
 me enganou três vezes.

@@ -80,7 +80,7 @@ pgDiv.innerHTML =
   '<div id="ckProgress"></div>' +
   '<div id="ckSaldo"></div>' +
   '<div class="ck-actions">' +
-    '<button class="btn btn-sm btn-success" onclick="checkMarcarTodos()">&#9989; Marcar Todos</button>' +
+    '<button class="btn btn-sm btn-success" onclick="checkMarcarTodos()">Marcar Todos</button>' +
     '<button class="btn btn-sm btn-outline" onclick="checkDesmarcarTodos()">Desmarcar Todos</button>' +
   '</div>' +
   '<div class="ck-filters">' +
@@ -155,7 +155,7 @@ function getOrigemClass(orig){
 }
 function getGrupoIcon(g){
   if(g === 'Contrato') return '&#128196;';
-  if(g === 'Assinatura') return '&#128257;';
+  if(g === 'Assinatura') return ''+(typeof iconeSVG==="function"?iconeSVG("assinaturas"):"")+'';
   if(g === 'Cart\u00e3o') return '&#128179;';
   return '&#128221;';
 }
@@ -278,12 +278,12 @@ window.renderCheckPag = function(){
       '<div class="ck-sum-card"><div class="cs-label">Pendentes</div><div class="cs-value" style="color:' + ((totalCount - pagosCount) > 0 ? 'var(--dn2)' : 'var(--ok)') + '">' + (totalCount - pagosCount) + '</div></div>' +
     '</div>' +
     '<div class="ck-sum-div">' +
-      '<div class="ck-sum-grp"><h4 class="rec-t">&#128200; Receitas (' + receitas.length + ')</h4>' +
+      '<div class="ck-sum-grp"><h4 class="rec-t">Receitas (' + receitas.length + ')</h4>' +
         '<div class="csg-row"><span class="csg-label">Total</span><span class="csg-val" style="color:var(--ok)">' + fmtVm(totalRec) + '</span></div>' +
         '<div class="csg-row"><span class="csg-label">Confirmadas</span><span class="csg-val" style="color:var(--ok)">' + fmtVm(pagosRec) + '</span></div>' +
         '<div class="csg-row"><span class="csg-label">Pendentes</span><span class="csg-val" style="color:' + ((totalRec - pagosRec) > 0 ? 'var(--wn)' : 'var(--ok)') + '">' + fmtVm(totalRec - pagosRec) + '</span></div>' +
       '</div>' +
-      '<div class="ck-sum-grp"><h4 class="desp-t">&#128201; Despesas (' + despesas.length + ')</h4>' +
+      '<div class="ck-sum-grp"><h4 class="desp-t">Despesas (' + despesas.length + ')</h4>' +
         '<div class="csg-row"><span class="csg-label">Total</span><span class="csg-val" style="color:var(--dn2)">' + fmtVm(totalDesp) + '</span></div>' +
         '<div class="csg-row"><span class="csg-label">Pagas</span><span class="csg-val" style="color:var(--dn2)">' + fmtVm(pagosDesp) + '</span></div>' +
         '<div class="csg-row"><span class="csg-label">Pendentes</span><span class="csg-val" style="color:' + ((totalDesp - pagosDesp) > 0 ? 'var(--wn)' : 'var(--ok)') + '">' + fmtVm(totalDesp - pagosDesp) + '</span></div>' +
@@ -312,11 +312,11 @@ window.renderCheckPag = function(){
 
   document.getElementById('ckArea').innerHTML =
     '<div class="ck-col">' +
-      '<div class="ck-col-hdr rec"><span>&#128200; Rec (' + recPagos + '/' + recCount + ')</span><span>' + fmtVm(recTotal) + '</span></div>' +
+      '<div class="ck-col-hdr rec"><span>Rec (' + recPagos + '/' + recCount + ')</span><span>' + fmtVm(recTotal) + '</span></div>' +
       renderColItems(filteredRec, checks) +
     '</div>' +
     '<div class="ck-col">' +
-      '<div class="ck-col-hdr desp"><span>&#128201; Desp (' + despPagos + '/' + despCount + ')</span><span>' + fmtVm(despTotal) + '</span></div>' +
+      '<div class="ck-col-hdr desp"><span>Desp (' + despPagos + '/' + despCount + ')</span><span>' + fmtVm(despTotal) + '</span></div>' +
       renderColItems(filteredDesp, checks) +
     '</div>';
 

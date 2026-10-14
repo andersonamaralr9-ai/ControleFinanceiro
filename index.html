@@ -418,7 +418,7 @@ td{font-size:.86em;}
      chegava depois da primeira pintura.
      Vem DEPOIS do <style> acima de proposito: e essa ordem que os
      modulos tinham antes, e trocar isso inverteria a precedencia. -->
-<link rel="stylesheet" href="app.css?v=20">
+<link rel="stylesheet" href="app.css?v=22">
 </head>
 <body class="theme-dark">
 
@@ -434,7 +434,7 @@ td{font-size:.86em;}
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
 <!-- TOKEN PROMPT -->
-<div class="modal" id="modalToken"><div class="modal-content" style="max-width:440px"><div class="modal-header"><h3>&#9729; Conectar ao Cloud</h3><span class="modal-close" onclick="skipCloud()">&times;</span></div><div class="modal-body" style="text-align:center">
+<div class="modal" id="modalToken"><div class="modal-content" style="max-width:440px"><div class="modal-header"><h3>Conectar ao Cloud</h3><span class="modal-close" onclick="skipCloud()">&times;</span></div><div class="modal-body" style="text-align:center">
   <p style="color:var(--tx2);font-size:.88em;margin-bottom:18px">Informe seu GitHub Token para sincronizar seus dados na nuvem. Isso s&oacute; precisa ser feito <strong>uma vez</strong> nesta m&aacute;quina.</p>
   <div class="form-group" style="text-align:left;margin-bottom:16px"><label>GitHub Personal Access Token</label><input type="password" id="inputToken" class="form-control" placeholder="ghp_xxxxxxxxxxxx"></div>
   <button class="btn btn-primary" onclick="connectCloud()" style="width:100%">Conectar</button>
@@ -538,7 +538,7 @@ td{font-size:.86em;}
     <select id="extTipo" class="form-control"><option value="">Todos</option><option value="receita">Receita</option><option value="despesa">Despesa</option></select>
     <select id="extCat" class="form-control"><option value="">Todas</option></select>
     <button class="btn btn-primary" onclick="renderExtrato()">Filtrar</button>
-    <button class="btn btn-success" onclick="exportExtratoXLS()">&#128229; Excel</button>
+    <button class="btn btn-success" onclick="exportExtratoXLS()">Excel</button>
   </div>
   <div class="table-wrap"><table><thead><tr><th>Data</th><th>Tipo</th><th>Categoria</th><th>Descri&ccedil;&atilde;o</th><th>Valor</th><th>Origem</th></tr></thead><tbody id="tbExtrato"></tbody></table></div>
 </div>
@@ -548,8 +548,8 @@ td{font-size:.86em;}
   <div class="filter-bar">
     <input type="month" id="balDe" class="form-control"><input type="month" id="balAte" class="form-control">
     <button class="btn btn-primary" onclick="renderBalancete()">Gerar</button>
-    <button class="btn btn-success" onclick="gerarPDFBal()">&#128196; PDF</button>
-    <button class="btn btn-success" onclick="exportBalXLS()">&#128229; Excel</button>
+    <button class="btn btn-success" onclick="gerarPDFBal()">PDF</button>
+    <button class="btn btn-success" onclick="exportBalXLS()">Excel</button>
   </div>
   <div id="balArea"></div>
 </div>
@@ -612,7 +612,7 @@ td{font-size:.86em;}
   <div class="form-section">
     <div class="form-grid">
       <div class="form-group"><label>Nome</label><input id="patNome" class="form-control" placeholder="Ex: Apartamento Centro"></div>
-      <div class="form-group"><label>Tipo</label><select id="patTipo" class="form-control"><option value="imovel">&#127968; Im&oacute;vel</option><option value="veiculo">&#128663; Ve&iacute;culo</option><option value="outro">&#128230; Outro</option></select></div>
+      <div class="form-group"><label>Tipo</label><select id="patTipo" class="form-control"><option value="imovel">Im&oacute;vel</option><option value="veiculo">Ve&iacute;culo</option><option value="outro">Outro</option></select></div>
       <div class="form-group"><label>Valor de aquisi&ccedil;&atilde;o (R$)</label><input id="patValor" class="form-control" placeholder="0,00" inputmode="decimal"></div>
       <div class="form-group"><label>M&ecirc;s de aquisi&ccedil;&atilde;o</label><input id="patData" class="form-control" type="month"></div>
       <div class="form-group"><label>Financiado?</label><select id="patFin" class="form-control"><option value="nao">N&atilde;o</option><option value="sim">Sim</option></select></div>
@@ -643,7 +643,7 @@ td{font-size:.86em;}
       <input type="hidden" id="epId">
       <div class="form-grid">
         <div class="form-group"><label>Nome</label><input id="epNome" class="form-control"></div>
-        <div class="form-group"><label>Tipo</label><select id="epTipo" class="form-control"><option value="imovel">&#127968; Im&oacute;vel</option><option value="veiculo">&#128663; Ve&iacute;culo</option><option value="outro">&#128230; Outro</option></select></div>
+        <div class="form-group"><label>Tipo</label><select id="epTipo" class="form-control"><option value="imovel">Im&oacute;vel</option><option value="veiculo">Ve&iacute;culo</option><option value="outro">Outro</option></select></div>
         <div class="form-group"><label>Valor de aquisi&ccedil;&atilde;o (R$)</label><input id="epValor" class="form-control" placeholder="0,00" inputmode="decimal"></div>
         <div class="form-group"><label>M&ecirc;s de aquisi&ccedil;&atilde;o</label><input id="epData" class="form-control" type="month"></div>
         <div class="form-group"><label>Financiado?</label><select id="epFin" class="form-control"><option value="nao">N&atilde;o</option><option value="sim">Sim</option></select></div>
@@ -685,15 +685,15 @@ td{font-size:.86em;}
 <div class="page" id="pg-config">
   <h2 class="page-title">Configura&ccedil;&otilde;es</h2>
   <div id="configCatsArea"></div>
-  <div class="form-section"><h3 style="margin-bottom:14px">&#127912; Tema</h3><div class="theme-grid" id="themeGrid"></div></div>
-  <div class="form-section"><h3 style="margin-bottom:14px;color:var(--dn2)">&#9888; Limpar Todos os Dados</h3><p style="color:var(--tx2);font-size:.86em;margin-bottom:12px">Irrevers&iacute;vel.</p><button class="btn btn-danger" onclick="limparDados()">Limpar Tudo</button></div>
+  <div class="form-section"><h3 style="margin-bottom:14px">Tema</h3><div class="theme-grid" id="themeGrid"></div></div>
+  <div class="form-section"><h3 style="margin-bottom:14px;color:var(--dn2)">Limpar Todos os Dados</h3><p style="color:var(--tx2);font-size:.86em;margin-bottom:12px">Irrevers&iacute;vel.</p><button class="btn btn-danger" onclick="limparDados()">Limpar Tudo</button></div>
 </div>
 
 <div class="page" id="pg-backup">
   <h2 class="page-title">Backup / Cloud</h2>
-  <div class="form-section"><h3 style="margin-bottom:14px">&#9729; GitHub Gist (Cloud Sync)</h3><div id="cloudArea"></div></div>
-  <div class="form-section"><h3 style="margin-bottom:10px">&#128229; Exportar</h3><p style="color:var(--tx2);font-size:.86em;margin-bottom:14px">JSON com todos os dados e categorias.</p><button class="btn btn-primary" onclick="exportBackup()">Baixar Backup</button></div>
-  <div class="form-section"><h3 style="margin-bottom:10px">&#128228; Importar</h3><p style="color:var(--tx2);font-size:.86em;margin-bottom:14px">Restaure a partir de JSON.</p><input type="file" id="fileBackup" accept=".json,.txt" class="form-control" style="max-width:400px;margin-bottom:12px"><button class="btn btn-success" onclick="importBackup()">Restaurar</button><div id="backupStatus"></div></div>
+  <div class="form-section"><h3 style="margin-bottom:14px">GitHub Gist (Cloud Sync)</h3><div id="cloudArea"></div></div>
+  <div class="form-section"><h3 style="margin-bottom:10px">Exportar</h3><p style="color:var(--tx2);font-size:.86em;margin-bottom:14px">JSON com todos os dados e categorias.</p><button class="btn btn-primary" onclick="exportBackup()">Baixar Backup</button></div>
+  <div class="form-section"><h3 style="margin-bottom:10px">Importar</h3><p style="color:var(--tx2);font-size:.86em;margin-bottom:14px">Restaure a partir de JSON.</p><input type="file" id="fileBackup" accept=".json,.txt" class="form-control" style="max-width:400px;margin-bottom:12px"><button class="btn btn-success" onclick="importBackup()">Restaurar</button><div id="backupStatus"></div></div>
 </div>
 
 </div>
@@ -914,9 +914,41 @@ registerPage('backup',()=>renderBackupPage());
 function chgM(n){curMes=addMes(curMes,n);renderResumo();}
 function chgLM(n){lancMes=addMes(lancMes,n);renderLancs();}
 function chgPM(n){planMes=addMes(planMes,n);renderPlan();}
-function openM(id){g(id).classList.add('show');}
-function closeM(id){g(id).classList.remove('show');}
-document.addEventListener('click',e=>{if(e.target.classList.contains('modal')&&e.target.classList.contains('show'))e.target.classList.remove('show');});
+/* Modal pelo teclado. Antes: nao recebia foco ao abrir (era preciso tabular
+   desde o topo da pagina), Esc nao fechava e Enter nao enviava — so dava
+   para salvar com o mouse. openM/closeM sao o ponto unico por onde todo
+   modal passa, entao a correcao vive aqui e vale para todos. */
+let _focoAnterior=null;
+function openM(id){
+  const m=g(id); if(!m) return;
+  _focoAnterior=document.activeElement;
+  m.classList.add('show');
+  if(typeof a11yPassada==='function') a11yPassada();
+  // foca o primeiro campo util, nao o botao de fechar
+  const alvo=m.querySelector('.modal-body input:not([type=hidden]),.modal-body select,.modal-body textarea')
+          || m.querySelector('button,[tabindex]');
+  if(alvo) setTimeout(()=>{try{alvo.focus();}catch(e){}},30);
+}
+function closeM(id){
+  const m=g(id); if(!m) return;
+  m.classList.remove('show');
+  // devolve o foco a quem abriu, senao ele volta pro topo da pagina
+  if(_focoAnterior&&document.contains(_focoAnterior)){try{_focoAnterior.focus();}catch(e){}}
+  _focoAnterior=null;
+}
+function _modalAberto(){const l=document.querySelectorAll('.modal.show');return l.length?l[l.length-1]:null;}
+document.addEventListener('keydown',e=>{
+  const m=_modalAberto(); if(!m) return;
+  if(e.key==='Escape'){e.preventDefault();closeM(m.id);return;}
+  if(e.key==='Enter'){
+    // Enter num campo confirma o modal; em textarea quebra linha, como esperado
+    if(e.target.tagName==='TEXTAREA'||e.target.tagName==='BUTTON') return;
+    if(!m.contains(e.target)) return;
+    const ok=m.querySelector('.modal-footer .btn-primary')||m.querySelector('.btn-primary');
+    if(ok){e.preventDefault();ok.click();}
+  }
+});
+document.addEventListener('click',e=>{if(e.target.classList.contains('modal')&&e.target.classList.contains('show'))closeM(e.target.id);});
 
 function allEntries(mes){let E=[];S.lancamentos.filter(l=>getMes(l.data)===mes).forEach(l=>{E.push({tipo:l.tipo,desc:l.desc,cat:l.categoria||l.cat||'Outros',valor:Number(l.valor)||0,data:l.data,obs:l.obs||'',origem:'Lan\u00e7amento',id:l.id,isManual:true});});S.comprasCartao.forEach(c=>{let p=c.parcelas||1,mC=getMes(c.data);for(let i=0;i<p;i++){if(addMes(mC,i)===mes){let vp=(Number(c.valor)||0)/p;let cart=S.cartoes.find(x=>x.id===c.cartaoId);E.push({tipo:'despesa',desc:c.desc+' ('+(i+1)+'/'+p+')',cat:c.categoria||c.cat||'Cart\u00e3o de Cr\u00e9dito',valor:vp,data:mes+'-15',obs:'',origem:'Cart\u00e3o'+(cart?' '+cart.nome:''),isManual:false,isCC:true});}}});S.assinaturas.forEach(s=>{let inicio=(s.inicio||'').substring(0,7);let hist=_a(s.historico);if(hist.length&&!inicio)inicio=(hist[0].de||hist[0].desde||'').substring(0,7);let ativo;if(Array.isArray(s.periodos)&&s.periodos.length){ativo=s.periodos.some(p=>{let pi=(p.inicio||'').substring(0,7),pf=p.fim?(p.fim).substring(0,7):null;return pi&&mes>=pi&&(!pf||mes<=pf);});}else{ativo=!(!inicio||mes<inicio)&&!(s.encerradaEm&&mes>s.encerradaEm);}if(!ativo)return;let val=Number(s.valor)||0;for(let h of hist){let hd=(h.de||h.desde||'').substring(0,7);if(hd&&mes>=hd)val=Number(h.valor)||0;}let cart=S.cartoes.find(x=>x.id===s.cartaoId);E.push({tipo:'despesa',desc:s.nome+' (Assinatura)',cat:s.categoria||s.cat||'Assinaturas',valor:val,data:mes+'-15',obs:'',origem:'Assinatura'+(cart?' '+cart.nome:''),isManual:false,isCC:true});});S.contratos.forEach(c=>{let inicio=(c.inicio||'').substring(0,7);let hist=_a(c.historico);if(hist.length&&!inicio)inicio=(hist[0].de||hist[0].desde||'').substring(0,7);if(!inicio||mes<inicio)return;if(c.encerradoEm&&mes>c.encerradoEm)return;let val=Number(c.valor)||0;for(let h of hist){let hd=(h.de||h.desde||'').substring(0,7);if(hd&&mes>=hd)val=Number(h.valor)||0;}let dia=c.dia?String(c.dia).padStart(2,'0'):'01';E.push({tipo:c.tipo||'despesa',desc:c.desc+' (Contrato)',cat:c.categoria||c.cat||'Outros',valor:val,data:mes+'-'+dia,obs:c.obs||'',origem:'Contrato',isManual:false,isCC:false});});return E;}
 function faturaCC(mes){let itens=[];S.comprasCartao.forEach(c=>{let p=c.parcelas||1,mC=getMes(c.data);for(let i=0;i<p;i++){if(addMes(mC,i)===mes){let vp=(Number(c.valor)||0)/p;let cart=S.cartoes.find(x=>x.id===c.cartaoId);itens.push({desc:c.desc+' ('+(i+1)+'/'+p+')',cat:c.categoria||'',valor:vp,cartao:cart?cart.nome:'',tipo:'Parcela'});}}});S.assinaturas.forEach(s=>{let inicio=(s.inicio||'').substring(0,7);let hist=_a(s.historico);if(hist.length&&!inicio)inicio=(hist[0].de||hist[0].desde||'').substring(0,7);let ativo;if(Array.isArray(s.periodos)&&s.periodos.length){ativo=s.periodos.some(p=>{let pi=(p.inicio||'').substring(0,7),pf=p.fim?(p.fim).substring(0,7):null;return pi&&mes>=pi&&(!pf||mes<=pf);});}else{ativo=!(!inicio||mes<inicio)&&!(s.encerradaEm&&mes>s.encerradaEm);}if(!ativo)return;let val=Number(s.valor)||0;for(let h of hist){let hd=(h.de||h.desde||'').substring(0,7);if(hd&&mes>=hd)val=Number(h.valor)||0;}let cart=S.cartoes.find(x=>x.id===s.cartaoId);itens.push({desc:s.nome,cat:s.categoria||'',valor:val,cartao:cart?cart.nome:'',tipo:'Assinatura'});});return itens;}
@@ -938,7 +970,7 @@ function abrirNovoLanc(tipo){
 }
 window.abrirNovoLanc=abrirNovoLanc;
 function addLanc(){let tipo=g('lTipo').value,desc=g('lDesc').value.trim(),cat=g('lCat').value,valor=parseN(g('lValor').value),data=g('lData').value,obs=g('lObs').value.trim();if(!desc||!valor||!data)return alert('Preencha tudo.');S.lancamentos.push({id:uid(),tipo,desc,categoria:cat,valor,data,status:'confirmado',obs});salvar();g('lDesc').value='';g('lValor').value='';g('lObs').value='';g('lData').value=hojeStr();closeM('modalNovoLanc');ren(curPage);if(curPage!=='lancs')renderLancs();}
-function renderLancs(){g('lancMesLabel').textContent=mesNomeFull(lancMes);updLCats();let E=allEntries(lancMes);let fTipo=g('lfTipo')?g('lfTipo').value:'';let fCat=g('lfCat')?g('lfCat').value:'';let fBusca=g('lfBusca')?g('lfBusca').value.trim().toLowerCase():'';let fSort=g('lfSort')?g('lfSort').value:'data_desc';let cats=[...new Set(E.map(e=>e.cat))].sort();let sc=g('lfCat');if(sc){let prev=sc.value;sc.innerHTML='<option value="">Todas categorias</option>';cats.forEach(c=>{sc.innerHTML+=`<option value="${c}">${c}</option>`;});sc.value=cats.includes(prev)?prev:'';}if(fTipo)E=E.filter(e=>e.tipo===fTipo);if(fCat)E=E.filter(e=>e.cat===fCat);if(fBusca)E=E.filter(e=>(e.desc||'').toLowerCase().includes(fBusca)||(e.cat||'').toLowerCase().includes(fBusca)||(e.obs||'').toLowerCase().includes(fBusca));E.sort((a,b)=>{if(fSort==='data_asc')return a.data.localeCompare(b.data);if(fSort==='valor_desc')return b.valor-a.valor;if(fSort==='valor_asc')return a.valor-b.valor;if(fSort==='desc_asc')return(a.desc||'').localeCompare(b.desc||'');return b.data.localeCompare(a.data);});g('tbLancs').innerHTML=E.length?E.map(e=>{let isRec=e.tipo==='receita';let cb=catBadgeClass(e.cat);let origLabel=e.origem==='Contrato'?'<span class="badge badge-purple" style="font-size:.62em">Contrato</span>':e.origem.startsWith('Assinatura')?'<span class="badge badge-warning" style="font-size:.62em">Assinatura</span>':e.origem.startsWith('Cart\u00e3o')||e.origem.startsWith('Cart')?'<span class="badge badge-info" style="font-size:.62em">Cart\u00e3o</span>':'';return`<tr><td style="white-space:nowrap;color:var(--tx3);font-size:.8em">${fmtD(e.data)}</td><td><div style="display:flex;align-items:center;gap:7px"><span class="tipo-dot ${isRec?'rec':'desp'}"></span><div><div style="font-size:.86em;font-weight:500;color:var(--tx)">${e.desc}</div>${e.obs?`<div style="font-size:.72em;color:var(--tx3)">${e.obs}</div>`:''}</div></div></td><td><span class="cat-badge ${cb}">${e.cat}</span></td><td style="white-space:nowrap">${origLabel}</td><td style="text-align:right;white-space:nowrap"><span class="${isRec?'amount-rec':'amount-desp'}">${isRec?'+':'-'} ${fmtV(e.valor)}</span></td><td style="text-align:right;white-space:nowrap">${e.isManual?`<button class="btn btn-sm btn-outline" onclick="editLanc('${e.id}')">&#9998;</button> <button class="btn btn-sm btn-danger" onclick="delLanc('${e.id}')">&#128465;</button>`:''}</td></tr>`;}).join(''):'<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--tx3)">Nenhum lan\u00e7amento neste m\u00eas</td></tr>';}
+function renderLancs(){g('lancMesLabel').textContent=mesNomeFull(lancMes);updLCats();let E=allEntries(lancMes);let fTipo=g('lfTipo')?g('lfTipo').value:'';let fCat=g('lfCat')?g('lfCat').value:'';let fBusca=g('lfBusca')?g('lfBusca').value.trim().toLowerCase():'';let fSort=g('lfSort')?g('lfSort').value:'data_desc';let cats=[...new Set(E.map(e=>e.cat))].sort();let sc=g('lfCat');if(sc){let prev=sc.value;sc.innerHTML='<option value="">Todas categorias</option>';cats.forEach(c=>{sc.innerHTML+=`<option value="${c}">${c}</option>`;});sc.value=cats.includes(prev)?prev:'';}if(fTipo)E=E.filter(e=>e.tipo===fTipo);if(fCat)E=E.filter(e=>e.cat===fCat);if(fBusca)E=E.filter(e=>(e.desc||'').toLowerCase().includes(fBusca)||(e.cat||'').toLowerCase().includes(fBusca)||(e.obs||'').toLowerCase().includes(fBusca));E.sort((a,b)=>{if(fSort==='data_asc')return a.data.localeCompare(b.data);if(fSort==='valor_desc')return b.valor-a.valor;if(fSort==='valor_asc')return a.valor-b.valor;if(fSort==='desc_asc')return(a.desc||'').localeCompare(b.desc||'');return b.data.localeCompare(a.data);});g('tbLancs').innerHTML=E.length?E.map(e=>{let isRec=e.tipo==='receita';let cb=catBadgeClass(e.cat);let origLabel=e.origem==='Contrato'?'<span class="badge badge-purple" style="font-size:.62em">Contrato</span>':e.origem.startsWith('Assinatura')?'<span class="badge badge-warning" style="font-size:.62em">Assinatura</span>':e.origem.startsWith('Cart\u00e3o')||e.origem.startsWith('Cart')?'<span class="badge badge-info" style="font-size:.62em">Cart\u00e3o</span>':'';return`<tr><td style="white-space:nowrap;color:var(--tx3);font-size:.8em">${fmtD(e.data)}</td><td><div style="display:flex;align-items:center;gap:7px"><span class="tipo-dot ${isRec?'rec':'desp'}"></span><div><div style="font-size:.86em;font-weight:500;color:var(--tx)">${e.desc}</div>${e.obs?`<div style="font-size:.72em;color:var(--tx3)">${e.obs}</div>`:''}</div></div></td><td><span class="cat-badge ${cb}">${e.cat}</span></td><td style="white-space:nowrap">${origLabel}</td><td style="text-align:right;white-space:nowrap"><span class="${isRec?'amount-rec':'amount-desp'}">${isRec?'+':'-'} ${fmtV(e.valor)}</span></td><td style="text-align:right;white-space:nowrap">${e.isManual?`<button class="btn btn-sm btn-outline" onclick="editLanc('${e.id}')">${typeof iconeSVG==='function'?iconeSVG('editar'):''}</button> <button class="btn btn-sm btn-danger" onclick="delLanc('${e.id}')">&#128465;</button>`:''}</td></tr>`;}).join(''):'<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--tx3)">Nenhum lan\u00e7amento neste m\u00eas</td></tr>';}
 function editLanc(id){let l=S.lancamentos.find(x=>x.id===id);if(!l)return;g('elId').value=id;g('elTipo').value=l.tipo;g('elDesc').value=l.desc;g('elValor').value=(l.valor||0).toFixed(2).replace('.',',');g('elData').value=l.data;g('elObs').value=l.obs||'';updElCats();g('elCat').value=l.categoria||l.cat||'';openM('modalEditLanc');}
 function updElCats(){let s=g('elCat');s.innerHTML='';getCats(g('elTipo').value).forEach(c=>{s.innerHTML+=`<option>${c}</option>`;});}
 function updateLanc(){let id=g('elId').value,l=S.lancamentos.find(x=>x.id===id);if(!l)return;l.tipo=g('elTipo').value;l.desc=g('elDesc').value.trim();l.categoria=g('elCat').value;l.valor=parseN(g('elValor').value);l.data=g('elData').value;l.obs=g('elObs').value.trim();salvar();closeM('modalEditLanc');renderLancs();renderResumo();}
@@ -946,7 +978,7 @@ function delLanc(id){if(!confirm('Excluir?'))return;let it=S.lancamentos.find(x=
 
 function updContCats(){let s=g('contCat');s.innerHTML='';getCats(g('contTipo').value).forEach(c=>{s.innerHTML+=`<option>${c}</option>`;});}
 function addContrato(){let tipo=g('contTipo').value,desc=g('contDesc').value.trim(),cat=g('contCat').value,valor=parseN(g('contValor').value),dia=parseInt(g('contDia').value)||1,inicio=g('contInicio').value,obs=g('contObs').value.trim();if(!desc||!valor||!inicio)return alert('Preencha tudo.');S.contratos.push({id:uid(),tipo,desc,categoria:cat,valor,dia,inicio,obs,historico:[{de:inicio,valor}],encerradoEm:null});salvar();g('contDesc').value='';g('contValor').value='';g('contObs').value='';renderContratos();}
-function renderContratos(){updContCats();g('contGrid').innerHTML=S.contratos.length?S.contratos.map(c=>{let at=!c.encerradoEm;let bd=at?'<span class="badge badge-success">Ativo</span>':'<span class="badge badge-danger">Encerrado</span>';return`<div class="sub-box"><div class="sub-box-header"><strong>${c.desc}</strong>${bd}</div><div class="sub-box-body"><p>${c.tipo==='receita'?'&#128200; Receita':'&#128201; Despesa'} &bull; ${c.categoria||'Outros'}</p><p class="sub-valor">${fmtV(c.valor)}/m\u00eas</p><p>Dia ${c.dia||1} &bull; In\u00edcio: ${c.inicio?mesNome(c.inicio):'-'}</p>${c.obs?'<p class="sub-obs">'+c.obs+'</p>':''}</div><div class="sub-box-actions"><button class="btn btn-sm btn-outline" onclick="editCont('${c.id}')">&#9998;</button>${at?`<button class="btn btn-sm btn-warning" onclick="ajCont('${c.id}')">Ajustar</button><button class="btn btn-sm btn-danger" onclick="encCont('${c.id}')">Encerrar</button>`:`<button class="btn btn-sm btn-success" onclick="reatCont('${c.id}')">Reativar</button>`}<button class="btn btn-sm btn-danger" onclick="delCont('${c.id}')">&#128465;</button></div></div>`;}).join(''):'<p style="color:var(--tx3)">Nenhum contrato.</p>';}
+function renderContratos(){updContCats();g('contGrid').innerHTML=S.contratos.length?S.contratos.map(c=>{let at=!c.encerradoEm;let bd=at?'<span class="badge badge-success">Ativo</span>':'<span class="badge badge-danger">Encerrado</span>';return`<div class="sub-box"><div class="sub-box-header"><strong>${c.desc}</strong>${bd}</div><div class="sub-box-body"><p>${c.tipo==='receita'?'Receita':'Despesa'} &bull; ${c.categoria||'Outros'}</p><p class="sub-valor">${fmtV(c.valor)}/m\u00eas</p><p>Dia ${c.dia||1} &bull; In\u00edcio: ${c.inicio?mesNome(c.inicio):'-'}</p>${c.obs?'<p class="sub-obs">'+c.obs+'</p>':''}</div><div class="sub-box-actions"><button class="btn btn-sm btn-outline" onclick="editCont('${c.id}')">${typeof iconeSVG==='function'?iconeSVG('editar'):''}</button>${at?`<button class="btn btn-sm btn-warning" onclick="ajCont('${c.id}')">Ajustar</button><button class="btn btn-sm btn-danger" onclick="encCont('${c.id}')">Encerrar</button>`:`<button class="btn btn-sm btn-success" onclick="reatCont('${c.id}')">Reativar</button>`}<button class="btn btn-sm btn-danger" onclick="delCont('${c.id}')">&#128465;</button></div></div>`;}).join(''):'<p style="color:var(--tx3)">Nenhum contrato.</p>';}
 function editCont(id){let c=S.contratos.find(x=>x.id===id);if(!c)return;g('ecId').value=id;g('ecTipo').value=c.tipo||'despesa';g('ecDesc').value=c.desc;g('ecValor').value=(c.valor||0).toFixed(2).replace('.',',');g('ecDia').value=c.dia||1;g('ecObs').value=c.obs||'';updEcCats();g('ecCat').value=c.categoria||'';openM('modalEditCont');}
 function updEcCats(){let s=g('ecCat');s.innerHTML='';getCats(g('ecTipo').value).forEach(c=>{s.innerHTML+=`<option>${c}</option>`;});}
 function updateContrato(){let id=g('ecId').value,c=S.contratos.find(x=>x.id===id);if(!c)return;let nv=parseN(g('ecValor').value);if(nv!==c.valor){c.historico.push({de:mesAtual(),valor:nv});c.valor=nv;}c.tipo=g('ecTipo').value;c.desc=g('ecDesc').value.trim();c.categoria=g('ecCat').value;c.dia=parseInt(g('ecDia').value)||1;c.obs=g('ecObs').value.trim();salvar();closeM('modalEditCont');renderContratos();renderResumo();}
@@ -975,7 +1007,7 @@ function calcUsado(cid){let t=0,ma=mesAtual();S.comprasCartao.filter(c=>c.cartao
 function delCartao(id){if(!confirm('Excluir?'))return;let it=S.cartoes.find(x=>x.id===id);paraLixeira('cartao',it,null,it&&it.nome,it?`${it.bandeira||''} · limite ${fmtV(it.limite)}`:'');markDeleted(id);S.cartoes=S.cartoes.filter(x=>x.id!==id);salvar();renderCartoes();}
 
 function addCompra(){let cartaoId=g('cpCartao').value,desc=g('cpDesc').value.trim(),cat=g('cpCat').value,valor=parseN(g('cpValor').value),data=g('cpData').value,parcelas=parseInt(g('cpParc').value)||1;if(!desc||!valor||!data||!cartaoId)return alert('Preencha tudo.');S.comprasCartao.push({id:uid(),cartaoId,desc,categoria:cat,valor,data,parcelas});salvar();g('cpDesc').value='';g('cpValor').value='';g('cpParc').value='1';g('cpData').value=hojeStr();renderCompras();}
-function renderCompras(){popCartSel();let sc=g('cpCat');sc.innerHTML='';(S.cats.compra||S.cats.despesa||[]).forEach(c=>{sc.innerHTML+=`<option>${c}</option>`;});g('tbCompras').innerHTML=S.comprasCartao.length?S.comprasCartao.map(c=>{let cart=S.cartoes.find(x=>x.id===c.cartaoId);return`<tr><td>${fmtD(c.data)}</td><td>${cart?cart.nome:'-'}</td><td>${c.desc}</td><td>${c.categoria||'-'}</td><td style="font-weight:600;color:var(--dn2)">${fmtV(c.valor)}</td><td>${c.parcelas||1}x ${fmtV((Number(c.valor)||0)/(c.parcelas||1))}</td><td><button class="btn btn-sm btn-outline" onclick="editCompra('${c.id}')">&#9998;</button> <button class="btn btn-sm btn-danger" onclick="delCompra('${c.id}')">&#128465;</button></td></tr>`;}).join(''):'<tr><td colspan="7" style="text-align:center;color:var(--tx3)">Nenhuma compra</td></tr>';runHooks('compras');}
+function renderCompras(){popCartSel();let sc=g('cpCat');sc.innerHTML='';(S.cats.compra||S.cats.despesa||[]).forEach(c=>{sc.innerHTML+=`<option>${c}</option>`;});g('tbCompras').innerHTML=S.comprasCartao.length?S.comprasCartao.map(c=>{let cart=S.cartoes.find(x=>x.id===c.cartaoId);return`<tr><td>${fmtD(c.data)}</td><td>${cart?cart.nome:'-'}</td><td>${c.desc}</td><td>${c.categoria||'-'}</td><td style="font-weight:600;color:var(--dn2)">${fmtV(c.valor)}</td><td>${c.parcelas||1}x ${fmtV((Number(c.valor)||0)/(c.parcelas||1))}</td><td><button class="btn btn-sm btn-outline" onclick="editCompra('${c.id}')">${typeof iconeSVG==='function'?iconeSVG('editar'):''}</button> <button class="btn btn-sm btn-danger" onclick="delCompra('${c.id}')">&#128465;</button></td></tr>`;}).join(''):'<tr><td colspan="7" style="text-align:center;color:var(--tx3)">Nenhuma compra</td></tr>';runHooks('compras');}
 function editCompra(id){let c=S.comprasCartao.find(x=>x.id===id);if(!c)return;popCartSel();g('ecpId').value=id;g('ecpCartao').value=c.cartaoId;g('ecpDesc').value=c.desc;g('ecpValor').value=(c.valor||0).toFixed(2).replace('.',',');g('ecpData').value=c.data;g('ecpParc').value=c.parcelas||1;let s=g('ecpCat');s.innerHTML='';(S.cats.compra||S.cats.despesa||[]).forEach(ct=>{s.innerHTML+=`<option>${ct}</option>`;});s.value=c.categoria||'';openM('modalEditCompra');}
 function updateCompra(){let id=g('ecpId').value,c=S.comprasCartao.find(x=>x.id===id);if(!c)return;c.cartaoId=g('ecpCartao').value;c.desc=g('ecpDesc').value.trim();c.categoria=g('ecpCat').value;c.valor=parseN(g('ecpValor').value);c.data=g('ecpData').value;c.parcelas=parseInt(g('ecpParc').value)||1;salvar();closeM('modalEditCompra');renderCompras();renderResumo();}
 function delCompra(id){if(!confirm('Excluir?'))return;let it=S.comprasCartao.find(x=>x.id===id);paraLixeira('compra',it,null,it&&it.desc,it?`${fmtV(it.valor)} · ${it.parcelas||1}x · ${fmtD(it.data)}`:'');markDeleted(id);S.comprasCartao=S.comprasCartao.filter(x=>x.id!==id);salvar();renderCompras();renderResumo();}
@@ -989,12 +1021,15 @@ function salvarEncSub(){let id=g('encSubId').value,s=S.assinaturas.find(x=>x.id=
 function reatSub(id){g('reatSubId').value=id;g('reatSubMes').value=mesAtual();openM('modalReatSub');}
 function salvarReat(){let id=g('reatSubId').value,s=S.assinaturas.find(x=>x.id===id);if(!s)return;let m=g('reatSubMes').value;if(!m)return alert('Informe o mês de reativação.');if(!Array.isArray(s.periodos))s.periodos=[];if(!s.periodos.length){let pi=(s.inicio||'').substring(0,7);if(pi)s.periodos.push({inicio:pi,fim:s.encerradaEm||null});}s.periodos.push({inicio:m,fim:null});s.encerradaEm=null;salvar();closeM('modalReatSub');renderAssinaturas();renderResumo();}
 function delSub(id){if(!confirm('Excluir?'))return;let it=S.assinaturas.find(x=>x.id===id);paraLixeira('assinatura',it,null,it&&it.nome,it?`${fmtV(it.valor)}/mês · ${it.categoria||'-'}`:'');markDeleted(id);S.assinaturas=S.assinaturas.filter(x=>x.id!==id);salvar();renderAssinaturas();renderResumo();}
-function _subHistHTML(s){var ps=s.periodos||[];var rows='';if(ps.length){ps.forEach(function(p,i){var ini=p.inicio?mesNome(p.inicio):'?';var fim=p.fim?mesNome(p.fim):'atual';var badge=!p.fim?'<span class="badge badge-success" style="font-size:.6em">Ativo</span>':'<span class="badge badge-danger" style="font-size:.6em">Encerrado</span>';rows+='<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--bg3);font-size:.75em"><span style="flex:1">'+ini+' → '+fim+'</span>'+badge+'<button class="btn btn-sm" style="padding:1px 6px;font-size:.7em;line-height:1" onclick="delPeriodo(\''+s.id+'\','+i+')">✕</button></div>';});}else{var ini=s.inicio?mesNome(s.inicio):'?';var fim=s.encerradaEm?mesNome(s.encerradaEm):'atual';var badge=!s.encerradaEm?'<span class="badge badge-success" style="font-size:.6em">Ativo</span>':'<span class="badge badge-danger" style="font-size:.6em">Encerrado</span>';rows+='<div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:.75em"><span style="flex:1">'+ini+' → '+fim+'</span>'+badge+'</div>';}return'<div style="margin-top:8px;padding-top:6px;border-top:1px solid var(--bg3)"><div style="font-size:.6em;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--tx3);margin-bottom:4px">Histórico</div>'+rows+'</div>';}
+function _subHistHTML(s){var ps=s.periodos||[];var rows='';if(ps.length){ps.forEach(function(p,i){var ini=p.inicio?mesNome(p.inicio):'?';var fim=p.fim?mesNome(p.fim):'atual';var badge=!p.fim?'<span class="badge badge-success" style="font-size:.6em">Ativo</span>':'<span class="badge badge-danger" style="font-size:.6em">Encerrado</span>';rows+='<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--bg3);font-size:.75em"><span style="flex:1">'+ini+' → '+fim+'</span>'+badge+'<button class="btn btn-sm" style="padding:1px 6px;font-size:.7em;line-height:1" onclick="delPeriodo(\''+s.id+'\','+i+')">'+(typeof iconeSVG==="function"?iconeSVG("lixeira"):"")+'</button></div>';});}else{var ini=s.inicio?mesNome(s.inicio):'?';var fim=s.encerradaEm?mesNome(s.encerradaEm):'atual';var badge=!s.encerradaEm?'<span class="badge badge-success" style="font-size:.6em">Ativo</span>':'<span class="badge badge-danger" style="font-size:.6em">Encerrado</span>';rows+='<div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:.75em"><span style="flex:1">'+ini+' → '+fim+'</span>'+badge+'</div>';}return'<div style="margin-top:8px;padding-top:6px;border-top:1px solid var(--bg3)"><div style="font-size:.6em;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--tx3);margin-bottom:4px">Histórico</div>'+rows+'</div>';}
 function delPeriodo(id,idx){var s=S.assinaturas.find(function(x){return x.id===id;});if(!s||!Array.isArray(s.periodos))return;s.periodos.splice(idx,1);s.encerradaEm=s.periodos.length?s.periodos[s.periodos.length-1].fim||null:null;salvar();renderAssinaturas();renderResumo();}
 
 function renderPlan(){g('planMesLabel').textContent=mesNomeFull(planMes);let sc=g('planCat');sc.innerHTML='';getCats('despesa').forEach(c=>{sc.innerHTML+=`<option>${c}</option>`;});let pm=S.planejamento[planMes]||{};let cats=Object.keys(pm);let E=allEntries(planMes);g('tbPlan').innerHTML=cats.length?cats.map(cat=>{let lim=pm[cat]||0;let gasto=E.filter(e=>e.tipo==='despesa'&&e.cat===cat).reduce((s,e)=>s+e.valor,0);let disp=lim-gasto;let pct=lim?Math.round(gasto/lim*100):0;let cor=pct>100?'var(--dn2)':pct>80?'var(--wn)':'var(--ok)';return`<tr><td>${cat}</td><td>${fmtV(lim)}</td><td style="color:var(--dn2)">${fmtV(gasto)}</td><td style="color:${disp>=0?'var(--ok)':'var(--dn2)'}">${fmtV(disp)}</td><td><div style="background:var(--bg3);border-radius:var(--rad-sm);height:8px;overflow:hidden;min-width:80px;display:inline-block;vertical-align:middle"><div style="width:${Math.min(pct,100)}%;height:100%;background:${cor};border-radius:4px"></div></div> <span style="font-size:.76em;color:${cor}">${pct}%</span></td><td><button class="btn btn-sm btn-danger" onclick="delPlan('${cat.replace(/'/g,"\\'")}')">&#128465;</button></td></tr>`;}).join(''):'<tr><td colspan="6" style="text-align:center;color:var(--tx3)">Nenhum limite</td></tr>';}
 function addPlan(){let cat=g('planCat').value,lim=parseN(g('planVal').value);if(!cat||!lim)return alert('Preencha.');if(!S.planejamento[planMes])S.planejamento[planMes]={};S.planejamento[planMes][cat]=lim;salvar();renderPlan();}
-function delPlan(cat){if(!confirm('Remover?'))return;if(S.planejamento[planMes]){let v=S.planejamento[planMes][cat];if(v!==undefined)paraLixeira('planejamento',v,{mes:planMes,cat:cat},cat,`Limite de ${fmtV(v)} · ${mesNome(planMes)}`);delete S.planejamento[planMes][cat];}salvar();renderPlan();}
+/* delPlan removido: nao tinha nenhum chamador. A remocao de limite viva
+   e _plDelLimit, no planejamento.js. Duas implementacoes da mesma acao
+   ja divergiram neste projeto (foi assim que invExcluirAtivo ficou sem
+   tombstone), entao a morta sai em vez de ficar de reserva. */
 
 // renderInvest legado removido - investimentos.js e a unica fonte de verdade
 function addInvest(){let nome=g('invNome').value.trim(),tipo=g('invTipo').value,valor=parseN(g('invValor').value),data=g('invData').value,obs=g('invObs').value.trim();if(!nome||!valor||!data)return alert('Preencha.');S.investimentos.push({id:uid(),nome,tipo,valor,data,obs});salvar();g('invNome').value='';g('invValor').value='';g('invObs').value='';renderInvest();}
@@ -1008,7 +1043,7 @@ function setTheme(t){let keep=document.body.className.split(' ').filter(c=>!c.st
 function limparDados(){if(!confirm('APAGAR tudo?'))return;if(!confirm('IRREVERS\u00cdVEL!'))return;localStorage.removeItem(SK);S=defState();salvar();location.reload();}
 
 function renderBackupPage(){renderCloudArea();}
-function renderCloudArea(){let el=g('cloudArea');if(!el)return;if(cloudOk){el.innerHTML=`<p style="color:var(--ok);font-weight:600;margin-bottom:10px">&#9989; Conectado ao GitHub Gist</p><p style="font-size:.84em;color:var(--tx3);margin-bottom:14px">Gist ID: ${GIST_ID}</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-sm btn-primary" onclick="doSyncNow()">&#128259; Sincronizar Agora</button><button class="btn btn-sm btn-outline" onclick="doPullGist()">&#128229; Baixar do Cloud</button><button class="btn btn-sm btn-warning" onclick="doReplaceWithGist()" title="Substitui dados locais pelo Cloud sem merge — use se estiver com dados errados">&#128257; Restaurar do Cloud</button><button class="btn btn-sm btn-danger" onclick="doDisconnect()">Desconectar</button></div>`;}else{el.innerHTML=`<p style="color:var(--tx3);margin-bottom:12px">&#128274; N\u00e3o conectado</p><div class="form-group" style="max-width:400px;margin-bottom:12px"><label>GitHub Token</label><input type="password" id="bkToken" class="form-control" placeholder="ghp_xxx"></div><button class="btn btn-sm btn-primary" onclick="doConnectFromBk()">Conectar</button>`;}}
+function renderCloudArea(){let el=g('cloudArea');if(!el)return;if(cloudOk){el.innerHTML=`<p style="color:var(--ok);font-weight:600;margin-bottom:10px">Conectado ao GitHub Gist</p><p style="font-size:.84em;color:var(--tx3);margin-bottom:14px">Gist ID: ${GIST_ID}</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-sm btn-primary" onclick="doSyncNow()">Sincronizar Agora</button><button class="btn btn-sm btn-outline" onclick="doPullGist()">Baixar do Cloud</button><button class="btn btn-sm btn-warning" onclick="doReplaceWithGist()" title="Substitui dados locais pelo Cloud sem merge — use se estiver com dados errados">Restaurar do Cloud</button><button class="btn btn-sm btn-danger" onclick="doDisconnect()">Desconectar</button></div>`;}else{el.innerHTML=`<p style="color:var(--tx3);margin-bottom:12px">N\u00e3o conectado</p><div class="form-group" style="max-width:400px;margin-bottom:12px"><label>GitHub Token</label><input type="password" id="bkToken" class="form-control" placeholder="ghp_xxx"></div><button class="btn btn-sm btn-primary" onclick="doConnectFromBk()">Conectar</button>`;}}
 async function doSyncNow(){syncUI('loading','Sincronizando...');let ok=await gistWrite(S);if(ok)syncUI('on','Sync '+new Date().toLocaleTimeString('pt-BR'));else syncUI('on','Erro sync');}
 async function doPullGist(){syncUI('loading','Baixando...');let data=await gistRead();if(data&&(data.lancamentos||data.cartoes||data.contratos)){S=mergeState(data);localStorage.setItem(SK,JSON.stringify(S));renderAll();syncUI('on','Dados carregados');}else{syncUI('on','Nenhum dado no Gist');}}
 function doDisconnect(){gistToken='';cloudOk=false;localStorage.removeItem(TOKEN_KEY);syncUI('off','Offline');renderCloudArea();}
@@ -1028,27 +1063,28 @@ g('extDe').value=_ed.getFullYear()+'-'+String(_ed.getMonth()+1).padStart(2,'0')+
 g('extAte').value=hojeStr();
 // renderAll() e initCloud() removidos — auth.js gerencia render e sync
 </script>
-<script src="auth.js?v=5"></script>
-<script src="mobile-cards.js?v=3"></script>
-<script src="antecipacao.js?v=6"></script>
-<script src="melhorias.js?v=8"></script>
-<script src="checkpagamentos.js?v=4"></script>
-<script src="investimentos.js?v=8"></script>
-<script src="investimentos-integra.js?v=5"></script>
-<script src="rent-saldo.js?v=3"></script> <!-- NOVO -->
+<script src="auth.js?v=7"></script>
+<script src="mobile-cards.js?v=5"></script>
+<script src="antecipacao.js?v=7"></script>
+<script src="melhorias.js?v=11"></script>
+<script src="checkpagamentos.js?v=6"></script>
+<script src="investimentos.js?v=11"></script>
+<script src="investimentos-integra.js?v=7"></script>
+<script src="rent-saldo.js?v=4"></script> <!-- NOVO -->
 <script src="investimentos-enhanced.js"></script> <!-- NOVO -->
-<script src="compras-filtro.js?v=8"></script>
-<script src="planejamento.js?v=4"></script>
-<script src="patrimonio.js?v=5"></script>
-<script src="cartoes-fix.js?v=3"></script>  <!-- NOVO -->
+<script src="compras-filtro.js?v=11"></script>
+<script src="planejamento.js?v=7"></script>
+<script src="patrimonio.js?v=7"></script>
+<script src="cartoes-fix.js?v=5"></script>  <!-- NOVO -->
 <script src="design-packs.js?v=16"></script>
-<script src="resumo-enhanced.js?v=21"></script>
+<script src="resumo-enhanced.js?v=22"></script>
 <script src="mobile-global-fix.js?v=4"></script>
-<script src="assinaturas-enhanced.js?v=3"></script>
-<script src="contratos-enhanced.js?v=4"></script>    <!-- NOVO -->
-<script src="relatorios.js?v=8"></script>
-<script src="lixeira.js?v=1"></script>
-<script src="icones.js?v=3"></script>
+<script src="assinaturas-enhanced.js?v=4"></script>
+<script src="contratos-enhanced.js?v=7"></script>    <!-- NOVO -->
+<script src="relatorios.js?v=11"></script>
+<script src="lixeira.js?v=2"></script>
+<script src="icones.js?v=6"></script>
+<script src="a11y.js?v=3"></script>
 <script src="theme-persist.js?v=2"></script>
 
 

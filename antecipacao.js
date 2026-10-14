@@ -15,13 +15,13 @@
   modalDiv.innerHTML =
     '<div class="modal-content" style="max-width:520px">' +
       '<div class="modal-header">' +
-        '<h3>&#9889; Antecipar Parcelas</h3>' +
+        '<h3>Antecipar Parcelas</h3>' +
         '<span class="modal-close" onclick="fecharAntecipacao()">&times;</span>' +
       '</div>' +
       '<div class="modal-body">' +
         '<div id="antCompraInfo"></div>' +
         '<div class="ant-mes-destino">' +
-          '<label>&#128197; Em qual fatura voc\u00ea vai pagar as parcelas antecipadas?</label>' +
+          '<label>Em qual fatura voc\u00ea vai pagar as parcelas antecipadas?</label>' +
           '<input type="month" id="antMesDestino" class="form-control" style="max-width:200px" onchange="antAtualizarDisponibilidade()">' +
           '<p class="ant-help">Exemplo: se escolher Junho/2026, s\u00f3 as parcelas de Julho/2026 em diante poder\u00e3o ser antecipadas.</p>' +
         '</div>' +
@@ -149,7 +149,7 @@
     var avisoArea = document.getElementById('antAvisoArea');
     if(temDisponivel){
       var disponiveis = antState.parcelas.filter(function(p){return p.disponivel;});
-      avisoArea.innerHTML = '<div class="ant-aviso">&#128161; Fatura escolhida: <strong>'+nomeMes(
+      avisoArea.innerHTML = '<div class="ant-aviso">Fatura escolhida: <strong>'+nomeMes(
         parseInt(mesDestino.split('-')[0]),parseInt(mesDestino.split('-')[1])
       )+'</strong>. Parcelas de <strong>'+disponiveis[0].mesLabel+'</strong> em diante podem ser antecipadas ('+disponiveis.length+' parcela(s)).</div>';
       document.getElementById('antSelectBar').style.display='flex';

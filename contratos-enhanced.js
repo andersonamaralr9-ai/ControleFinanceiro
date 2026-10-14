@@ -224,19 +224,19 @@ window.renderContratos = function(){
     else if(vencido) bdHtml = '<span class="badge badge-warning">Vencido</span>';
     else bdHtml = '<span class="badge badge-success">Ativo</span>';
 
-    var fimInfo = c.dataFim ? '<p>&#128197; Fim: ' + mesNome(c.dataFim) + '</p>' : '';
+    var fimInfo = c.dataFim ? '<p>Fim: ' + mesNome(c.dataFim) + '</p>' : '';
 
     // Histórico agora abre em modal (mesmo padrão das assinaturas), com
     // editar/excluir por lançamento. Antes era uma seção expansível no card.
     var hist = (c.historico || []);
     var histBtn = hist.length ?
       '<button class="btn btn-sm btn-outline" onclick="abrirHistorico(\'contrato\',\'' + c.id + '\')">' +
-        '&#128197; Hist&oacute;rico <span class="ce-hist-badge">' + hist.length + '</span></button>' : '';
+        'Hist&oacute;rico <span class="ce-hist-badge">' + hist.length + '</span></button>' : '';
 
     return '<div class="sub-box">' +
       '<div class="sub-box-header"><strong>' + c.desc + '</strong>' + bdHtml + '</div>' +
       '<div class="sub-box-body">' +
-        '<p>' + (c.tipo === 'receita' ? '&#128200; Receita' : '&#128201; Despesa') + ' &bull; ' + (c.categoria || 'Outros') + '</p>' +
+        '<p>' + (c.tipo === 'receita' ? 'Receita' : 'Despesa') + ' &bull; ' + (c.categoria || 'Outros') + '</p>' +
         '<p class="sub-valor">' + _ceValorNoMes(c) + '</p>' +
         '<p>Dia ' + (c.dia || 1) + ' &bull; In&iacute;cio: ' + (c.inicio ? mesNome(c.inicio) : '-') + '</p>' +
         fimInfo +
@@ -244,14 +244,14 @@ window.renderContratos = function(){
       '</div>' +
       '<div class="sub-box-actions">' +
         histBtn +
-        '<button class="btn btn-sm btn-outline" onclick="editCont(\'' + c.id + '\')">&#9998;</button>' +
+        '<button class="btn btn-sm btn-outline" onclick="editCont(\'' + c.id + '\')">'+(typeof iconeSVG==="function"?iconeSVG("editar"):"")+'</button>' +
         (at && !vencido ?
           '<button class="btn btn-sm btn-warning" onclick="ajCont(\'' + c.id + '\')">Ajustar</button>' +
           '<button class="btn btn-sm btn-danger" onclick="encCont(\'' + c.id + '\')">Encerrar</button>'
           :
           '<button class="btn btn-sm btn-success" onclick="reatCont(\'' + c.id + '\')">Reativar</button>'
         ) +
-        '<button class="btn btn-sm btn-danger" onclick="delCont(\'' + c.id + '\')">&#128465;</button>' +
+        '<button class="btn btn-sm btn-danger" onclick="delCont(\'' + c.id + '\')">'+(typeof iconeSVG==="function"?iconeSVG("lixeira"):"")+'</button>' +
       '</div></div>';
   }).join('') : '<p style="color:var(--tx3)">Nenhum contrato.</p>';
 

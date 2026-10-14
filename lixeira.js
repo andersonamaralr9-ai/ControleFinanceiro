@@ -228,7 +228,7 @@ function addMenuLink(){
   var a = document.createElement('a');
   a.id = 'nav-lixeira';
   a.setAttribute('onclick', "nav('lixeira')");
-  a.innerHTML = '<span class="nav-ic">&#128465;</span><span>Lixeira</span>';
+  a.innerHTML = '<span class="nav-ic">'+(typeof iconeSVG==="function"?iconeSVG("lixeira"):"")+'</span><span>Lixeira</span>';
   if(backup) sidebar.insertBefore(a, backup);
   else sidebar.appendChild(a);
 }
@@ -249,7 +249,7 @@ window.renderLixeira = function(){
        ' dias e depois somem sozinhos.</div>';
 
   if(!itens.length){
-    el.innerHTML = h + '<div class="lix-vazia"><div class="lix-vazia-ic">&#128465;</div>' +
+    el.innerHTML = h + '<div class="lix-vazia"><div class="lix-vazia-ic">'+(typeof iconeSVG==="function"?iconeSVG("lixeira"):"")+'</div>' +
       '<p>A lixeira est&aacute; vazia.</p></div>';
     return;
   }

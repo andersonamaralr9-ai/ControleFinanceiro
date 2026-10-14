@@ -345,7 +345,7 @@ function _invRenderRentListOverride(inv){
     h += '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--bg3);font-size:.82em">' +
       '<span>' + mesNome(r.mes) + '</span>' +
       '<span style="font-weight:700;color:' + (rv >= 0 ? 'var(--ok)' : 'var(--dn2)') + '">' + (rv > 0 ? '+ ' : '') + fmt(rv) + '</span>' +
-      '<button class="btn btn-sm btn-danger" style="padding:2px 8px;font-size:.7em" onclick="window._invDelRent(\'' + idEsc + '\',\'' + mesEsc + '\')">&#128465;</button></div>';
+      '<button class="btn btn-sm btn-danger" style="padding:2px 8px;font-size:.7em" onclick="window._invDelRent(\'' + idEsc + '\',\'' + mesEsc + '\')">'+(typeof iconeSVG==="function"?iconeSVG("lixeira"):"")+'</button></div>';
   });
   h += '</div>';
   h += '<div style="text-align:right;font-weight:700;margin-top:8px;color:' + (totalR >= 0 ? 'var(--ok)' : 'var(--dn2)') + '">Total: ' + (totalR > 0 ? '+ ' : '') + fmt(totalR) + '</div>';

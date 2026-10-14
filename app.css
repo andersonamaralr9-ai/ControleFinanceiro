@@ -695,18 +695,8 @@ tr{transition:background .12s}
 /* --- investimentos-integra.js :: bloco 1 --- */
 /* ── INTEGRAÇÃO INVEST ↔ LANÇ ── */
 
-.inv-integ-btn{
-  /* Secundario, nao primario. Na tela de Lancamentos ele ficava lado a lado
-     com "Novo lancamento", os dois com o mesmo peso e a mesma cor: duas
-     acoes primarias competindo, nenhuma delas lendo como A acao da tela.
-     Lancar e o que se faz aqui todo dia; investir e ocasional. */
-  background:transparent;
-  color:var(--tx2);border:1px solid var(--bg4);border-radius:var(--rad-md);
-  padding:10px 18px;font-size:.83em;font-weight:500;
-  cursor:pointer;transition:border-color .18s,color .18s;
-  display:inline-flex;align-items:center;gap:6px;
-}
-.inv-integ-btn:hover{border-color:var(--pri);color:var(--tx);}
+/* .inv-integ-btn removido: era mais um botao com sistema proprio.
+   O botao Investir / Resgatar usa .btn .btn-outline como os demais. */
 
 .integ-panel{
   background:var(--bg2);border:1px solid var(--bg4);
@@ -2004,3 +1994,28 @@ td, .rel-table td, .inv-panel-card-row .val, .ips-val, .proj-val {
 
 /* Estado vazio dos compromissos: um convite a agir, nao tres linhas de zero. */
 .rf-vazio{display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:18px 4px;font-size:.84em;color:var(--tx3);}
+
+/* ── Foco visível ─────────────────────────────────────────────
+   Focar um botão não mudava nada na tela: o contorno do navegador estava
+   removido e nada entrou no lugar. Quem usa teclado ficava sem saber onde
+   está. :focus-visible só aparece na navegação por teclado, então o clique
+   de mouse continua sem anel. */
+:focus-visible{
+  outline:2px solid var(--pri2);
+  outline-offset:2px;
+  border-radius:var(--rad-sm);
+}
+.sidebar a:focus-visible{outline-offset:-2px;}
+/* para quem desligou animação, o anel continua — ele não é enfeite */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important;}
+}
+
+/* ── Alvo de toque ────────────────────────────────────────────
+   Botões tinham 35px de altura; o mínimo utilizável é 44. Aplicado no .btn
+   inteiro de uma vez: subir só alguns recriaria a inconsistência.
+   .btn-sm (ações dentro de linha de tabela) fica em 36px, onde a densidade
+   importa mais e o alvo ainda é alcançável. */
+.btn{min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:7px;}
+.btn-sm{min-height:36px;}
+.month-nav .btn{min-height:40px;min-width:40px;}
