@@ -205,19 +205,36 @@ function ensureArrays(st){
 // GIST READ / WRITE — cache inteligente para evitar leituras duplicadas
 // ================================================================
 var _gistCache=null, _gistCacheTime=0, GIST_CACHE_TTL=5000;
+var _gistLastErr=''; // motivo da ultima falha de leitura/gravacao, para a mensagem de sync
 
 async function readGistFull(){
-  var tk=_getToken();if(!tk)return null;
+  var tk=_getToken();if(!tk){_gistLastErr='sem token';return null;}
   if(_gistCache && (Date.now()-_gistCacheTime)<GIST_CACHE_TTL) return _gistCache;
   try{
-    var r=await fetch('https://api.github.com/gists/'+DATA_GIST_ID,{
+    // no-store: a API do GitHub responde com max-age=60, e o navegador
+    // servia a versao de ate 1 min atras. Mesclar com ela e gravar apagava
+    // o que o outro aparelho tinha acabado de enviar.
+    var r=await fetch('https://api.github.com/gists/'+DATA_GIST_ID,{cache:'no-store',
       headers:{'Accept':'application/vnd.github+json','Authorization':'Bearer '+tk}});
-    if(!r.ok)return null;
+    if(!r.ok){_gistLastErr='HTTP '+r.status;return null;}
     _gistCache=await r.json();_gistCacheTime=Date.now();
     return _gistCache;
-  }catch(e){return null;}
+  }catch(e){_gistLastErr='rede';return null;}
 }
 function invalidateGistCache(){_gistCache=null;_gistCacheTime=0;}
+
+// Leitura para sincronizar. Distingue "a nuvem nao tem o arquivo" (null) de
+// "nao deu para ler" (lanca erro). Antes as duas viravam null e quem chamava
+// gravava o estado local por cima da nuvem, exibindo "Cloud conectado".
+async function readUserGistStrict(user){
+  invalidateGistCache();
+  var g=await readGistFull();
+  if(!g)throw new Error(_gistLastErr||'leitura falhou');
+  var f=g.files&&g.files[getUserFileKey(user)];
+  if(!f)return null;
+  if(f.truncated)throw new Error('arquivo truncado');
+  return JSON.parse(f.content);
+}
 
 async function readGistFile(fileName){
   var g=await readGistFull();if(!g)return null;
@@ -237,8 +254,9 @@ async function writeGistFiles(filesObj){
       headers:{'Accept':'application/vnd.github+json','Authorization':'Bearer '+tk,'Content-Type':'application/json'},
       body:JSON.stringify({files:files})});
     invalidateGistCache();
+    if(!r.ok)_gistLastErr='HTTP '+r.status;
     return r.ok;
-  }catch(e){return false;}
+  }catch(e){_gistLastErr='rede';return false;}
 }
 
 async function writeGistFile(fileName,data){
@@ -253,8 +271,15 @@ async function readAuthGist(){return await readGistFile('auth_users.json');}
 async function writeAuthGist(data){return await writeGistFile('auth_users.json',data);}
 
 async function ensureAuthFile(){
-  var ad=await readAuthGist();
-  if(ad&&ad.users)return ad;
+  // So cria o arquivo quando a leitura funcionou e ele de fato nao existe.
+  // Antes, qualquer falha de leitura (rede, limite da API) caia aqui e
+  // regravava auth_users.json vazio, apagando os usuarios.
+  var g=await readGistFull();if(!g)return null;
+  var f=g.files&&g.files['auth_users.json'];
+  if(f){
+    var ad=null;try{ad=JSON.parse(f.content);}catch(e){return null;}
+    if(ad&&ad.users)return ad;
+  }
   var data={users:[]};
   await writeGistFile('auth_users.json',data);
   return data;
@@ -432,7 +457,11 @@ async function unregisterDevice(user,did){
 async function migrateAndersonOnce(){
   // Após migração confirmada, nunca mais verificar (economiza 1 read no Gist a cada login)
   if(localStorage.getItem('finApp_migrated_v1'))return null;
-  var userFile=await readUserGistFile('Anderson');
+  // Leitura estrita: se falhar, nao migra. Com a leitura antiga uma falha
+  // parecia "anderson.json vazio" e o financeiro.json legado era gravado
+  // por cima dos dados atuais.
+  var userFile;
+  try{userFile=await readUserGistStrict('Anderson');}catch(e){return null;}
   if(userFile&&((userFile.lancamentos&&userFile.lancamentos.length>0)||(userFile.contratos&&userFile.contratos.length>0)||(userFile.cartoes&&userFile.cartoes.length>0))){
     localStorage.setItem('finApp_migrated_v1','1');
     return null;
@@ -461,48 +490,68 @@ function switchToUserData(user,skipRender){
     window.scheduleSync();
   };
 
-  var _ust=null,_syncing=false;
+  // ------------------------------------------------------------
+  // SINCRONIZAR = ler a nuvem, mesclar, gravar. Sempre os tres.
+  // Antes o salvar() e o "Sincronizar Agora" so gravavam: o aparelho com o
+  // estado velho apagava da nuvem o que o outro tinha lancado, e a tela
+  // mostrava "Sync" porque a gravacao em si dava certo. Todo caminho que
+  // fala com a nuvem (salvar, auto-sync, botoes, login, voltar ao app)
+  // passa por aqui.
+  // ------------------------------------------------------------
+  var _ust=null,_syncing=false,_syncPend=false;
+  function _temDados(o){return !!(o&&typeof o==='object'&&(o.lancamentos||o.cartoes||o.contratos));}
+  async function syncMerge(semRender){
+    if(!cloudOk||!window._authUsername)return false;
+    // Ja tem um em andamento: roda de novo quando ele terminar. Antes a
+    // chamada era descartada e a edicao feita nesse meio-tempo nao subia.
+    if(_syncing){_syncPend=true;return false;}
+    _syncing=true;syncUI('loading','Sincronizando...');
+    var ok=false;
+    try{
+      var rem=await readUserGistStrict(window._authUsername);
+      // Nenhum await entre ler S e substitui-lo: uma edicao feita durante a
+      // leitura ja esta em S e entra no merge.
+      var antes=JSON.stringify(S);
+      if(_temDados(rem))S=deepMergeState(S,rem);
+      var depois=JSON.stringify(S);
+      localStorage.setItem(window._userSK,depois);
+      if(!semRender&&depois!==antes&&typeof renderAll==='function')renderAll();
+      // Nuvem ja igual ao resultado: nao precisa gravar
+      if(_temDados(rem)&&JSON.stringify(ensureArrays(rem))===depois)ok=true;
+      else ok=await writeUserGistFile(window._authUsername,S);
+      syncUI('on',ok?'Sync '+new Date().toLocaleTimeString('pt-BR'):'Erro sync ('+(_gistLastErr||'?')+')');
+    }catch(e){
+      console.error('[Sync]',e);
+      syncUI('on','Erro sync ('+((e&&e.message)||'rede')+')');
+    }
+    _syncing=false;_lastAutoSync=Date.now();
+    if(_syncPend){_syncPend=false;setTimeout(function(){syncMerge();},0);}
+    return ok;
+  }
+  window._authSyncNow=syncMerge;
+
   window.scheduleSync=function(){
     if(!cloudOk)return;clearTimeout(_ust);
-    _ust=setTimeout(async function(){
-      if(_syncing)return;_syncing=true;
-      syncUI('loading','Sincronizando...');
-      try{
-        var ok=await writeUserGistFile(window._authUsername,S);
-        if(ok)syncUI('on','Sync '+new Date().toLocaleTimeString('pt-BR'));
-        else syncUI('on','Erro sync');
-      }catch(e){syncUI('on','Erro sync (rede)');}
-      _syncing=false;
-    },3000);
+    _ust=setTimeout(function(){syncMerge();},3000);
   };
+
+  // Ao voltar para o app. O iOS congela o setInterval com o app em segundo
+  // plano, entao o celular passava o fim de semana sem buscar nada da nuvem
+  // e seguia exibindo o ultimo "Sync". Registrado uma vez so: switchToUserData
+  // roda de novo a cada login, e _authSyncNow aponta sempre para o atual.
+  if(!window._authSyncHooks){
+    window._authSyncHooks=true;
+    document.addEventListener('visibilitychange',function(){
+      if(document.visibilityState==='visible'&&window._authSyncNow)window._authSyncNow();
+    });
+    window.addEventListener('online',function(){if(window._authSyncNow)window._authSyncNow();});
+  }
 
   // AUTO-SYNC 5 min
   function startAutoSync(){
     stopAutoSync();
     _lastAutoSync=Date.now();
-    _autoSyncTimer=setInterval(async function(){
-      if(!cloudOk||_syncing)return;
-      _syncing=true;
-      syncUI('loading','Auto-sync...');
-      try{
-        invalidateGistCache();
-        var loc=JSON.parse(JSON.stringify(S));
-        var rem=await readUserGistFile(window._authUsername);
-        if(rem&&typeof rem==='object'&&(rem.lancamentos||rem.cartoes||rem.contratos)){
-          var _snapAS=JSON.stringify(S);
-          S=deepMergeState(loc,rem);
-          localStorage.setItem(window._userSK,JSON.stringify(S));
-          await writeUserGistFile(window._authUsername,S);
-          if(JSON.stringify(S)!==_snapAS&&typeof renderAll==='function')renderAll();
-          syncUI('on','Auto-sync '+new Date().toLocaleTimeString('pt-BR'));
-        }else{
-          await writeUserGistFile(window._authUsername,S);
-          syncUI('on','Sync '+new Date().toLocaleTimeString('pt-BR'));
-        }
-      }catch(e){syncUI('on','Erro auto-sync');}
-      _syncing=false;
-      _lastAutoSync=Date.now();
-    },AUTO_SYNC_MS);
+    _autoSyncTimer=setInterval(function(){syncMerge();},AUTO_SYNC_MS);
     updateSyncCountdown();
   }
   function stopAutoSync(){
@@ -534,12 +583,9 @@ function switchToUserData(user,skipRender){
     var tm=document.getElementById('modalToken');if(tm&&tm.classList.contains('show'))closeM('modalToken');
     await ensureAuthFile();
     if(window._authUsername.toLowerCase()==='anderson')await migrateAndersonOnce();
-    var loc=JSON.parse(JSON.stringify(S));
-    var rem=await readUserGistFile(window._authUsername);
-    if(rem&&(rem.lancamentos||rem.cartoes||rem.contratos))S=deepMergeState(loc,rem);
-    localStorage.setItem(window._userSK,JSON.stringify(S));
-    await writeUserGistFile(window._authUsername,S);
-    renderAll();cloudOk=true;syncUI('on','Cloud conectado');
+    cloudOk=true;
+    await syncMerge(true);
+    renderAll();
     startAutoSync();
     if(typeof renderCloudArea==='function')renderCloudArea();
   };
@@ -548,35 +594,18 @@ function switchToUserData(user,skipRender){
     if(!window.gistToken){var st=await _getTokenFromSession();if(st)window.gistToken=st;}
     if(!window.gistToken){cloudOk=false;syncUI('off','Entre para sincronizar');return;}
     syncUI('loading','Conectando...');
-    // Invalidar cache UMA vez antes de todos os reads — evita duplo HTTP call
     invalidateGistCache();
     await ensureAuthFile();
     if(window._authUsername.toLowerCase()==='anderson')await migrateAndersonOnce();
-    var loc=JSON.parse(JSON.stringify(S));
-    var rem=await readUserGistFile(window._authUsername);
-    if(rem&&typeof rem==='object'&&(rem.lancamentos||rem.cartoes||rem.contratos)){
-      S=deepMergeState(loc,rem);
-      localStorage.setItem(window._userSK,JSON.stringify(S));
-      if(typeof renderAll==='function')renderAll(); // sempre renderiza após merge com Cloud
-      await writeUserGistFile(window._authUsername,S);
-      cloudOk=true;syncUI('on','Cloud conectado');
-      startAutoSync();return;
-    }
-    if(typeof renderAll==='function')renderAll(); // sem dados remotos: renderiza com local
-    await writeUserGistFile(window._authUsername,S);
-    cloudOk=true;syncUI('on','Cloud conectado');
+    cloudOk=true;
+    // Se a leitura falhar, o erro fica visivel e o auto-sync tenta de novo;
+    // o estado local nao e mais gravado por cima da nuvem.
+    await syncMerge(true);
+    if(typeof renderAll==='function')renderAll(); // o login pula o render: este e o unico
     startAutoSync();
   };
 
-  window.doPullGist=async function(){
-    syncUI('loading','Baixando...');invalidateGistCache();
-    var loc=JSON.parse(JSON.stringify(S));
-    var rem=await readUserGistFile(window._authUsername);
-    if(rem&&(rem.lancamentos||rem.cartoes||rem.contratos)){
-      S=deepMergeState(loc,rem);localStorage.setItem(window._userSK,JSON.stringify(S));
-      renderAll();syncUI('on','Dados carregados');
-    }else syncUI('on','Nenhum dado remoto');
-  };
+  window.doPullGist=async function(){await syncMerge();};
 
   window.doConnectFromBk=async function(){
     var t=(document.getElementById('bkToken')||{}).value;
@@ -584,12 +613,9 @@ function switchToUserData(user,skipRender){
     _setGistToken(t.trim());await _reencryptTokenWithSessionKey(t.trim());syncUI('loading','Conectando...');
     await ensureAuthFile();
     if(window._authUsername.toLowerCase()==='anderson')await migrateAndersonOnce();
-    var loc=JSON.parse(JSON.stringify(S));
-    var rem=await readUserGistFile(window._authUsername);
-    if(rem&&(rem.lancamentos||rem.cartoes||rem.contratos))S=deepMergeState(loc,rem);
-    localStorage.setItem(window._userSK,JSON.stringify(S));
-    await writeUserGistFile(window._authUsername,S);
-    renderAll();cloudOk=true;syncUI('on','Cloud conectado');
+    cloudOk=true;
+    await syncMerge(true);
+    renderAll();
     startAutoSync();
     if(typeof renderCloudArea==='function')renderCloudArea();
   };
@@ -614,10 +640,7 @@ function switchToUserData(user,skipRender){
 
   window.doSyncNow=async function(){
     if(!window.gistToken){var st=await _getTokenFromSession();if(st)window.gistToken=st;}
-    syncUI('loading','Sincronizando...');
-    var ok=await writeUserGistFile(window._authUsername,S);
-    if(ok)syncUI('on','Sync '+new Date().toLocaleTimeString('pt-BR'));
-    else syncUI('on','Erro sync');
+    await syncMerge();
   };
 
   window.doDisconnect=function(){

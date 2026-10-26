@@ -94,6 +94,18 @@ itens que mudaram. Se você criar um caminho novo que atribui `S` vindo da
 nuvem, chame `_tsReset(S)` — senão dados remotos são tratados como edição
 local no próximo salvar.
 
+**Toda ida à nuvem é ler → mesclar → gravar, pelo `syncMerge`** (auth.js).
+`salvar`, auto-sync, "Sincronizar Agora", login e a volta ao app (evento
+`visibilitychange`, porque o iOS congela o `setInterval` em segundo plano)
+passam todos por ele. Nunca grave `S` no Gist sem ler antes: até out/2026 o
+`salvar` só gravava, e o desktop com estado velho apagou da nuvem os
+lançamentos que o celular tinha feito no fim de semana, mostrando "Sync" nos
+dois. Falha de leitura tem que virar erro visível (`readUserGistStrict`
+lança), nunca "nuvem vazia": tratar como vazia levava a gravar o local por
+cima, e no `ensureAuthFile` regravava `auth_users.json` sem usuários. O
+histórico de versões do Gist (`/gists/<id>/commits`) guarda cada gravação e
+foi o que permitiu reconstruir a sequência.
+
 **Mobile.** `env(safe-area-inset-bottom)` só funciona porque o
 `index.html` tem `viewport-fit=cover` na tag de viewport. Sem isso,
 resolve sempre para 0.
@@ -166,9 +178,9 @@ mês) → aportes/resgates/rentabilidade do mês → fechamento.
 
 - **Senhas com SHA-256 sem salt** (`auth.js`). Vulnerável a rainbow table
   se o Gist vazar. Corrigir exige migrar os hashes existentes.
-- **Confirmar que o Gist está como *secret*** no GitHub — ele guarda o
-  `auth_users.json` com os hashes. Só dá para verificar na interface do
-  GitHub.
+- ~~Confirmar que o Gist está como *secret*~~ — confirmado em out/2026
+  (`public: false` na API). Atenção: *secret* só tira da listagem; quem tiver
+  o ID lê o conteúdo sem token, e o ID está no `auth.js` público.
 - **Dados possivelmente errados no passado**: valores lançados com
   separador de milhar antes da correção do `parseN` foram gravados
   menores. Não há correção retroativa; vale revisar Investimentos.
