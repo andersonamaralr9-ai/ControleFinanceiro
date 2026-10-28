@@ -102,7 +102,9 @@ passam todos por ele. Nunca grave `S` no Gist sem ler antes: até out/2026 o
 lançamentos que o celular tinha feito no fim de semana, mostrando "Sync" nos
 dois. Falha de leitura tem que virar erro visível (`readUserGistStrict`
 lança), nunca "nuvem vazia": tratar como vazia levava a gravar o local por
-cima, e no `ensureAuthFile` regravava `auth_users.json` sem usuários. O
+cima, e no `ensureAuthFile` regravava `auth_users.json` sem usuários. No
+login, falha de leitura mostra o motivo (e o campo de token, se for 401/403)
+— não "senha incorreta", que fez o usuário achar que tinha errado a senha. O
 histórico de versões do Gist (`/gists/<id>/commits`) guarda cada gravação e
 foi o que permitiu reconstruir a sequência.
 

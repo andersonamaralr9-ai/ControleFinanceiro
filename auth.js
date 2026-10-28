@@ -295,15 +295,14 @@ async function ensureAuthFile(){
 // ================================================================
 var _hasToken=!!(localStorage.getItem('finApp_gist_token_enc'));
 var ov=document.createElement('div');ov.className='auth-overlay';ov.id='authOverlay';
-var tkHTML='';
-if(!_hasToken){
-  tkHTML='<div class="auth-token-section" id="authTokenSection">'+
-    '<div class="ats-title">\u26a0 Primeira conex\u00e3o neste dispositivo</div>'+
+// Sempre no DOM: com token salvo fica oculto, e o login o reexibe quando o
+// GitHub recusa o token guardado (expirado/revogado), para trocar por um novo.
+var tkHTML='<div class="auth-token-section" id="authTokenSection"'+(_hasToken?' style="display:none"':'')+'>'+
+    '<div class="ats-title" id="authTokenTitle">\u26a0 Primeira conex\u00e3o neste dispositivo</div>'+
     '<div class="form-group" style="margin-bottom:8px"><label>Token GitHub (permiss\u00e3o gist)</label>'+
     '<input type="password" id="authToken" class="form-control" placeholder="ghp_xxxxxxxxxxxx" autocomplete="off"></div>'+
     '<div class="ats-help">Pe\u00e7a ao administrador ou crie em '+
     '<a href="https://github.com/settings/tokens/new?scopes=gist&description=FinanceiroPro" target="_blank">github.com/settings/tokens</a> com permiss\u00e3o <strong>gist</strong>.</div></div>';
-}
 ov.innerHTML='<div class="auth-box"><div class="auth-logo">&#128176;</div>'+
   '<div class="auth-title">Financeiro Pro</div>'+
   '<div class="auth-sub">Fa\u00e7a login para acessar seus dados financeiros</div>'+tkHTML+
@@ -679,10 +678,31 @@ window._authDoLogin=async function(){
   if(te){var tv=(te.value||'').trim();if(tv){window.gistToken=tv;await _encryptToken(tv,pass);}}
   // Migra\u00e7\u00e3o \u00fanica: se ainda h\u00e1 token em plaintext, criptografar e remover
   if(!window.gistToken){var legTk=localStorage.getItem('finApp_gist_token');if(legTk){window.gistToken=legTk;await _encryptToken(legTk,pass);localStorage.removeItem('finApp_gist_token');}}
-  var tk=_getToken();if(!tk){ee.textContent='Informe o Token GitHub.';btn.disabled=false;btn.textContent='Entrar';return;}
+  var tk=_getToken();
+  if(!tk){
+    ee.textContent='Informe o Token GitHub.';
+    var sec0=document.getElementById('authTokenSection');if(sec0)sec0.style.display=''; // estava oculto se havia token salvo
+    btn.disabled=false;btn.textContent='Entrar';return;
+  }
   var ih=await sha256(pass),role='user',ok=false;
+  invalidateGistCache();
   var ad=await ensureAuthFile();
-  if(ad&&ad.users){
+  // Sem leitura da nuvem nao da para conferir a senha. Antes isso caia em
+  // "Usuario ou senha incorretos" (ou, pior, recriava a lista de usuarios).
+  if(!ad){
+    var err=_gistLastErr||'sem resposta';
+    if(/HTTP 40[13]/.test(err)){
+      ee.textContent='O GitHub recusou o token salvo neste aparelho ('+err+'). Informe um token novo.';
+      var sec=document.getElementById('authTokenSection');if(sec)sec.style.display='';
+      var tt=document.getElementById('authTokenTitle');if(tt)tt.textContent='⚠ Token expirado ou revogado';
+      var ti=document.getElementById('authToken');if(ti){ti.value='';ti.focus();}
+    }else{
+      ee.textContent='Não foi possível acessar a nuvem ('+err+'). Tente de novo em instantes.';
+    }
+    window.gistToken='';
+    btn.disabled=false;btn.textContent='Entrar';return;
+  }
+  if(ad.users){
     var f=ad.users.find(function(u){return u.username.toLowerCase()===user.toLowerCase()&&u.passwordHash===ih;});
     if(f){ok=true;user=f.username;role=f.role||'user';}
     // Primeiro usuário: se não há nenhum cadastrado, o primeiro a logar com token válido vira admin
@@ -929,7 +949,7 @@ window._authDelUser=async function(u){
     // Se initCloud não conseguiu conectar (sem token/offline), renderiza com dados locais
     if(!cloudOk&&typeof renderAll==='function')renderAll();
   }else{
-    setTimeout(function(){var t=document.getElementById('authToken');if(t)t.focus();else document.getElementById('authUser').focus();},200);
+    setTimeout(function(){var t=document.getElementById('authToken');if(t&&!_hasToken)t.focus();else document.getElementById('authUser').focus();},200);
   }
 })();
 
