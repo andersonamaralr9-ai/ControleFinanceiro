@@ -379,20 +379,87 @@ async function _getTokenFromSession(){
     return new TextDecoder().decode(pt);
   }catch(e){return null;}
 }
+// Token trocado depois do login (tela de Backup / modal Conectar). Regrava o
+// arquivo principal no mesmo formato do login: mesmo salt, e a chave da sessao
+// e justamente a derivada da senha com esse salt. Antes ia para uma chave
+// '_sess' que ninguem lia, e o token novo sumia ao recarregar a pagina.
 async function _reencryptTokenWithSessionKey(token){
-  var skb64=sessionStorage.getItem(_TOKEN_SESS_KEY);if(!skb64)return false;
+  var skb64=sessionStorage.getItem(_TOKEN_SESS_KEY);
+  var enc=localStorage.getItem(_TOKEN_ENC_KEY);
+  if(!skb64||!enc)return false;
   try{
     var skRaw=Uint8Array.from(atob(skb64),function(c){return c.charCodeAt(0);});
     var key=await crypto.subtle.importKey('raw',skRaw,{name:'AES-GCM'},false,['encrypt']);
+    var old=Uint8Array.from(atob(enc),function(c){return c.charCodeAt(0);});
     var iv=crypto.getRandomValues(new Uint8Array(12));
     var ct=await crypto.subtle.encrypt({name:'AES-GCM',iv:iv},key,new TextEncoder().encode(token));
-    // Formato sessão: 16 bytes zero (sem salt PBKDF2) + 12 iv + ciphertext
-    // Marcado com prefixo 0x01 para distinguir do formato PBKDF2
-    var buf=new Uint8Array(1+12+ct.byteLength);
-    buf[0]=0x01;buf.set(iv,1);buf.set(new Uint8Array(ct),13);
-    localStorage.setItem(_TOKEN_ENC_KEY+'_sess',btoa(String.fromCharCode(...buf)));
+    var buf=new Uint8Array(28+ct.byteLength);
+    buf.set(old.slice(0,16),0);buf.set(iv,16);buf.set(new Uint8Array(ct),28);
+    localStorage.setItem(_TOKEN_ENC_KEY,btoa(String.fromCharCode(...buf)));
     return true;
   }catch(e){return false;}
+}
+localStorage.removeItem(_TOKEN_ENC_KEY+'_sess'); // sobra do formato antigo, nunca lido
+
+// ----------------------------------------------------------------
+// TOKEN DO APARELHO — para o "Manter conectado"
+// A chave que abre o token salvo vinha da senha e ficava so no
+// sessionStorage. Ao fechar o navegador ela sumia, mas a sessao de 90 dias
+// continuava valida: o app abria sem pedir senha e sem token, ficava
+// offline e nenhuma alteracao subia para a nuvem (so o "Entre para
+// sincronizar" e o campo de token na tela de Backup).
+// Agora, com "Manter conectado", o token e cifrado com uma chave AES gerada
+// no aparelho, NAO exportavel, guardada no IndexedDB: o JS da pagina
+// consegue usa-la, mas ela nao sai do navegador nem aparece num dump do
+// localStorage. Sair do app apaga.
+// ----------------------------------------------------------------
+var _IDB_TK='deviceToken';
+function _idbReq(mode,fn){
+  return new Promise(function(res,rej){
+    var o=indexedDB.open('finApp',1);
+    o.onupgradeneeded=function(){o.result.createObjectStore('kv');};
+    o.onerror=function(){rej(o.error);};
+    o.onsuccess=function(){
+      var db=o.result,tx=db.transaction('kv',mode),q=fn(tx.objectStore('kv')),out;
+      q.onsuccess=function(){out=q.result;};
+      tx.oncomplete=function(){db.close();res(out);};
+      tx.onerror=tx.onabort=function(){db.close();rej(tx.error);};
+    };
+  });
+}
+async function _saveDeviceToken(token){
+  try{
+    var key=await crypto.subtle.generateKey({name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+    var iv=crypto.getRandomValues(new Uint8Array(12));
+    var ct=await crypto.subtle.encrypt({name:'AES-GCM',iv:iv},key,new TextEncoder().encode(token));
+    await _idbReq('readwrite',function(s){return s.put({key:key,iv:iv,ct:ct},_IDB_TK);});
+    return true;
+  }catch(e){console.warn('[Auth] token do aparelho nao foi salvo:',e);return false;}
+}
+async function _getDeviceToken(){
+  try{
+    var r=await _idbReq('readonly',function(s){return s.get(_IDB_TK);});
+    if(!r||!r.key)return null;
+    var pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:r.iv},r.key,r.ct);
+    return new TextDecoder().decode(pt);
+  }catch(e){return null;}
+}
+async function _clearDeviceToken(){
+  try{await _idbReq('readwrite',function(s){return s.delete(_IDB_TK);});}catch(e){}
+}
+// Token para a sessao atual: o da aba (login com senha) ou o do aparelho.
+async function _recuperarToken(){
+  if(window.gistToken)return window.gistToken;
+  var t=await _getTokenFromSession();
+  if(!t){var s=getSession();if(s&&s.keep)t=await _getDeviceToken();}
+  if(t)window.gistToken=t;
+  return t||'';
+}
+// Token digitado depois do login: vale para os dois cofres.
+async function _guardarTokenNovo(token){
+  await _reencryptTokenWithSessionKey(token);
+  var s=getSession();
+  if(s&&s.keep)await _saveDeviceToken(token);
 }
 
 // ================================================================
@@ -578,7 +645,7 @@ function switchToUserData(user,skipRender){
     var t=(document.getElementById('inputToken')||{}).value;
     if(!t)t=(document.getElementById('bkToken')||{}).value;
     if(!t||!t.trim()){alert('Informe o token.');return;}
-    _setGistToken(t.trim());await _reencryptTokenWithSessionKey(t.trim());syncUI('loading','Conectando...');
+    _setGistToken(t.trim());await _guardarTokenNovo(t.trim());syncUI('loading','Conectando...');
     var tm=document.getElementById('modalToken');if(tm&&tm.classList.contains('show'))closeM('modalToken');
     await ensureAuthFile();
     if(window._authUsername.toLowerCase()==='anderson')await migrateAndersonOnce();
@@ -590,8 +657,8 @@ function switchToUserData(user,skipRender){
   };
 
   window.initCloud=async function(){
-    if(!window.gistToken){var st=await _getTokenFromSession();if(st)window.gistToken=st;}
-    if(!window.gistToken){cloudOk=false;syncUI('off','Entre para sincronizar');return;}
+    await _recuperarToken();
+    if(!window.gistToken){cloudOk=false;syncUI('off','Sem token: saia e entre de novo para sincronizar');return;}
     syncUI('loading','Conectando...');
     invalidateGistCache();
     await ensureAuthFile();
@@ -609,7 +676,7 @@ function switchToUserData(user,skipRender){
   window.doConnectFromBk=async function(){
     var t=(document.getElementById('bkToken')||{}).value;
     if(!t||!t.trim()){alert('Informe o token.');return;}
-    _setGistToken(t.trim());await _reencryptTokenWithSessionKey(t.trim());syncUI('loading','Conectando...');
+    _setGistToken(t.trim());await _guardarTokenNovo(t.trim());syncUI('loading','Conectando...');
     await ensureAuthFile();
     if(window._authUsername.toLowerCase()==='anderson')await migrateAndersonOnce();
     cloudOk=true;
@@ -638,14 +705,14 @@ function switchToUserData(user,skipRender){
   };
 
   window.doSyncNow=async function(){
-    if(!window.gistToken){var st=await _getTokenFromSession();if(st)window.gistToken=st;}
+    await _recuperarToken();
     await syncMerge();
   };
 
   window.doDisconnect=function(){
     window.gistToken='';cloudOk=false;
-    localStorage.removeItem(_TOKEN_ENC_KEY);localStorage.removeItem(_TOKEN_ENC_KEY+'_sess');
-    sessionStorage.removeItem(_TOKEN_SESS_KEY);
+    localStorage.removeItem(_TOKEN_ENC_KEY);
+    sessionStorage.removeItem(_TOKEN_SESS_KEY);_clearDeviceToken();
     stopAutoSync();syncUI('off','Offline');
     var el=document.getElementById('auSyncTimer');if(el)el.textContent='';
     if(typeof renderCloudArea==='function')renderCloudArea();
@@ -715,6 +782,7 @@ window._authDoLogin=async function(){
   if(ok){
     var ts=document.getElementById('authTokenSection');if(ts)ts.style.display='none';
     setSession(user,role,keep);
+    if(keep)await _saveDeviceToken(tk);else await _clearDeviceToken();
     window._authCurrentUser={username:user,role:role};
     switchToUserData(user);
     showApp(user,role);
@@ -731,10 +799,11 @@ window._authDoLogin=async function(){
 // ================================================================
 // LOGOUT
 // ================================================================
-window._authDoLogout=function(){
+window._authDoLogout=async function(){
   if(!confirm('Deseja sair?'))return;
-  var s=getSession();if(s)unregisterDevice(s.user,getDeviceId());
+  var s=getSession();if(s)await unregisterDevice(s.user,getDeviceId());
   clearSession();window._authCurrentUser=null;
+  await _clearDeviceToken();
   if(typeof window._authStopAutoSync==='function')window._authStopAutoSync();
   location.reload();
 };
@@ -944,6 +1013,7 @@ window._authDelUser=async function(u){
     window._authCurrentUser={username:ss.user,role:ss.role||'user'};
     switchToUserData(ss.user,true); // skipRender=true: initCloud fará o único render
     showApp(ss.user,ss.role||'user');
+    await _recuperarToken(); // antes do registerDevice, que tambem le a nuvem
     await registerDevice(ss.user,ss.keep||false);
     if(typeof initCloud==='function') await initCloud();
     // Se initCloud não conseguiu conectar (sem token/offline), renderiza com dados locais

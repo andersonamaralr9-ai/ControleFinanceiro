@@ -108,6 +108,19 @@ login, falha de leitura mostra o motivo (e o campo de token, se for 401/403)
 histórico de versões do Gist (`/gists/<id>/commits`) guarda cada gravação e
 foi o que permitiu reconstruir a sequência.
 
+**Token do GitHub — onde fica.** Três lugares, cada um com um papel:
+`finApp_gist_token_enc` (localStorage) é o token cifrado com chave derivada
+da senha (PBKDF2), aberto no login; a chave derivada fica no
+`sessionStorage` enquanto a aba vive; e, com **"Manter conectado"**, uma
+cópia cifrada com chave AES **não exportável** no IndexedDB (`finApp` →
+`kv` → `deviceToken`), apagada no "Sair". Use sempre `_recuperarToken()`
+para obter o token e `_guardarTokenNovo()` quando o usuário digitar outro.
+Até nov/2026 a terceira não existia: fechar o navegador apagava a chave da
+sessão, mas a sessão de 90 dias continuava válida — o app abria sem pedir
+senha, **sem token e offline**, e nenhuma alteração subia (o usuário via o
+campo de token na tela de Backup e "desmarcar pagamento" não sincronizava).
+O token digitado no Backup também ia para uma chave `_sess` que nada lia.
+
 **Mobile.** `env(safe-area-inset-bottom)` só funciona porque o
 `index.html` tem `viewport-fit=cover` na tag de viewport. Sem isso,
 resolve sempre para 0.
@@ -150,6 +163,9 @@ Módulos, na ordem em que carregam (a ordem importa):
 | `assinaturas-enhanced.js` | Assinaturas |
 | `contratos-enhanced.js` | Contratos |
 | `relatorios.js` | 10 relatórios + exportação Excel |
+| `lixeira.js` | Lixeira: itens excluídos restauráveis por 30 dias |
+| `icones.js` | Vocabulário de ícones SVG (`iconeSVG`) |
+| `a11y.js` | Acessibilidade genérica após cada render |
 | `theme-persist.js` | Persistência do tema |
 
 `investimentos-enhanced.js` é um stub vazio (funcionalidade migrou para
