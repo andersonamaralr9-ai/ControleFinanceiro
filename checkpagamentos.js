@@ -14,10 +14,18 @@ function loadChecks(mes){
   ensureCheckObj();
   return S.checkPagamentos[mes] || {};
 }
-function saveChecks(mes, checks){
+// Marca ou desmarca um item, registrando QUANDO. Desmarcar grava false em
+// vez de apagar a chave: com a chave apagada, o sync via "pago" na nuvem e
+// nada no aparelho, e o pagamento voltava marcado ao recarregar.
+// O horario (checkPagamentosTs) e o que o deepMergeState usa para decidir
+// entre os aparelhos: vence a alteracao mais recente.
+function marcar(mes, key, valor){
   ensureCheckObj();
-  S.checkPagamentos[mes] = checks;
-  salvar();
+  if(!S.checkPagamentos[mes]) S.checkPagamentos[mes] = {};
+  S.checkPagamentos[mes][key] = !!valor;
+  if(!S.checkPagamentosTs || typeof S.checkPagamentosTs !== 'object' || Array.isArray(S.checkPagamentosTs)) S.checkPagamentosTs = {};
+  if(!S.checkPagamentosTs[mes]) S.checkPagamentosTs[mes] = {};
+  S.checkPagamentosTs[mes][key] = Date.now();
 }
 
 var _origMerge = window.mergeState;
@@ -114,23 +122,26 @@ window.chgCheckM = function(dir){
 // ================================================================
 window.toggleCheck = function(itemKey){
   var checks = loadChecks(checkMes);
-  if(checks[itemKey]) delete checks[itemKey];
-  else checks[itemKey] = true;
-  saveChecks(checkMes, checks);
+  marcar(checkMes, itemKey, !checks[itemKey]);
+  salvar();
   renderCheckPag();
 };
 
 window.checkMarcarTodos = function(){
-  var entries = allEntries(checkMes);
   var checks = loadChecks(checkMes);
-  entries.forEach(function(e){ checks[buildItemKey(e)] = true; });
-  saveChecks(checkMes, checks);
+  allEntries(checkMes).forEach(function(e){
+    var k = buildItemKey(e);
+    if(!checks[k]) marcar(checkMes, k, true);
+  });
+  salvar();
   renderCheckPag();
 };
 
 window.checkDesmarcarTodos = function(){
   if(!confirm('Desmarcar todos os pagamentos do m\u00eas?')) return;
-  saveChecks(checkMes, {});
+  var checks = loadChecks(checkMes);
+  Object.keys(checks).forEach(function(k){ if(checks[k]) marcar(checkMes, k, false); });
+  salvar();
   renderCheckPag();
 };
 

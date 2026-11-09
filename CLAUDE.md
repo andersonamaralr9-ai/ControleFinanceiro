@@ -121,6 +121,13 @@ senha, **sem token e offline**, e nenhuma alteração subia (o usuário via o
 campo de token na tela de Backup e "desmarcar pagamento" não sincronizava).
 O token digitado no Backup também ia para uma chave `_sess` que nada lia.
 
+**Mapas fora das coleções (ex.: `checkPagamentos`) não podem "apagar para
+desfazer".** O merge junta os dois lados; uma chave apagada num aparelho
+volta do outro. Até nov/2026 desmarcar um pagamento fazia `delete` e ele
+reaparecia marcado ao recarregar. Hoje desmarcar grava `false` e cada item
+tem horário em `checkPagamentosTs[mes][chave]`; no `deepMergeState` vence
+o mais recente. Grave sempre pelo `marcar()` de `checkpagamentos.js`.
+
 **Mobile.** `env(safe-area-inset-bottom)` só funciona porque o
 `index.html` tem `viewport-fit=cover` na tag de viewport. Sem isso,
 resolve sempre para 0.

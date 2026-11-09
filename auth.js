@@ -123,13 +123,26 @@ function deepMergeState(local,remote){
       l.cats[t].forEach(function(c){if(r.cats[t].indexOf(c)===-1)r.cats[t].push(c);});}
   });
   if(l.config&&typeof l.config==='object')r.config=Object.assign({},r.config||{},l.config);
-  if(l.checkPagamentos&&typeof l.checkPagamentos==='object'){
-    if(!r.checkPagamentos)r.checkPagamentos={};
-    Object.keys(l.checkPagamentos).forEach(function(m){
-      if(!r.checkPagamentos[m])r.checkPagamentos[m]=l.checkPagamentos[m];
-      else Object.assign(r.checkPagamentos[m],l.checkPagamentos[m]);
+  // Check de Pagamentos: por item, vence a alteracao mais recente
+  // (checkPagamentosTs). Antes era "uniao": desmarcar apagava a chave no
+  // aparelho, a nuvem ainda tinha true e o pagamento voltava marcado.
+  // Itens sem horario (gravados antes de nov/2026) seguem a regra antiga:
+  // o valor local, se existir, vence.
+  var _obj=function(o){return o&&typeof o==='object'&&!Array.isArray(o)?o:{};};
+  var lc=_obj(l.checkPagamentos),rc=_obj(r.checkPagamentos),
+      lt=_obj(l.checkPagamentosTs),rt=_obj(r.checkPagamentosTs),ck={},ckTs={};
+  Object.keys(Object.assign({},lc,rc)).forEach(function(m){
+    var lm=_obj(lc[m]),rm=_obj(rc[m]),ltm=_obj(lt[m]),rtm=_obj(rt[m]),om={},otm={};
+    Object.keys(Object.assign({},lm,rm)).forEach(function(k){
+      var a=ltm[k]||0,b=rtm[k]||0;
+      if(a>b)om[k]=lm[k];
+      else if(b>a)om[k]=rm[k];
+      else om[k]=(k in lm)?lm[k]:rm[k];
+      if(a||b)otm[k]=Math.max(a,b);
     });
-  }
+    ck[m]=om;if(Object.keys(otm).length)ckTs[m]=otm;
+  });
+  r.checkPagamentos=ck;r.checkPagamentosTs=ckTs;
   var _mesclado=ensureArrays(r);
   // O estado mesclado vira a nova referencia: nada nele deve ser
   // considerado "alterado localmente" no proximo salvar().
