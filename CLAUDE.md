@@ -128,6 +128,25 @@ reaparecia marcado ao recarregar. Hoje desmarcar grava `false` e cada item
 tem horário em `checkPagamentosTs[mes][chave]`; no `deepMergeState` vence
 o mais recente. Grave sempre pelo `marcar()` de `checkpagamentos.js`.
 
+`planejamento`, `cats` e `config` têm o mesmo cuidado de forma automática
+(`_MAPAS` em auth.js): o `salvar()` compara com o retrato anterior e carimba
+em `S._mapTs[mapa][chave]` cada chave alterada **ou removida**; o merge fica
+com a mais recente. Nenhuma tela precisa fazer nada — mas mapa novo que
+sincroniza tem que entrar em `_MAPAS`.
+
+**Histórico de contratos/assinaturas é normalizado** (`normalizarHistoricos`,
+no `ensureArrays` e no `salvar`): ordem de mês estável, sem apagar entrada, e
+`.valor` = último ajuste. Ajuste retroativo empilhado no fim do array fazia
+"o último que casa" valer para os meses seguintes.
+
+**Avisos: `toast(msg, tipo, {acao, onAcao})`** (index.html). Até nov/2026 a
+função não existia e vários módulos a chamavam. Para ação em massa ou
+exclusão, prefira agir e oferecer Desfazer a usar `confirm()`.
+
+**html2pdf e xlsx carregam sob demanda** (`carregarLib`/`precisaLib` no
+index.html), ao entrar em Extrato, Balancete ou Relatórios. Função nova que
+exporta começa com `if(precisaLib('xlsx', minhaFn)) return;`.
+
 **Mobile.** `env(safe-area-inset-bottom)` só funciona porque o
 `index.html` tem `viewport-fit=cover` na tag de viewport. Sem isso,
 resolve sempre para 0.

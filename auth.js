@@ -110,19 +110,7 @@ function deepMergeState(local,remote){
   });
   var limiteLix=Date.now()-(window.LIXEIRA_RETENCAO_DIAS||30)*86400000;
   r.lixeira=Object.values(lixMap).filter(function(it){return (it.excluidoEm||0)>limiteLix;});
-  if(!r.planejamento||Array.isArray(r.planejamento))r.planejamento={};
-  if(l.planejamento&&typeof l.planejamento==='object'&&!Array.isArray(l.planejamento))
-    Object.keys(l.planejamento).forEach(function(k){
-      if(!r.planejamento[k])r.planejamento[k]=l.planejamento[k];
-      else if(typeof r.planejamento[k]==='object'&&typeof l.planejamento[k]==='object')
-        Object.keys(l.planejamento[k]).forEach(function(c){if(r.planejamento[k][c]===undefined)r.planejamento[k][c]=l.planejamento[k][c];});
-    });
-  if(!r.cats)r.cats=JSON.parse(JSON.stringify(defCats));
-  if(l.cats)Object.keys(l.cats).forEach(function(t){
-    if(Array.isArray(l.cats[t])){if(!Array.isArray(r.cats[t]))r.cats[t]=[];
-      l.cats[t].forEach(function(c){if(r.cats[t].indexOf(c)===-1)r.cats[t].push(c);});}
-  });
-  if(l.config&&typeof l.config==='object')r.config=Object.assign({},r.config||{},l.config);
+  _mergeMapas(l,r); // planejamento, cats, config: vence a alteracao mais recente
   // Check de Pagamentos: por item, vence a alteracao mais recente
   // (checkPagamentosTs). Antes era "uniao": desmarcar apagava a chave no
   // aparelho, a nuvem ainda tinha true e o pagamento voltava marcado.
@@ -164,6 +152,71 @@ function deepMergeState(local,remote){
 var _TS_COLS=_SYNC_COLS;
 var _tsSnap={};
 
+// ----------------------------------------------------------------
+// MAPAS FORA DAS COLECOES: planejamento, cats, config
+// ----------------------------------------------------------------
+// O merge antigo era "uniao" (planejamento e cats) ou "local sempre vence"
+// (config). Consequencias: limite editado voltava ao valor da nuvem, limite
+// ou categoria apagados reapareciam, e o tema de um aparelho desatualizado
+// desfazia a troca feita no outro. Agora cada chave tem o horario da ultima
+// alteracao (inclusive remocao) em st._mapTs[mapa][chave], carimbado no
+// salvar() por comparacao com o retrato anterior - nenhuma tela precisa
+// saber disso. Chaves sem horario (dados antigos) seguem a regra antiga.
+var _SEP='\u0001';
+function _o(x){return x&&typeof x==='object'&&!Array.isArray(x)?x:{};}
+var _MAPAS={
+  planejamento:{
+    flat:function(o){var f={};Object.keys(_o(o)).forEach(function(m){Object.keys(_o(o[m])).forEach(function(c){f[m+_SEP+c]=o[m][c];});});return f;},
+    unflat:function(f){var o={};Object.keys(f).forEach(function(k){var p=k.split(_SEP);(o[p[0]]=o[p[0]]||{})[p[1]]=f[k];});return o;},
+    legado:function(k,lf,rf){return (k in rf)?rf[k]:lf[k];} // nuvem vence; local so completa
+  },
+  cats:{
+    flat:function(o){var f={};Object.keys(_o(o)).forEach(function(t){(Array.isArray(o[t])?o[t]:[]).forEach(function(c){f[t+_SEP+c]=true;});});return f;},
+    unflat:function(f){var o={};Object.keys(f).forEach(function(k){var p=k.split(_SEP);(o[p[0]]=o[p[0]]||[]).push(p[1]);});return o;},
+    legado:function(k,lf,rf){return true;} // uniao
+  },
+  config:{
+    flat:function(o){var f={};Object.keys(_o(o)).forEach(function(k){f[k]=o[k];});return f;},
+    unflat:function(f){return Object.assign({},f);},
+    legado:function(k,lf,rf){return (k in lf)?lf[k]:rf[k];} // local vence
+  }
+};
+var _mapSnap={};
+function _fp(v){try{return JSON.stringify(v);}catch(e){return '';}}
+function _mapRetrato(st){
+  var s={};Object.keys(_MAPAS).forEach(function(n){var f=_MAPAS[n].flat(st[n]),m={};Object.keys(f).forEach(function(k){m[k]=_fp(f[k]);});s[n]=m;});return s;
+}
+function _mapCarimbar(st){
+  var agora=Date.now(),atual=_mapRetrato(st);
+  if(!st._mapTs||typeof st._mapTs!=='object')st._mapTs={};
+  Object.keys(_MAPAS).forEach(function(n){
+    var ant=_mapSnap[n]||{},cur=atual[n],ts=st._mapTs[n]=_o(st._mapTs[n]);
+    Object.keys(cur).forEach(function(k){if(ant[k]!==cur[k])ts[k]=agora;});
+    Object.keys(ant).forEach(function(k){if(!(k in cur))ts[k]=agora;}); // removida
+  });
+  _mapSnap=atual;
+}
+function _mergeMapas(l,r){
+  var lts=_o(l._mapTs),rts=_o(r._mapTs),outTs={};
+  Object.keys(_MAPAS).forEach(function(n){
+    var M=_MAPAS[n],lf=M.flat(l[n]),rf=M.flat(r[n]),lt=_o(lts[n]),rt=_o(rts[n]),out={},ot={};
+    var chaves=[];[rf,lf,rt,lt].forEach(function(o){Object.keys(o).forEach(function(k){if(chaves.indexOf(k)===-1)chaves.push(k);});});
+    chaves.forEach(function(k){
+      var a=lt[k]||0,b=rt[k]||0;
+      if(a>b){if(k in lf)out[k]=lf[k];}
+      else if(b>a){if(k in rf)out[k]=rf[k];}
+      else if((k in lf)||(k in rf))out[k]=M.legado(k,lf,rf);
+      if(a||b)ot[k]=Math.max(a,b);
+    });
+    var res=M.unflat(out);
+    // grupos vazios (mes sem limite, tipo sem categoria) nao aparecem no
+    // formato chave-a-chave; recoloca-os para o merge nao sumir com nada
+    if(n!=='config')[l[n],r[n]].forEach(function(o){Object.keys(_o(o)).forEach(function(g){if(!(g in res))res[g]=Array.isArray(o[g])?[]:{};});});
+    r[n]=res;outTs[n]=ot;
+  });
+  r._mapTs=outTs;
+}
+
 function _tsFingerprint(it){
   var c={};
   Object.keys(it).forEach(function(k){ if(k!=='_ts') c[k]=it[k]; });
@@ -174,6 +227,7 @@ function _tsFingerprint(it){
 function _tsReset(st){
   _tsSnap={};
   if(!st) return;
+  _mapSnap=_mapRetrato(st);
   _TS_COLS.forEach(function(col){
     var m={};
     (Array.isArray(st[col])?st[col]:[]).forEach(function(it){
@@ -186,6 +240,7 @@ function _tsReset(st){
 // Marca _ts nos itens novos ou modificados desde a ultima referencia
 function _tsStamp(st){
   if(!st) return;
+  _mapCarimbar(st);
   var agora=Date.now();
   _TS_COLS.forEach(function(col){
     var anterior=_tsSnap[col]||{}, atual={};
@@ -201,10 +256,34 @@ function _tsStamp(st){
 window._tsReset=_tsReset;
 window._tsStamp=_tsStamp;
 window.deepMergeState=deepMergeState; // exposto para inspecao/teste do merge
+// Historico de contratos/assinaturas sempre em ordem de mes, um ajuste por
+// mes, e .valor = o do ajuste mais recente. Os ajustes eram empilhados na
+// ordem em que foram digitados e varios leitores pegam "o ultimo que casa"
+// na ordem do array: um ajuste RETROATIVO (ex.: junho, lancado em novembro)
+// passava a valer para novembro, e ainda sobrescrevia .valor.
+function normalizarHistoricos(st){
+  ['contratos','assinaturas'].forEach(function(col){
+    (Array.isArray(st[col])?st[col]:[]).forEach(function(it){
+      if(!it||!Array.isArray(it.historico)||!it.historico.length)return;
+      // Ordenacao estavel e sem apagar nada: dois ajustes no mesmo mes ficam
+      // na ordem em que foram digitados, e os leitores ("ultimo que casa")
+      // continuam pegando o mais recente digitado.
+      var hs=it.historico.filter(function(h){return h&&h.de;});
+      hs.sort(function(a,b){var x=String(a.de).substring(0,7),y=String(b.de).substring(0,7);return x<y?-1:x>y?1:0;});
+      if(hs.length!==it.historico.length)return; // entrada sem mes: nao mexe neste item
+      it.historico=hs;
+      it.valor=Number(hs[hs.length-1].valor)||0;
+    });
+  });
+  return st;
+}
+window.normalizarHistoricos=normalizarHistoricos;
+
 function ensureArrays(st){
   _SYNC_COLS.forEach(function(k){
     if(!Array.isArray(st[k]))st[k]=[];
   });
+  normalizarHistoricos(st);
   if(!st.planejamento||Array.isArray(st.planejamento))st.planejamento={};
   if(!st.cats)st.cats=JSON.parse(JSON.stringify(defCats));
   Object.keys(defCats).forEach(function(k){if(!Array.isArray(st.cats[k]))st.cats[k]=defCats[k].slice();});
@@ -259,7 +338,9 @@ async function writeGistFiles(filesObj){
   var tk=_getToken();if(!tk)return false;
   var files={};
   Object.keys(filesObj).forEach(function(fn){
-    files[fn]={content:JSON.stringify(filesObj[fn],null,2)};
+    // Sem indentacao: o arquivo fica ~30% menor (mais longe do limite de
+    // 1 MB do Gist, em que o conteudo vem truncado e o sync para).
+    files[fn]={content:JSON.stringify(filesObj[fn])};
   });
   try{
     var r=await fetch('https://api.github.com/gists/'+DATA_GIST_ID,{
@@ -564,6 +645,7 @@ function switchToUserData(user,skipRender){
 
   window.salvar=function(){
     if(!window._userSK)return;
+    normalizarHistoricos(S);
     _tsStamp(S); // marca o que mudou, para o merge saber quem e mais recente
     localStorage.setItem(window._userSK,JSON.stringify(S));
     window.scheduleSync();

@@ -2019,3 +2019,14 @@ td, .rel-table td, .inv-panel-card-row .val, .ips-val, .proj-val {
 .btn{min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:7px;}
 .btn-sm{min-height:36px;}
 .month-nav .btn{min-height:40px;min-width:40px;}
+
+/* ── Toast (index.html: toast()) ─────────────────────────────
+   Fica acima da barra inferior do iPhone. Cor só na borda: o texto
+   mantém a cor do tema, que é o que garante contraste em todo visual. */
+#toastBox{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom));z-index:10000;display:flex;flex-direction:column;gap:8px;width:min(440px,calc(100vw - 32px));pointer-events:none;}
+.toast-msg{pointer-events:auto;display:flex;align-items:center;gap:12px;justify-content:space-between;background:var(--bg3);color:var(--tx);border:1px solid var(--bg4);border-left:4px solid var(--pri2);border-radius:var(--rad-md);padding:12px 14px;box-shadow:var(--sh);font-size:.9em;animation:toastIn .2s ease-out;}
+.toast-success{border-left-color:var(--ok);}
+.toast-error{border-left-color:var(--dn2);}
+.toast-msg.saindo{opacity:0;transition:opacity .25s;}
+.toast-acao{background:none;border:1px solid var(--bg4);color:var(--pri2);font-weight:700;border-radius:var(--rad-sm);min-height:44px;padding:0 14px;cursor:pointer;flex-shrink:0;font:inherit;font-weight:700;}
+@keyframes toastIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}

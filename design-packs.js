@@ -290,6 +290,9 @@ body.pack-noturno .r-hero-lbl{letter-spacing:.16em!important;color:#8d97a8!impor
 body.pack-noturno .r-hero-val{font-family:'Bodoni Moda',serif!important;font-size:3.1em!important;font-weight:400!important;line-height:1.05!important;color:#eae6dc!important;white-space:nowrap!important}
 /* os centavos entram menores, como no desenho */
 body.pack-noturno .r-hero-val .cent{font-size:.45em!important;color:#c3c8d2!important}
+/* saldo negativo e valor de status: a cor neutra acima (com !important)
+   passava por cima da regra .r-hero.negativo do app.css e o -643 saia branco */
+body.pack-noturno .r-hero.negativo .r-hero-val,body.pack-noturno .r-hero.negativo .r-hero-val .cent{color:#e39a88!important}
 body.pack-noturno .r-hero-sub{color:#8d97a8!important}
 body.pack-noturno .r-hero-prog{display:flex!important;max-width:420px!important}
 body.pack-noturno .r-hero-prog-bg{background:#2a3850!important;height:2px!important;border-radius:0!important}

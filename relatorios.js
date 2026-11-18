@@ -420,6 +420,7 @@ window._relDetGenerate = function(){
 };
 
 window._relDetExportXLS = function(){
+  if(precisaLib('xlsx', window._relDetExportXLS)) return;
   window._relDetUpdateRange();
   var de = relState.detalhado_de, ate = relState.detalhado_ate;
   var rows = getDetailedEntries(de, ate);
@@ -763,6 +764,7 @@ window._relInvExGerar = function(){
 };
 
 window._relInvExExportXLS = function(){
+  if(precisaLib('xlsx', window._relInvExExportXLS)) return;
   if(typeof XLSX === 'undefined') return alert('Biblioteca de Excel não carregada.');
   var rows = _relInvExLinhas().visiveis;
   if(!rows.length) return alert('Nenhuma movimentação no período.');

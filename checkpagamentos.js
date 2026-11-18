@@ -127,22 +127,32 @@ window.toggleCheck = function(itemKey){
   renderCheckPag();
 };
 
-window.checkMarcarTodos = function(){
-  var checks = loadChecks(checkMes);
-  allEntries(checkMes).forEach(function(e){
-    var k = buildItemKey(e);
-    if(!checks[k]) marcar(checkMes, k, true);
-  });
+// Marcar/Desmarcar todos agem na hora e oferecem Desfazer, que volta
+// exatamente os itens que mudaram. Antes "Marcar todos" marcava o mes inteiro
+// num toque, sem confirmar e sem volta; "Desmarcar" usava confirm() nativo.
+function _desfazivel(mes, chaves, valorAntes, msg){
   salvar();
   renderCheckPag();
+  if(!chaves.length) return;
+  toast(msg, 'success', {acao:'Desfazer', onAcao:function(){
+    chaves.forEach(function(k){ marcar(mes, k, valorAntes); });
+    salvar();
+    renderCheckPag();
+  }});
+}
+window.checkMarcarTodos = function(){
+  var mes = checkMes, checks = loadChecks(mes), mudou = [];
+  allEntries(mes).forEach(function(e){
+    var k = buildItemKey(e);
+    if(!checks[k]){ marcar(mes, k, true); mudou.push(k); }
+  });
+  _desfazivel(mes, mudou, false, mudou.length + ' pagamento(s) marcado(s)');
 };
 
 window.checkDesmarcarTodos = function(){
-  if(!confirm('Desmarcar todos os pagamentos do m\u00eas?')) return;
-  var checks = loadChecks(checkMes);
-  Object.keys(checks).forEach(function(k){ if(checks[k]) marcar(checkMes, k, false); });
-  salvar();
-  renderCheckPag();
+  var mes = checkMes, checks = loadChecks(mes), mudou = [];
+  Object.keys(checks).forEach(function(k){ if(checks[k]){ marcar(mes, k, false); mudou.push(k); } });
+  _desfazivel(mes, mudou, true, mudou.length + ' pagamento(s) desmarcado(s)');
 };
 
 // ================================================================
