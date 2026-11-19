@@ -199,8 +199,11 @@ function aplicar(itens,mapas){
   relerDisco();
   var mudou=0;
   itens.forEach(function(r){
-    var mk='i|'+r.colecao+'|'+r.id,conhecido=meta.ts[mk]||0,ts=Number(r.ts);
-    if(ts<=conhecido)return;           // ja tenho igual ou mais novo
+    // Linha que o aparelho nunca viu entra sempre. Itens sem _ts (nunca
+    // editados desde que o carimbo existe) vem com ts=0; com "||0" aqui,
+    // 0<=0 descartava todos eles em silencio (264 lancamentos no ensaio).
+    var mk='i|'+r.colecao+'|'+r.id,conhecido=meta.ts[mk],ts=Number(r.ts);
+    if(conhecido!==undefined&&ts<=conhecido)return; // ja tenho igual ou mais novo
     meta.ts[mk]=ts;
     // uma edicao local mais velha na fila perderia no servidor: descarta
     if(fila[mk]&&fila[mk].row.ts<=ts)delete fila[mk];
@@ -213,8 +216,8 @@ function aplicar(itens,mapas){
     else{S[c].push(r.dados);mudou++;}
   });
   mapas.forEach(function(r){
-    var mk='m|'+r.mapa+'|'+r.chave,conhecido=meta.ts[mk]||0,ts=Number(r.ts);
-    if(ts<=conhecido)return;
+    var mk='m|'+r.mapa+'|'+r.chave,conhecido=meta.ts[mk],ts=Number(r.ts);
+    if(conhecido!==undefined&&ts<=conhecido)return;
     meta.ts[mk]=ts;
     if(fila[mk]&&fila[mk].row.ts<=ts)delete fila[mk];
     var rem=r.removido,v=r.valor;mudou++;
@@ -268,11 +271,17 @@ async function sincronizar(opc){
     if(!opc.soEnviar){
       var ci=meta.cursorItens,cm=meta.cursorMapas;
       var itens=await buscarTabela('itens',ci),mapas=await buscarTabela('mapas',cm);
+      // Remontagem pedida na atualizacao: so com a fila vazia (o que estava
+      // nela ja subiu no enviar() acima e voltou nesta busca completa).
+      if(meta.reconstruir&&!ci&&!cm&&!pendentes()){
+        S=(typeof ensureArrays==='function')?ensureArrays(defState()):defState();
+        delete meta.reconstruir;salvarMeta();
+      }
       var mudou=aplicar(itens,mapas);
       if(itens.length)meta.cursorItens=itens[itens.length-1].atualizado_em;
       if(mapas.length)meta.cursorMapas=mapas[mapas.length-1].atualizado_em;
       if(!meta.inicial){
-        meta.inicial=true;
+        meta.inicial=true;meta.versao=2;
         // Banco vazio (primeiro uso da conta): o estado local e o ponto de
         // partida. Zera o retrato para que o proximo salvar suba tudo.
         if(!itens.length&&!mapas.length){snapI={};snapM={};}
@@ -309,6 +318,16 @@ function entrar(u){
   ls('finApp_sb_ultimo',{id:uid,email:email});
   meta=ls(K.meta)||{};if(!meta.ts)meta.ts={};
   fila=ls(K.fila)||{};
+  // Versao 1 descartava linhas com ts=0 e o cursor ja passou delas: refaz a
+  // busca completa uma vez. A fila nao e tocada (o que falta enviar sobe).
+  if(meta.inicial&&(meta.versao||1)<2){
+    var conhecidos={};Object.keys(fila).forEach(function(k){conhecidos[k]=fila[k].row.ts;});
+    meta.cursorItens=null;meta.cursorMapas=null;meta.ts=conhecidos;meta.versao=2;
+    // Remonta do zero na busca completa: acrescentar os itens que faltavam
+    // ao estado parcial os poria no fim das listas, fora da ordem original.
+    meta.reconstruir=true;
+    salvarMeta();
+  }
   var d=ls(K.dados);
   S=(typeof ensureArrays==='function')?ensureArrays(d||defState()):(d||defState());
   if(typeof window._tsReset==='function')window._tsReset(S);

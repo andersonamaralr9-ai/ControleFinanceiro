@@ -1,8 +1,10 @@
 # Plano de migração: Gist → Supabase + Vercel
 
 Status: **aprovado** (18/11/2026). Fases 0 e 1 concluídas (conta criada,
-cadastro público desligado). Fase 2 implementada (19/11/2026): `nuvem.js`,
-testado com servidor simulado; falta o teste com o login real (você).
+cadastro público desligado). Fase 2 concluída (19/11/2026): `nuvem.js`,
+testado com servidor simulado e com o login real na prévia da Vercel.
+Fase 3 concluída (19/11/2026): ensaio de importação aprovado, 24/24
+verificações iguais (relatório em `../backups/`, fora do repositório).
 
 Recursos criados:
 - Supabase `controle-financeiro` (ref `fuicmmnwumgmtwgemzuy`, sa-east-1).
@@ -192,6 +194,18 @@ Script `migracao/importar.js` (Node, roda no seu computador):
 
 O script é idempotente: pode rodar quantas vezes for preciso (ensaio,
 importação final).
+
+Como ficou (fase 3): em vez de script Node com chave secreta, a importação
+roda **dentro do banco**, sem nenhuma senha ou chave de serviço:
+- o banco baixa o `anderson.json` do Gist numa versão fixa (raw_url com o
+  sha) para `migracao.fonte`; o md5 tem que bater com o backup local;
+- `migracao.importar(uid, fonte)` grava itens e mapas (gatilho desligado
+  só durante a função), na ordem dos arrays de origem; itens da conta que
+  não estão na fonte (testes) viram `excluido`;
+- `migracao.conferir(uid, fonte)` remonta o estado como o `nuvem.js` e
+  compara contagens, cada coleção, cada mapa e o estado inteiro (jsonb).
+O esquema `migracao` não é exposto na API. Backup e relatório ficam em
+`Projeto Financeiro/backups/`, fora deste repositório público.
 
 ---
 
