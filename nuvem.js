@@ -34,6 +34,26 @@ try{
 var _flag=null;try{_flag=localStorage.getItem(FLAG_KEY);}catch(e){}
 var ATIVA=_flag==='supabase'||(_flag!=='gist'&&/\.vercel\.app$/.test(location.hostname));
 window.NUVEM_ATIVA=ATIVA;
+
+// App antigo (GitHub Pages, no Gist) depois da troca de 19/11/2026: so
+// leitura, com aviso do endereco novo. O auth.js le APP_SO_LEITURA para nao
+// gravar nada no Gist e desfazer edicoes locais.
+var APP_NOVO='https://financeiro-pro-ia.vercel.app';
+var _testeSL=null;try{_testeSL=localStorage.getItem('finApp_teste_soLeitura');}catch(e){} // so para testar fora do github.io
+window.APP_SO_LEITURA=!ATIVA&&(/\.github\.io$/.test(location.hostname)||_testeSL==='1');
+if(window.APP_SO_LEITURA){
+  var _aviso=function(){
+    if(document.getElementById('avisoAppNovo'))return;
+    var a=document.createElement('div');a.id='avisoAppNovo';a.className='aviso-app-novo';a.setAttribute('role','status');
+    a.innerHTML='<strong>Este endereço agora é só para consulta.</strong> '+
+      'O app mudou para <a href="'+APP_NOVO+'">financeiro-pro-ia.vercel.app</a> — lance por lá. '+
+      'Alterações feitas aqui não são salvas.';
+    document.body.appendChild(a);document.body.classList.add('com-aviso-app-novo');
+    var medir=function(){document.documentElement.style.setProperty('--aviso-h',a.offsetHeight+'px');};
+    medir();window.addEventListener('resize',medir);
+  };
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',_aviso);else _aviso();
+}
 if(!ATIVA)return;
 
 // ---------------------------------------------------------------- config

@@ -7,6 +7,19 @@
  */
 
 /* ═══════════════════════════════════════════════════════════
+   Origem: nuvem.js — aviso do app antigo (so leitura, desde 19/11/2026)
+   Fica acima do overlay de login (z-index 10000) para aparecer ja na
+   entrada. Cor de status de alerta, texto em contraste alto.
+   ═══════════════════════════════════════════════════════════ */
+.aviso-app-novo{position:fixed;top:0;left:0;right:0;z-index:10001;background:#f59e0b;color:#1a1204;padding:10px 16px calc(10px);padding-top:calc(10px + env(safe-area-inset-top));font-size:.86em;line-height:1.4;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,.35)}
+.aviso-app-novo a{color:#1a1204;font-weight:700;text-decoration:underline}
+.aviso-app-novo a:focus-visible{outline:2px solid #1a1204;outline-offset:2px}
+/* --aviso-h e medido pelo nuvem.js (o texto quebra em 1 a 3 linhas). Tudo
+   que e fixo no topo desce essa altura, para o aviso nao cobrir nada. */
+body.com-aviso-app-novo{padding-top:var(--aviso-h,64px)}
+body.com-aviso-app-novo .mobile-header,body.com-aviso-app-novo .sidebar{top:var(--aviso-h,64px)}
+
+/* ═══════════════════════════════════════════════════════════
    Origem: auth.js  (1 bloco)
    ═══════════════════════════════════════════════════════════ */
 /* ===== AUTH OVERLAY — Glassmorphism ===== */

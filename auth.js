@@ -344,6 +344,9 @@ async function readGistFile(fileName){
 }
 
 async function writeGistFiles(filesObj){
+  // App antigo depois da troca (nuvem.js define): nunca grava no Gist, que
+  // fica intacto como copia de seguranca e caminho de volta.
+  if(window.APP_SO_LEITURA){_gistLastErr='somente leitura';return false;}
   var tk=_getToken();if(!tk)return false;
   var files={};
   Object.keys(filesObj).forEach(function(fn){
@@ -654,6 +657,18 @@ function switchToUserData(user,skipRender){
 
   window.salvar=function(){
     if(!window._userSK)return;
+    if(window.APP_SO_LEITURA){
+      // Nada mudou (ex.: setTheme na abertura chama salvar): sem aviso.
+      var gravado=null;
+      try{gravado=ensureArrays(JSON.parse(localStorage.getItem(window._userSK))||defState());}catch(e){gravado=defState();}
+      if(JSON.stringify(gravado)===JSON.stringify(S))return;
+      // Desfaz a edicao em memoria: volta ao ultimo estado gravado.
+      S=gravado;
+      _tsReset(S);
+      if(typeof toast==='function')toast('App antigo: só consulta. Lance em financeiro-pro-ia.vercel.app','error');
+      setTimeout(function(){if(typeof renderAll==='function')renderAll();},0);
+      return;
+    }
     normalizarHistoricos(S);
     _tsStamp(S); // marca o que mudou, para o merge saber quem e mais recente
     localStorage.setItem(window._userSK,JSON.stringify(S));
@@ -688,8 +703,10 @@ function switchToUserData(user,skipRender){
       if(!semRender&&depois!==antes&&typeof renderAll==='function')renderAll();
       // Nuvem ja igual ao resultado: nao precisa gravar
       if(_temDados(rem)&&JSON.stringify(ensureArrays(rem))===depois)ok=true;
+      else if(window.APP_SO_LEITURA)ok=true; // so le; nunca grava
       else ok=await writeUserGistFile(window._authUsername,S);
-      syncUI('on',ok?'Sync '+new Date().toLocaleTimeString('pt-BR'):'Erro sync ('+(_gistLastErr||'?')+')');
+      syncUI('on',window.APP_SO_LEITURA?'Só consulta · lido '+new Date().toLocaleTimeString('pt-BR'):
+        ok?'Sync '+new Date().toLocaleTimeString('pt-BR'):'Erro sync ('+(_gistLastErr||'?')+')');
     }catch(e){
       console.error('[Sync]',e);
       syncUI('on','Erro sync ('+((e&&e.message)||'rede')+')');
