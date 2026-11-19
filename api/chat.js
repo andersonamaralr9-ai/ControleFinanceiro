@@ -2,8 +2,11 @@
 // ------------------------------------------------------------------------
 // Função da Vercel. Recebe a pergunta + o retrato dos dados que o próprio
 // app montou (com as mesmas funções das telas: allEntries, faturaCC...) e
-// responde com o Claude. SÓ LEITURA por construção: não há ferramentas,
-// o modelo não grava nada; ele só vê o texto que o app mandou.
+// responde com o Gemini (plano gratuito do Google) ou com o Claude — ver
+// escolherProvedor(). SÓ LEITURA por construção: não há ferramentas, o
+// modelo não grava nada; ele só vê o texto que o app mandou.
+// Variáveis na Vercel: GEMINI_API_KEY e/ou ANTHROPIC_API_KEY; opcionais
+// IA_PROVEDOR ('gemini'|'claude') e GEMINI_MODELO.
 //
 // Segurança:
 //  - a chave do Claude fica só na variável de ambiente ANTHROPIC_API_KEY
@@ -51,6 +54,67 @@ function erro(res, status, msg) {
   res.status(status).json({ erro: msg });
 }
 
+// Qual IA responde. IA_PROVEDOR ('gemini' | 'claude') manda; sem ela, usa a
+// que tiver chave, preferindo o Gemini (começo no plano gratuito, 19/11/2026).
+function escolherProvedor() {
+  const p = (process.env.IA_PROVEDOR || '').toLowerCase();
+  if (p === 'claude') return process.env.ANTHROPIC_API_KEY ? 'claude' : null;
+  if (p === 'gemini') return process.env.GEMINI_API_KEY ? 'gemini' : null;
+  if (process.env.GEMINI_API_KEY) return 'gemini';
+  if (process.env.ANTHROPIC_API_KEY) return 'claude';
+  return null;
+}
+
+// ---------------------------------------------------------------- Gemini
+// REST oficial (generateContent). Modelo trocável por GEMINI_MODELO sem
+// mexer no código. Plano gratuito: o Google pode usar o conteúdo para
+// melhorar os produtos — a tela avisa.
+const GEMINI_MODELO = process.env.GEMINI_MODELO || 'gemini-2.5-flash';
+const GEMINI_URL = process.env.GEMINI_URL || 'https://generativelanguage.googleapis.com';
+
+async function responderGemini(res, dados, conversa) {
+  const corpo = {
+    systemInstruction: { parts: [{ text: SISTEMA }, { text: `<dados_do_usuario>\n${dados}\n</dados_do_usuario>` }] },
+    contents: conversa.map((m) => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })),
+    generationConfig: { maxOutputTokens: 8192 },
+  };
+  let r, j = null;
+  try {
+    r = await fetch(`${GEMINI_URL}/v1beta/models/${encodeURIComponent(GEMINI_MODELO)}:generateContent`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY },
+      body: JSON.stringify(corpo),
+    });
+    j = await r.json().catch(() => null);
+  } catch (e) {
+    console.error('[chat gemini] rede', e);
+    return erro(res, 502, 'Falha ao falar com o Gemini. Tente de novo.');
+  }
+  if (!r.ok) {
+    const msg = (j && j.error && j.error.message) || '';
+    console.error('[chat gemini]', r.status, msg.slice(0, 300));
+    if (r.status === 429) return erro(res, 429, 'Limite do plano gratuito do Gemini atingido. Tente mais tarde.');
+    if (r.status === 400 && /api key/i.test(msg)) return erro(res, 503, 'Chave do Gemini inválida na Vercel.');
+    if (r.status === 401 || r.status === 403) return erro(res, 503, 'Chave do Gemini inválida ou sem permissão.');
+    if (r.status === 404) return erro(res, 503, `Modelo ${GEMINI_MODELO} não encontrado no Gemini.`);
+    return erro(res, 502, 'Falha no serviço do Gemini. Tente de novo.');
+  }
+  const cand = j && j.candidates && j.candidates[0];
+  if (!cand || !cand.content) {
+    const motivo = (j && j.promptFeedback && j.promptFeedback.blockReason) || (cand && cand.finishReason) || '';
+    return res.status(200).json({ texto: 'Não consegui responder essa pergunta. Tente reformular.' + (motivo ? ` (${motivo})` : ''), provedor: 'gemini' });
+  }
+  const texto = (cand.content.parts || []).filter((p) => typeof p.text === 'string' && !p.thought).map((p) => p.text).join('').trim();
+  const cortado = cand.finishReason === 'MAX_TOKENS';
+  const u = j.usageMetadata || {};
+  const cacheLido = u.cachedContentTokenCount || 0;
+  return res.status(200).json({
+    texto: (texto || 'Não consegui responder essa pergunta. Tente reformular.') + (cortado ? '\n\n(resposta cortada por tamanho)' : ''),
+    provedor: 'gemini',
+    uso: { entrada: (u.promptTokenCount || 0) - cacheLido, cache_lido: cacheLido, cache_gravado: 0, saida: (u.candidatesTokenCount || 0) + (u.thoughtsTokenCount || 0) },
+  });
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return erro(res, 405, 'Use POST.');
 
@@ -75,9 +139,11 @@ export default async function handler(req, res) {
   if (conversa[0].role !== 'user' || conversa[conversa.length - 1].role !== 'user')
     return erro(res, 400, 'Conversa inválida.');
 
-  if (!process.env.ANTHROPIC_API_KEY) return erro(res, 503, 'Assistente ainda não configurado (falta a chave na Vercel).');
-  const client = new Anthropic();
+  const provedor = escolherProvedor();
+  if (!provedor) return erro(res, 503, 'Assistente ainda não configurado (falta a chave na Vercel).');
+  if (provedor === 'gemini') return responderGemini(res, dados, conversa);
 
+  const client = new Anthropic();
   try {
     const resposta = await client.beta.messages.create({
       model: 'claude-opus-5-5',
@@ -102,6 +168,7 @@ export default async function handler(req, res) {
     const cortado = resposta.stop_reason === 'max_tokens';
     return res.status(200).json({
       texto: texto + (cortado ? '\n\n(resposta cortada por tamanho)' : ''),
+      provedor: 'claude',
       uso: {
         entrada: resposta.usage.input_tokens,
         cache_lido: resposta.usage.cache_read_input_tokens,

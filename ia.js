@@ -134,7 +134,8 @@ async function enviar(){
     try{j=await resp.json();}catch(e){}
     if(!resp.ok)throw new Error((j&&j.erro)||('Erro '+resp.status));
     conversa.push({role:'assistant',content:j.texto||'(sem resposta)'});
-    if(j.uso)el('iaUso').textContent='Tokens: '+(j.uso.entrada+(j.uso.cache_lido||0)+(j.uso.cache_gravado||0))+' lidos ('+(j.uso.cache_lido||0)+' do cache), '+j.uso.saida+' escritos';
+    var quem=j.provedor==='gemini'?'Gemini (Google, plano gratuito: o Google pode usar o conteúdo para melhorar produtos)':j.provedor==='claude'?'Claude (Anthropic)':'';
+    el('iaUso').textContent=(quem?'Respondido por '+quem+'. ':'')+(j.uso?'Tokens: '+(j.uso.entrada+(j.uso.cache_lido||0)+(j.uso.cache_gravado||0))+' lidos ('+(j.uso.cache_lido||0)+' do cache), '+j.uso.saida+' escritos.':'');
   }catch(e){
     conversa.pop(); // a pergunta volta para o campo, para tentar de novo
     campo.value=q;
