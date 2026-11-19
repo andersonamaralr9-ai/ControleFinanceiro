@@ -171,6 +171,7 @@ Módulos, na ordem em que carregam (a ordem importa):
 
 | Arquivo | Papel |
 |---|---|
+| `nuvem.js` | Login e sync com o Supabase (migração em curso, ver `PLANO-MIGRACAO.md`). Desligado por padrão; liga com `?nuvem=supabase` ou em `*.vercel.app`. Carrega **antes** do `auth.js`, que para depois dos helpers quando ele está ligado |
 | `auth.js` | Login, multiusuário, sync com Gist, token cifrado (AES-GCM/PBKDF2), merge com tombstones, carimbo `_ts` |
 | `mobile-cards.js` | Listas em card no mobile (lançamentos, extrato) |
 | `antecipacao.js` | Antecipação de parcelas do cartão |
