@@ -2043,3 +2043,26 @@ td, .rel-table td, .inv-panel-card-row .val, .ips-val, .proj-val {
 .toast-msg.saindo{opacity:0;transition:opacity .25s;}
 .toast-acao{background:none;border:1px solid var(--bg4);color:var(--pri2);font-weight:700;border-radius:var(--rad-sm);min-height:44px;padding:0 14px;cursor:pointer;flex-shrink:0;font:inherit;font-weight:700;}
 @keyframes toastIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+
+/* ═══════════════════════════════════════════════════════════
+   Origem: ia.js — tela Assistente (fase 7a)
+   Superfícies e texto seguem os tokens do tema; acento só na bolha do
+   usuário e no foco, como no resto do visual Neobanco.
+   ═══════════════════════════════════════════════════════════ */
+.ia-sub{color:var(--tx2);font-size:.88em;margin:-6px 0 16px}
+.ia-sugestoes{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.ia-sug{background:var(--bg2);border:1px solid var(--bg3);color:var(--tx);border-radius:var(--rad-md);padding:9px 12px;font-size:.84em;text-align:left;cursor:pointer;line-height:1.35}
+.ia-sug:hover{border-color:var(--pri)}
+.ia-chat{display:flex;flex-direction:column;gap:10px;min-height:120px;max-height:calc(100vh - 330px);overflow-y:auto;padding:4px 2px 8px}
+.ia-vazio{color:var(--tx3);font-size:.88em}
+.ia-msg{max-width:min(720px,92%);padding:10px 14px;border-radius:var(--rad-md);font-size:.92em;line-height:1.5;overflow-wrap:anywhere}
+.ia-msg p{margin:0 0 6px}.ia-msg p:last-child{margin-bottom:0}
+.ia-msg ul{margin:4px 0 6px 18px;padding:0}.ia-msg li{margin:2px 0}
+.ia-eu{align-self:flex-end;background:var(--pri);color:#fff}
+.ia-ia{align-self:flex-start;background:var(--bg2);border:1px solid var(--bg3);color:var(--tx)}
+.ia-pensando{color:var(--tx2);font-style:italic}
+.ia-form{display:flex;gap:8px;align-items:flex-end;margin-top:10px}
+.ia-form textarea{flex:1;resize:vertical;min-height:44px}
+.ia-rodape{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px;color:var(--tx3);font-size:.76em}
+.ia-oculto{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (max-width:768px){.ia-chat{max-height:calc(100vh - 360px)}.ia-form{flex-direction:column;align-items:stretch}}
