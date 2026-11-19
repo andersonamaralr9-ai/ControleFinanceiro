@@ -17,6 +17,11 @@ git add <arquivos> && git commit -m "..." && git push
 O GitHub Pages republica sozinho em ~1–2 min.
 URL: https://andersonamaralr9-ai.github.io/ControleFinanceiro/
 
+**Desde 19/11/2026 o app oficial é https://financeiro-pro-ia.vercel.app**
+(Vercel, mesmo repositório, `main` = produção; cada branch ganha prévia).
+Lá o `nuvem.js` liga o Supabase sozinho. O GitHub Pages segue no Gist só
+como caminho de volta. Ver `PLANO-MIGRACAO.md`.
+
 **Ao editar qualquer `.js` ou `.css`, incremente o `?v=N` da tag
 correspondente no `index.html`.** Sem isso o navegador serve a versão em
 cache e a alteração "não aparece" — isso já custou várias idas e vindas

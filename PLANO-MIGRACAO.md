@@ -5,6 +5,19 @@ cadastro público desligado). Fase 2 concluída (19/11/2026): `nuvem.js`,
 testado com servidor simulado e com o login real na prévia da Vercel.
 Fase 3 concluída (19/11/2026): ensaio de importação aprovado, 24/24
 verificações iguais (relatório em `../backups/`, fora do repositório).
+Fase 4 concluída: o usuário conferiu telas e totais na prévia (depois da
+correção do ts=0, ver abaixo).
+**Fase 5 concluída — troca feita em 19/11/2026.** Gist sem alteração desde o
+ensaio (mesmo md5 74ccc21d); importação final gravou 0 linhas; conferência
+24/24. App oficial: **https://financeiro-pro-ia.vercel.app** (branch `main`).
+O GitHub Pages recebe o mesmo código, mas lá a chave fica desligada e ele
+continua no Gist — fase 6 o torna só leitura com aviso do endereço novo.
+
+Lição do ensaio: itens nunca editados não têm `_ts` e entram com `ts=0`.
+A primeira versão do `nuvem.js` tratava "não conheço" como 0 e descartava
+`0<=0` (264 lançamentos não chegavam). A conferência no banco não pegou
+porque o banco estava certo; o teste que pegou foi passar o backup real
+pelo app (simulador local) e comparar o `S` resultante com o backup.
 
 Recursos criados:
 - Supabase `controle-financeiro` (ref `fuicmmnwumgmtwgemzuy`, sa-east-1).
