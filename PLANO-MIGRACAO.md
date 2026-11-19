@@ -15,8 +15,10 @@ continua no Gist — fase 6 o torna só leitura com aviso do endereço novo.
 Fase 6 (19/11/2026): **app antigo só leitura** no ar (aviso no topo, nada
 é gravado no Gist, edição é desfeita com aviso). **Backup** pronto em
 `../financeiro-backup/` (GitHub Action, segunda e quinta 06:00), testado com
-os dados reais contra um servidor falso; falta criar o repositório privado
-e o secret `SUPABASE_SERVICE_ROLE_KEY` (só o usuário) e enviar.
+os dados reais contra um servidor falso. **Fase 6 concluída:** repositório
+privado `financeiro-backup` no ar; o primeiro backup real (19/11/2026,
+13:22 UTC) ficou igual ao backup do Gist nas 14 partes do estado. Roda
+segunda e quinta, sob demanda e quando o script/workflow muda.
 
 Lição do ensaio: itens nunca editados não têm `_ts` e entram com `ts=0`.
 A primeira versão do `nuvem.js` tratava "não conheço" como 0 e descartava
