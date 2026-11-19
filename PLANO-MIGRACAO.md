@@ -12,6 +12,11 @@ ensaio (mesmo md5 74ccc21d); importação final gravou 0 linhas; conferência
 24/24. App oficial: **https://financeiro-pro-ia.vercel.app** (branch `main`).
 O GitHub Pages recebe o mesmo código, mas lá a chave fica desligada e ele
 continua no Gist — fase 6 o torna só leitura com aviso do endereço novo.
+Fase 6 (19/11/2026): **app antigo só leitura** no ar (aviso no topo, nada
+é gravado no Gist, edição é desfeita com aviso). **Backup** pronto em
+`../financeiro-backup/` (GitHub Action, segunda e quinta 06:00), testado com
+os dados reais contra um servidor falso; falta criar o repositório privado
+e o secret `SUPABASE_SERVICE_ROLE_KEY` (só o usuário) e enviar.
 
 Lição do ensaio: itens nunca editados não têm `_ts` e entram com `ts=0`.
 A primeira versão do `nuvem.js` tratava "não conheço" como 0 e descartava
