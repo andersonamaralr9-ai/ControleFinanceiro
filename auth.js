@@ -292,6 +292,15 @@ function ensureArrays(st){
   if(!Array.isArray(st.lixeira))st.lixeira=[];
   return st;
 }
+window.ensureArrays=ensureArrays;
+
+// ================================================================
+// NUVEM NOVA (Supabase): o nuvem.js cuida de login e sync. Daqui para
+// baixo e tudo do Gist (token, auth_users.json, sessoes, admin), entao
+// para aqui. Os helpers acima (ensureArrays, _tsStamp, _tsReset,
+// normalizarHistoricos) continuam valendo nos dois modos.
+// ================================================================
+if(window.NUVEM_ATIVA){console.log('[Auth] Gist desligado: usando nuvem.js (Supabase).');return;}
 
 // ================================================================
 // GIST READ / WRITE — cache inteligente para evitar leituras duplicadas
