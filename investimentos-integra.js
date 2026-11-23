@@ -405,5 +405,37 @@ if(_origSalvar){
   };
 }
 
+// ================================================================
+// VOLTA DE "IMÓVEIS" PARA "INVESTIMENTO" (uma vez, 23/11/2026)
+// ================================================================
+// Uma versão publicada por algumas horas tratou aportes/resgates como
+// transferência e moveu condomínios, financiamento e SPU para "Imóveis"
+// (marca S.config.migImoveis = 1). O usuário preferiu o jeito anterior: o
+// código voltou e aqui as categorias voltam para "Investimento". A categoria
+// "Imóveis" não existia antes, então tudo que está nela veio dessa mudança.
+// Marca 2 = já voltou (não repete em outro aparelho).
+function voltarImoveis(){
+  if(!window.NUVEM_ATIVA || !window.cloudOk || typeof S === 'undefined' || !S || !S.config) return !!(typeof S !== 'undefined' && S && S.config && S.config.migImoveis !== 1);
+  if(S.config.migImoveis !== 1) return true;
+  if(!(S.contratos || []).length && !(S.lancamentos || []).length) return false;   // dados ainda não chegaram
+  var mudou = 0;
+  (S.contratos || []).concat(S.lancamentos || []).forEach(function(x){
+    if(x && x.categoria === 'Imóveis'){ x.categoria = 'Investimento'; if(x.cat) x.cat = 'Investimento'; mudou++; }
+  });
+  if(S.cats && Array.isArray(S.cats.despesa)) S.cats.despesa = S.cats.despesa.filter(function(c){ return c !== 'Imóveis'; });
+  S.config.migImoveis = 2;
+  salvar();
+  if(typeof renderAll === 'function') renderAll();
+  if(mudou) toast(mudou + ' item(ns) voltaram para a categoria "Investimento", como era antes.', 'info', { dur: 8000 });
+  return true;
+}
+var _voltaTentativas = 0;
+var _voltaTimer = setInterval(function(){
+  _voltaTentativas++;
+  var feito = false;
+  try { feito = voltarImoveis(); } catch(e) { console.warn('[voltarImoveis]', e); feito = true; }
+  if(feito || _voltaTentativas > 30) clearInterval(_voltaTimer);
+}, 2000);
+
 console.log('[Financeiro Pro] Integração Investimentos ↔ Lançamentos v1 carregada.');
 })();

@@ -61,7 +61,7 @@ function janela(titulo, corpo, botoes){
     m = document.createElement('div'); m.className = 'modal'; m.id = 'modalPj';
     m.innerHTML = '<div class="modal-content"><div class="modal-header"><h3 id="pjTit"></h3>' +
       '<span class="modal-close" onclick="closeM(\'modalPj\')">&times;</span></div>' +
-      '<div id="pjCorpo" class="pj-corpo"></div><div class="modal-footer" id="pjRodape"></div></div>';
+      '<div id="pjCorpo" class="modal-body pj-corpo"></div><div class="modal-footer" id="pjRodape"></div></div>';
     document.body.appendChild(m);
   }
   g2('pjTit').textContent = titulo;
