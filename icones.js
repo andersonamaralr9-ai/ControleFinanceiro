@@ -65,6 +65,7 @@ var ICONES = {
   menu: svg('<path d="M4 7h16M4 12h16M4 17h16"/>'),
   camera: svg('<path d="M4 8.5h3l1.6-2.5h6.8L17 8.5h3v10.5H4Z"/><circle cx="12" cy="13.5" r="3.3"/>'),
   texto: svg('<path d="M5 6h14M5 10.5h14M5 15h8"/><path d="m16 19 4-4"/>'),
+  enviar: svg('<path d="M4.5 12 20 4.5 15.5 20l-3.2-6.3Z"/><path d="m12.3 13.7 3.4-3.4"/>'),
   // em baixa (contraponto de "investimentos", que e em alta)
   baixa: svg('<path d="M4 7.5 10 14l3.5-3.5L20 17"/><path d="M15 17h5v-5"/>'),
   // cifra
