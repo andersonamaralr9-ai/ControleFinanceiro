@@ -5,8 +5,8 @@
 // responde com o Gemini (plano gratuito do Google) ou com o Claude — ver
 // escolherProvedor(). SÓ LEITURA por construção: não há ferramentas, o
 // modelo não grava nada; ele só vê o texto que o app mandou.
-// Variáveis na Vercel: GEMINI_API_KEY e/ou ANTHROPIC_API_KEY; opcionais
-// IA_PROVEDOR ('gemini'|'claude') e GEMINI_MODELO.
+// Variáveis na Vercel: ANTHROPIC_API_KEY e/ou GEMINI_API_KEY; opcionais
+// IA_PROVEDOR ('gemini'|'claude'), CLAUDE_MODELO e GEMINI_MODELO.
 //
 // Segurança:
 //  - a chave do Claude fica só na variável de ambiente ANTHROPIC_API_KEY
@@ -55,15 +55,23 @@ function erro(res, status, msg) {
 }
 
 // Qual IA responde. IA_PROVEDOR ('gemini' | 'claude') manda; sem ela, usa a
-// que tiver chave, preferindo o Gemini (começo no plano gratuito, 19/11/2026).
+// que tiver chave, preferindo o Claude: o plano gratuito do Gemini recusou
+// todas as perguntas por sobrecarga (503) em 23/11/2026.
 function escolherProvedor() {
   const p = (process.env.IA_PROVEDOR || '').toLowerCase();
   if (p === 'claude') return process.env.ANTHROPIC_API_KEY ? 'claude' : null;
   if (p === 'gemini') return process.env.GEMINI_API_KEY ? 'gemini' : null;
-  if (process.env.GEMINI_API_KEY) return 'gemini';
   if (process.env.ANTHROPIC_API_KEY) return 'claude';
+  if (process.env.GEMINI_API_KEY) return 'gemini';
   return null;
 }
+
+// ---------------------------------------------------------------- Claude
+// Haiku 5.5 por padrão (23/11/2026): o app já manda os totais calculados,
+// o modelo só lê e explica — e sai por ~US$ 0,004 a pergunta. Trocável por
+// CLAUDE_MODELO (ex.: claude-sonnet-5-5, claude-opus-5-5) sem mexer no código.
+const CLAUDE_MODELO = process.env.CLAUDE_MODELO || 'claude-haiku-5-5';
+const CLAUDE_COM_RESERVA = /^claude-opus-5-5$/.test(CLAUDE_MODELO);
 
 // ---------------------------------------------------------------- Gemini
 // REST oficial (generateContent). Modelo trocável por GEMINI_MODELO sem
@@ -205,13 +213,12 @@ export default async function handler(req, res) {
   const client = new Anthropic();
   try {
     const resposta = await client.beta.messages.create({
-      model: 'claude-opus-5-5',
+      model: CLAUDE_MODELO,
       max_tokens: 16000,
       output_config: { effort: 'medium' },
-      // Recusa por engano dos filtros de segurança: o servidor tenta de novo
-      // no modelo de reserva, dentro da mesma chamada.
-      betas: ['server-side-fallback-2026-07-01'],
-      fallbacks: 'default',
+      // Recusa por engano dos filtros de segurança: no Opus o servidor tenta
+      // de novo no modelo de reserva. O Haiku 5.5 não tem reserva (400).
+      ...(CLAUDE_COM_RESERVA ? { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' } : {}),
       system: [
         { type: 'text', text: SISTEMA },
         // Retrato dos dados: grande e igual durante a conversa -> cache.
