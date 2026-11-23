@@ -59,6 +59,12 @@ var ICONES = {
   backup: svg('<path d="M7 18a4 4 0 0 1-.4-8 5.5 5.5 0 0 1 10.6 1.1A3.5 3.5 0 0 1 17 18z"/>'),
   // acoes (fora do menu)
   mais: svg('<path d="M12 5v14M5 12h14"/>'),
+  // Assistente (brilho) — também troca o "✦" do menu lateral
+  ia: svg('<path d="M12 3.5c.6 3.9 2.6 5.9 6.5 6.5-3.9.6-5.9 2.6-6.5 6.5-.6-3.9-2.6-5.9-6.5-6.5 3.9-.6 5.9-2.6 6.5-6.5Z"/><path d="M19 15.5c.25 1.6 1 2.35 2.5 2.5-1.5.25-2.25 1-2.5 2.5-.25-1.5-1-2.25-2.5-2.5 1.5-.15 2.25-.9 2.5-2.5Z"/>'),
+  // barra inferior do celular
+  menu: svg('<path d="M4 7h16M4 12h16M4 17h16"/>'),
+  camera: svg('<path d="M4 8.5h3l1.6-2.5h6.8L17 8.5h3v10.5H4Z"/><circle cx="12" cy="13.5" r="3.3"/>'),
+  texto: svg('<path d="M5 6h14M5 10.5h14M5 15h8"/><path d="m16 19 4-4"/>'),
   // em baixa (contraponto de "investimentos", que e em alta)
   baixa: svg('<path d="M4 7.5 10 14l3.5-3.5L20 17"/><path d="M15 17h5v-5"/>'),
   // cifra
