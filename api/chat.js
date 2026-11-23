@@ -15,11 +15,10 @@
 //    no próprio Supabase; sem login válido, 401;
 //  - limites de tamanho para a conta não estourar por engano.
 import Anthropic from '@anthropic-ai/sdk';
+import { usuarioDoToken, tokenDoPedido, custoUSD, registrarUso } from './_ia.js';
 
 export const config = { maxDuration: 60 };
 
-const SB_URL = 'https://fuicmmnwumgmtwgemzuy.supabase.co';
-const SB_PUBLICA = 'sb_publishable_-C1CbKZJlFqDws8yi0glrA_o-WL4wwS';
 const MAX_DADOS = 400_000;      // caracteres do retrato (~100k tokens)
 const MAX_MENSAGENS = 30;       // histórico da conversa
 const MAX_PERGUNTA = 4_000;
@@ -40,15 +39,6 @@ Como responder:
   enquanto você só consulta e que isso se faz pela tela correspondente.
 - Não dê recomendação de investimento personalizada (comprar/vender ativo específico);
   pode explicar números, tendências, gastos e o planejamento.`;
-
-async function usuarioDoToken(token) {
-  const r = await fetch(`${SB_URL}/auth/v1/user`, {
-    headers: { apikey: SB_PUBLICA, Authorization: `Bearer ${token}` },
-  });
-  if (!r.ok) return null;
-  const u = await r.json();
-  return u && u.id ? u : null;
-}
 
 function erro(res, status, msg) {
   res.status(status).json({ erro: msg });
@@ -185,7 +175,7 @@ async function responderGemini(res, dados, conversa) {
 export default async function handler(req, res) {
   if (req.method !== 'POST') return erro(res, 405, 'Use POST.');
 
-  const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+  const token = tokenDoPedido(req);
   if (!token) return erro(res, 401, 'Entre no app para usar o assistente.');
   const usuario = await usuarioDoToken(token).catch(() => null);
   if (!usuario) return erro(res, 401, 'Sessão expirada. Saia e entre de novo.');
@@ -227,20 +217,26 @@ export default async function handler(req, res) {
       messages: conversa,
     });
 
+    // Toda resposta cobrada (inclusive recusa) entra na conta do saldo.
+    const uso = {
+      entrada: resposta.usage.input_tokens || 0,
+      cache_lido: resposta.usage.cache_read_input_tokens || 0,
+      cache_gravado: resposta.usage.cache_creation_input_tokens || 0,
+      saida: resposta.usage.output_tokens || 0,
+    };
+    const modelo = resposta.model || CLAUDE_MODELO;
+    uso.custo_usd = custoUSD(modelo, uso);
+    await registrarUso(token, { provedor: 'claude', modelo, ...uso });
+
     if (resposta.stop_reason === 'refusal')
-      return res.status(200).json({ texto: 'Não consegui responder essa pergunta. Tente reformular.', uso: resposta.usage });
+      return res.status(200).json({ texto: 'Não consegui responder essa pergunta. Tente reformular.', provedor: 'claude', uso });
 
     const texto = resposta.content.filter((b) => b.type === 'text').map((b) => b.text).join('\n').trim();
     const cortado = resposta.stop_reason === 'max_tokens';
     return res.status(200).json({
       texto: texto + (cortado ? '\n\n(resposta cortada por tamanho)' : ''),
       provedor: 'claude',
-      uso: {
-        entrada: resposta.usage.input_tokens,
-        cache_lido: resposta.usage.cache_read_input_tokens,
-        cache_gravado: resposta.usage.cache_creation_input_tokens,
-        saida: resposta.usage.output_tokens,
-      },
+      uso,
     });
   } catch (e) {
     if (e instanceof Anthropic.AuthenticationError) return erro(res, 503, 'Chave do Claude inválida na Vercel.');

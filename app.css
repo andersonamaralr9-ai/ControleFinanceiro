@@ -2064,5 +2064,19 @@ td, .rel-table td, .inv-panel-card-row .val, .ips-val, .proj-val {
 .ia-form{display:flex;gap:8px;align-items:flex-end;margin-top:10px}
 .ia-form textarea{flex:1;resize:vertical;min-height:44px}
 .ia-rodape{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px;color:var(--tx3);font-size:.76em}
+/* Saldo estimado dos créditos: número neutro; cor só quando baixo (status). */
+.ia-saldo{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:var(--bg2);border:1px solid var(--bg3);border-radius:var(--rad-md);padding:10px 14px;margin-bottom:14px}
+.ia-saldo:empty{display:none}
+.ia-saldo-info{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ia-saldo-rot{color:var(--tx2);font-size:.78em}
+.ia-saldo-rot::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--pri);margin-right:6px;vertical-align:middle}
+.ia-saldo-valor{color:var(--tx);font-size:1.25em;font-variant-numeric:tabular-nums}
+.ia-saldo-baixo{color:var(--dn)}
+.ia-saldo-det{color:var(--tx3);font-size:.76em;font-variant-numeric:tabular-nums}
+.ia-saldo-form{display:flex;flex-direction:column;gap:6px;width:100%}
+.ia-saldo-form label{color:var(--tx2);font-size:.84em}
+.ia-saldo-form small{color:var(--tx3);font-size:.76em}
+.ia-saldo-linha{display:flex;gap:8px;align-items:center}
+.ia-saldo-linha input{max-width:140px}
 .ia-oculto{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 @media (max-width:768px){.ia-chat{max-height:calc(100vh - 360px)}.ia-form{flex-direction:column;align-items:stretch}}

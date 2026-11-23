@@ -92,6 +92,7 @@ function montarTela(){
   var pg=document.createElement('div');pg.className='page';pg.id='pg-ia';
   pg.innerHTML='<h2 class="page-title">Assistente</h2>'+
     '<p class="ia-sub">Pergunte sobre os seus números. O assistente só consulta: não lança nem altera nada.</p>'+
+    '<div class="ia-saldo" id="iaSaldo" aria-live="polite"></div>'+
     '<div class="ia-sugestoes" id="iaSugestoes"></div>'+
     '<div class="ia-chat" id="iaChat" aria-live="polite"></div>'+
     '<form class="ia-form" id="iaForm"><label for="iaPergunta" class="ia-oculto">Sua pergunta</label>'+
@@ -105,7 +106,62 @@ function montarTela(){
   el('iaForm').addEventListener('submit',function(e){e.preventDefault();enviar();});
   el('iaPergunta').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();enviar();}});
   el('iaNova').addEventListener('click',function(){conversa=[];render();el('iaUso').textContent='';});
+  el('iaSaldo').addEventListener('click',function(e){
+    if(e.target.closest('#iaSaldoEditar')){editandoSaldo=true;renderSaldo();var c=el('iaCredito');if(c){c.focus();c.select();}}
+    if(e.target.closest('#iaSaldoCancelar')){editandoSaldo=false;renderSaldo();}
+  });
+  el('iaSaldo').addEventListener('submit',function(e){e.preventDefault();salvarCredito();});
   render();
+}
+
+// ---------------------------------------------------------------- saldo
+// Estimativa: crédito informado − custo das perguntas desde então (o
+// servidor calcula o custo de cada resposta pela tabela de preços). O valor
+// oficial é o do console da Anthropic.
+var saldo=null,editandoSaldo=false,saldoErro='';
+function usd(v,casas){return 'US$ '+(Number(v)||0).toLocaleString('pt-BR',{minimumFractionDigits:casas||2,maximumFractionDigits:casas||2});}
+function dataCurta(iso){try{return new Date(iso).toLocaleDateString('pt-BR');}catch(e){return '';}}
+
+function renderSaldo(){
+  var b=el('iaSaldo');if(!b)return;
+  if(editandoSaldo||(saldo&&saldo.credito==null)){
+    var atual=saldo&&saldo.saldo!=null?String(Math.max(0,saldo.saldo).toFixed(2)).replace('.',','):'';
+    b.innerHTML='<form class="ia-saldo-form"><label for="iaCredito">Créditos do Claude: informe o saldo que aparece no console da Anthropic (US$)</label>'+
+      '<div class="ia-saldo-linha"><input id="iaCredito" class="form-control" inputmode="decimal" placeholder="Ex.: 5,00" value="'+esc(atual)+'">'+
+      '<button type="submit" class="btn btn-primary btn-sm">Salvar</button>'+
+      (saldo&&saldo.credito!=null?'<button type="button" class="btn btn-sm btn-outline" id="iaSaldoCancelar">Cancelar</button>':'')+
+      '</div><small>Use também quando colocar mais crédito. A contagem do gasto recomeça a partir daí.</small></form>';
+    return;
+  }
+  if(!saldo){b.innerHTML=saldoErro?'<small>'+esc(saldoErro)+'</small>':'';return;}
+  var baixo=saldo.saldo<0.5;
+  b.innerHTML='<div class="ia-saldo-info"><span class="ia-saldo-rot">Créditos do Claude (estimativa)</span>'+
+    '<strong class="ia-saldo-valor'+(baixo?' ia-saldo-baixo':'')+'">'+usd(saldo.saldo,3)+'</strong>'+
+    '<span class="ia-saldo-det">'+usd(saldo.credito)+' em '+dataCurta(saldo.desde)+' − '+usd(saldo.gasto,4)+' em '+saldo.perguntas+' pergunta'+(saldo.perguntas===1?'':'s')+
+    ' · este mês: '+usd(saldo.mes_gasto,4)+'</span></div>'+
+    '<button type="button" class="btn btn-sm btn-outline" id="iaSaldoEditar">Atualizar crédito</button>';
+}
+
+async function chamarSaldo(metodo,corpo){
+  var token=window.nuvemToken?await window.nuvemToken():null;
+  if(!token)throw new Error('Entre de novo.');
+  var r=await fetch('/api/saldo',{method:metodo,headers:Object.assign({'Authorization':'Bearer '+token},corpo?{'Content-Type':'application/json'}:{}),body:corpo?JSON.stringify(corpo):undefined});
+  var j=null;try{j=await r.json();}catch(e){}
+  if(!r.ok)throw new Error((j&&j.erro)||('Erro '+r.status));
+  return j;
+}
+
+async function carregarSaldo(){
+  if(!navigator.onLine)return;
+  try{saldo=await chamarSaldo('GET');saldoErro='';}catch(e){saldoErro='Saldo de créditos indisponível agora.';}
+  renderSaldo();
+}
+
+async function salvarCredito(){
+  var v=parseN(el('iaCredito').value);
+  if(!(v>=0)){toast('Informe o valor em US$, por exemplo 5,00.','error');return;}
+  try{saldo=await chamarSaldo('POST',{credito:v});editandoSaldo=false;renderSaldo();toast('Crédito atualizado.','success');}
+  catch(e){toast('Créditos: '+((e&&e.message)||'falha'),'error');}
 }
 
 function render(){
@@ -135,7 +191,9 @@ async function enviar(){
     if(!resp.ok)throw new Error((j&&j.erro)||('Erro '+resp.status));
     conversa.push({role:'assistant',content:j.texto||'(sem resposta)'});
     var quem=j.provedor==='gemini'?'Gemini (Google, plano gratuito: o Google pode usar o conteúdo para melhorar produtos)':j.provedor==='claude'?'Claude (Anthropic)':'';
-    el('iaUso').textContent=(quem?'Respondido por '+quem+'. ':'')+(j.uso?'Tokens: '+(j.uso.entrada+(j.uso.cache_lido||0)+(j.uso.cache_gravado||0))+' lidos ('+(j.uso.cache_lido||0)+' do cache), '+j.uso.saida+' escritos.':'');
+    el('iaUso').textContent=(quem?'Respondido por '+quem+'. ':'')+(j.uso?'Tokens: '+(j.uso.entrada+(j.uso.cache_lido||0)+(j.uso.cache_gravado||0))+' lidos ('+(j.uso.cache_lido||0)+' do cache), '+j.uso.saida+' escritos.':'')+
+      (j.uso&&j.uso.custo_usd!=null?' Custo: '+usd(j.uso.custo_usd,4)+'.':'');
+    if(j.provedor==='claude')carregarSaldo();
   }catch(e){
     conversa.pop(); // a pergunta volta para o campo, para tentar de novo
     campo.value=q;
@@ -144,6 +202,6 @@ async function enviar(){
   ocupado=false;render();
 }
 
-registerPage('ia',function(){render();});
+registerPage('ia',function(){render();carregarSaldo();});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',montarTela);else montarTela();
 })();
