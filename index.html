@@ -8,7 +8,15 @@
 <meta name="theme-color" content="#14151d">
 <title>Financeiro Pro v5.9</title>
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="https://st3.depositphotos.com/11956860/18392/v/450/depositphotos_183927972-stock-illustration-logo-icon-communication-media-information.jpg">
+<link rel="apple-touch-icon" href="icones/icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icones/icon-192.png">
+<!-- iPhone: app instalado pelo Safari ("Adicionar a Tela de Inicio") abre em
+     tela cheia. Barra de status "black" (nao "translucent"): o cabecalho fixo
+     do celular fica abaixo dela, sem precisar de ajuste. -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Financeiro">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -424,7 +432,7 @@ td{font-size:.86em;}
 <div class="mobile-header" id="mobHeader">
   <button class="hamburger" onclick="toggleSidebar()">&#9776;</button>
   <span class="mob-title" style="display:flex;align-items:center;gap:6px;-webkit-text-fill-color:initial;background:none;">
-  <img src="https://st3.depositphotos.com/11956860/18392/v/450/depositphotos_183927972-stock-illustration-logo-icon-communication-media-information.jpg" alt="" style="width:22px;height:22px;border-radius:var(--rad-sm);">
+  <img src="icones/icon-192.png" alt="" style="width:22px;height:22px;border-radius:var(--rad-sm);">
   <span style="background:var(--priG);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Financeiro Pro</span>
 </span>
   <div class="mob-sync"><span class="sdot off" id="mobSyncDot"></span><span id="mobSyncLabel">Offline</span></div>
@@ -1145,5 +1153,12 @@ g('extAte').value=hojeStr();
 <script src="theme-persist.js?v=2"></script>
 
 
+<script>
+// App instalavel: o service worker guarda os arquivos para abrir sem internet
+// (ver sw.js). So em https ou localhost; falha aqui nao afeta o app.
+if("serviceWorker" in navigator&&(location.protocol==="https:"||location.hostname==="localhost")){
+  window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(e){console.warn("[sw]",e);});});
+}
+</script>
 </body>
 </html>

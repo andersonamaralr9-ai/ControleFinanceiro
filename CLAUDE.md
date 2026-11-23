@@ -27,6 +27,13 @@ correspondente no `index.html`.** Sem isso o navegador serve a versão em
 cache e a alteração "não aparece" — isso já custou várias idas e vindas
 achando que a mudança não tinha sido aplicada.
 
+**App instalável (PWA, nov/2026):** o `sw.js` guarda os arquivos para abrir
+sem internet. Ele confia no `?v=N`: arquivo com `?v` é servido do cache até
+o número mudar. Ou seja, **esquecer de subir o `?v` agora é pior**: a versão
+velha fica presa no aparelho, mesmo recarregando. O `index.html` vem sempre
+da rede (com rede). Mudou a *lógica* do `sw.js`? Troque `VERSAO` lá dentro.
+`/api/*` e Supabase nunca passam pelo cache.
+
 Para conferir se subiu de verdade (o CDN também cacheia):
 
 ```bash
@@ -197,7 +204,7 @@ Módulos, na ordem em que carregam (a ordem importa):
 | `relatorios.js` | 10 relatórios + exportação Excel |
 | `lixeira.js` | Lixeira: itens excluídos restauráveis por 30 dias |
 | `icones.js` | Vocabulário de ícones SVG (`iconeSVG`) |
-| `ia-lancar.js` | Aba "Lançar por foto ou texto" do Assistente: `api/extrair.js` propõe os itens (não grava), o usuário revisa e o app grava no formato do `addLanc`/`addCompra` via `salvar()`. Carrega **antes** do `ia.js`, que chama `iaMontarLancar` |
+| `ia-lancar.js` | Aba "Lançar por foto ou texto" do Assistente: `api/extrair.js` propõe os itens (não grava), o usuário revisa e o app grava no formato do `addLanc`/`addCompra` via `salvar()`. Carrega **antes** do `ia.js`, que chama `iaMontarLancar`. Um atalho do iPhone (app Atalhos) para mandar fotos de outros apps foi feito e **descartado pelo usuário** em 23/11/2026 (complexo demais de montar; ele prefere escolher a foto no próprio app). Não sugerir de novo |
 | `ia.js` | Tela Assistente (só com a nuvem ligada): monta o retrato dos dados com `allEntries` e chama `api/chat.js` (Claude Haiku 5.5 por padrão, Gemini como alternativa); quadro de saldo estimado via `api/saldo.js`. Chaves só nas variáveis da Vercel; `api/_ia.js` tem a tabela de preços — atualize se a Anthropic mudar os preços |
 | `barra-inferior.js` | Só no celular (≤ 768 px): barra Início · Lançamentos · **+** · Assistente · Mais. O "+" abre folha com foto/texto (aba Lançar do Assistente, via `iaAbrirLancar`), lançamento manual (`abrirNovoLanc`) e compra no cartão. Esconde a `.auth-ubar` no celular e põe conta + Sair no fim do menu lateral. Página nova que mereça aba na barra entra no array `ABAS` |
 | `a11y.js` | Acessibilidade genérica após cada render |
