@@ -196,7 +196,7 @@ Módulos, na ordem em que carregam (a ordem importa):
 | `investimentos-integra.js` | Integração investimentos ↔ lançamentos |
 | `rent-saldo.js` | Lançar rentabilidade por valor ou por saldo |
 | `compras-filtro.js` | Tela de Compras do cartão (filtra pela fatura do mês) |
-| `planejamento.js` | Orçamento por categoria |
+| `planejamento.js` | Tela **Planejar** (v2, nov/2026): limites por categoria (`S.planejamento[mes][cat]`), "Sugerir pela média" dos 3 meses anteriores, copiar do mês anterior, gastos sem limite e **metas** (`S.config.metas`, array trocado inteiro a cada mudança para o carimbo do mapa `config` pegar). Edição em janela própria (`#modalPj`), sem `prompt()`. Esconde o formulário e a tabela antigos do `index.html` |
 | `patrimonio.js` | Patrimônio |
 | `cartoes-fix.js` | Tela de Cartões |
 | `design-packs.js` | 5 packs visuais alternáveis (CSS dinâmico) |
@@ -211,6 +211,7 @@ Módulos, na ordem em que carregam (a ordem importa):
 | `ia.js` | Tela Assistente (só com a nuvem ligada): monta o retrato dos dados com `allEntries` e chama `api/chat.js` (Claude Haiku 5.5 por padrão, Gemini como alternativa); quadro de saldo estimado via `api/saldo.js`. Chaves só nas variáveis da Vercel; `api/_ia.js` tem a tabela de preços — atualize se a Anthropic mudar os preços |
 | `barra-inferior.js` | Só no celular (≤ 768 px): barra Início · Lançamentos · **+** · Assistente · Mais. O "+" abre folha com foto/texto (aba Lançar do Assistente, via `iaAbrirLancar`), lançamento manual (`abrirNovoLanc`) e compra no cartão. Esconde a `.auth-ubar` no celular e põe conta + Sair no fim do menu lateral. Página nova que mereça aba na barra entra no array `ABAS` |
 | `menu.js` | Organiza o menu lateral em Início · Movimentos · Planejar · Patrimônio · Relatórios · Sistema (nov/2026), por id dos links, inclusive os criados por módulos depois do carregamento. **Página nova: ponha o id do link em `AREAS`**; se esquecer, ela aparece em "Outros" |
+| `alertas.js` | Avisos do **mês atual** no topo do Resumo e número no Início (barra e menu): orçamento ≥ 80%/estourado (agrupado quando passa de 2 categorias), contrato ou fatura vencendo em até 5 dias ou atrasado sem marca no Check (mesma chave `origem\|desc\|valor` do `checkpagamentos.js`), mês no vermelho e meta vencida. Dispensados ficam no `localStorage` do aparelho e voltam se o aviso piorar |
 | `a11y.js` | Acessibilidade genérica após cada render |
 | `theme-persist.js` | Persistência do tema |
 
