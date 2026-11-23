@@ -182,6 +182,70 @@ async function responderGemini(res, dados, conversa) {
   });
 }
 
+// ---------------------------------------------------------------- aos poucos
+// Resposta do Claude em streaming (nov/2026): o app pede com stream:true e
+// recebe NDJSON, uma linha JSON por evento:
+//   {"t":"texto","v":"..."}  pedaço da resposta
+//   {"t":"fim","provedor":"claude","uso":{...},"cortado":bool,"recusa":bool}
+//   {"t":"erro","erro":"..."} falha depois de já ter começado
+// Erro ANTES do primeiro pedaço volta como JSON normal com status (igual ao
+// modo antigo), então o app trata do mesmo jeito. Gemini segue sem streaming.
+function msgErroClaude(e) {
+  if (e instanceof Anthropic.AuthenticationError) return [503, 'Chave do Claude inválida na Vercel.'];
+  if (e instanceof Anthropic.RateLimitError) return [429, 'Muitas perguntas seguidas. Espere um pouco.'];
+  if (e instanceof Anthropic.BadRequestError) { console.error('[chat] 400', e.message); return [400, 'Pedido recusado pela API.']; }
+  if (e instanceof Anthropic.APIError) { console.error('[chat]', e.status, e.message); return [502, 'Falha no serviço do Claude. Tente de novo.']; }
+  console.error('[chat]', e);
+  return [500, 'Erro inesperado.'];
+}
+
+async function responderClaudeAosPoucos(res, client, token, dados, conversa) {
+  let comecou = false;
+  const linha = (o) => {
+    if (!comecou) {
+      comecou = true;
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/x-ndjson; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-cache, no-transform');
+      res.setHeader('X-Accel-Buffering', 'no');
+    }
+    res.write(JSON.stringify(o) + '\n');
+  };
+  try {
+    const stream = client.beta.messages.stream({
+      model: CLAUDE_MODELO,
+      max_tokens: 16000,
+      output_config: { effort: 'medium' },
+      ...(CLAUDE_COM_RESERVA ? { betas: ['server-side-fallback-2026-07-01'], fallbacks: 'default' } : {}),
+      system: [
+        { type: 'text', text: SISTEMA },
+        { type: 'text', text: `<dados_do_usuario>\n${dados}\n</dados_do_usuario>`, cache_control: { type: 'ephemeral' } },
+      ],
+      messages: conversa,
+    });
+    for await (const ev of stream) {
+      if (ev.type === 'content_block_delta' && ev.delta.type === 'text_delta' && ev.delta.text) linha({ t: 'texto', v: ev.delta.text });
+    }
+    const resposta = await stream.finalMessage();
+    const uso = {
+      entrada: resposta.usage.input_tokens || 0,
+      cache_lido: resposta.usage.cache_read_input_tokens || 0,
+      cache_gravado: resposta.usage.cache_creation_input_tokens || 0,
+      saida: resposta.usage.output_tokens || 0,
+    };
+    const modelo = resposta.model || CLAUDE_MODELO;
+    uso.custo_usd = custoUSD(modelo, uso);
+    await registrarUso(token, { provedor: 'claude', modelo, ...uso });
+    linha({ t: 'fim', provedor: 'claude', uso, cortado: resposta.stop_reason === 'max_tokens', recusa: resposta.stop_reason === 'refusal' });
+    return res.end();
+  } catch (e) {
+    const [status, msg] = msgErroClaude(e);
+    if (!comecou) return erro(res, status, msg);
+    linha({ t: 'erro', erro: status === 500 ? 'A conexão caiu no meio da resposta. Tente de novo.' : msg });
+    return res.end();
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return erro(res, 405, 'Use POST.');
 
@@ -211,6 +275,7 @@ export default async function handler(req, res) {
   if (provedor === 'gemini') return responderGemini(res, dados, conversa);
 
   const client = new Anthropic();
+  if (req.body.stream === true) return responderClaudeAosPoucos(res, client, token, dados, conversa);
   try {
     const resposta = await client.beta.messages.create({
       model: CLAUDE_MODELO,

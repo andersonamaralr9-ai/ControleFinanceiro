@@ -20,7 +20,7 @@ if(!window.NUVEM_ATIVA)return;
 
 var CHAVE_CONVERSA='finApp_iaConversa';
 var conversa=lerConversa();   // [{role, content}]
-var ocupado=false,ultimoUso='';
+var ocupado=false,ultimoUso='',chegando=null; // chegando: resposta que está chegando aos poucos
 
 function el(id){return document.getElementById(id);}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
@@ -298,7 +298,7 @@ function render(){
       conversa.map(function(m){
         return '<div class="ia-msg ia-'+(m.role==='user'?'eu':'ia')+'">'+(m.role==='user'?'<p>'+esc(m.content)+'</p>':formatar(m.content))+'</div>';
       }).join('')+
-      (ocupado?'<div class="ia-msg ia-ia ia-pensando" role="status"><span class="ia-pontos"><i></i><i></i><i></i></span> Analisando seus dados…</div>':'')+
+      (ocupado&&!chegando?'<div class="ia-msg ia-ia ia-pensando" role="status"><span class="ia-pontos"><i></i><i></i><i></i></span> Analisando seus dados…</div>':'')+
       (ultimoUso&&!ocupado?'<p class="ia-uso">'+esc(ultimoUso)+'</p>':'');
     var ultima=c.lastElementChild;
     if(ultima&&curPage==='ia')requestAnimationFrame(function(){ultima.scrollIntoView({block:'end',behavior:'smooth'});});
@@ -311,25 +311,72 @@ async function enviar(){
   if(!q||ocupado)return;
   if(!navigator.onLine){toast('Sem internet: o assistente precisa de conexão.','error');return;}
   campo.value='';crescer();
-  conversa.push({role:'user',content:q});ocupado=true;render();
+  conversa.push({role:'user',content:q});ocupado=true;chegando=null;ultimoUso='';render();
   var resp,j=null;
   try{
     var token=window.nuvemToken?await window.nuvemToken():null;
     if(!token)throw new Error('Entre de novo para usar o assistente.');
     resp=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-      body:JSON.stringify({dados:montarRetrato(),mensagens:conversa.slice(-30)})});
-    try{j=await resp.json();}catch(e){}
-    if(!resp.ok)throw new Error((j&&j.erro)||('Erro '+resp.status));
-    conversa.push({role:'assistant',content:j.texto||'(sem resposta)'});gravarConversa();
+      body:JSON.stringify({dados:montarRetrato(),mensagens:conversa.slice(-30),stream:true})});
+    var tipo=(resp.headers.get('content-type')||'').toLowerCase();
+    if(resp.ok&&tipo.indexOf('ndjson')>=0&&resp.body&&resp.body.getReader){
+      j=await lerAosPoucos(resp);
+    }else{
+      try{j=await resp.json();}catch(e){}
+      if(!resp.ok)throw new Error((j&&j.erro)||('Erro '+resp.status));
+      conversa.push({role:'assistant',content:j.texto||'(sem resposta)'});
+    }
+    gravarConversa();
     var quem=j.provedor==='gemini'?'Gemini':j.provedor==='claude'?'Claude':'';
     ultimoUso=(quem?quem:'')+(j.uso&&j.uso.custo_usd!=null?' · custo '+usd(j.uso.custo_usd,4):'');
     if(j.provedor==='claude')carregarSaldo();
   }catch(e){
-    conversa.pop(); // a pergunta volta para o campo, para tentar de novo
-    campo.value=q;crescer();
+    if(chegando&&chegando.content){
+      // Parte da resposta já chegou: fica na conversa, marcada como interrompida.
+      chegando.content+='\n\n(resposta interrompida)';gravarConversa();
+    }else{
+      if(chegando)conversa.pop();
+      conversa.pop(); // a pergunta volta para o campo, para tentar de novo
+      campo.value=q;crescer();
+    }
     toast('Assistente: '+((e&&e.message)||'falha'),'error');
   }
-  ocupado=false;render();
+  ocupado=false;chegando=null;render();
+}
+
+// Lê a resposta em NDJSON (api/chat.js, modo stream) e vai desenhando só o
+// último balão, no máximo uma vez por quadro. Devolve o evento "fim".
+async function lerAosPoucos(resp){
+  var leitor=resp.body.getReader(),dec=new TextDecoder(),resto='',fim=null,agendado=false;
+  function desenhar(){
+    agendado=false;
+    var c=el('iaChat');if(!c||!chegando)return;
+    var b=c.querySelector('.ia-msg.ia-ia.ia-chegando');
+    if(!b){render();var todos=c.querySelectorAll('.ia-msg.ia-ia');b=todos[todos.length-1];if(b)b.classList.add('ia-chegando');}
+    if(b){b.innerHTML=formatar(chegando.content);if(curPage==='ia')b.scrollIntoView({block:'end'});}
+  }
+  function evento(o){
+    if(o.t==='texto'){
+      if(!chegando){chegando={role:'assistant',content:''};conversa.push(chegando);}
+      chegando.content+=o.v;
+      if(!agendado){agendado=true;setTimeout(desenhar,60);}
+    }else if(o.t==='fim'){fim=o;}
+    else if(o.t==='erro'){throw new Error(o.erro||'falha');}
+  }
+  for(;;){
+    var p=await leitor.read();
+    if(p.done)break;
+    resto+=dec.decode(p.value,{stream:true});
+    var linhas=resto.split('\n');resto=linhas.pop();
+    linhas.forEach(function(l){if(l.trim())evento(JSON.parse(l));});
+  }
+  if(resto.trim())evento(JSON.parse(resto));
+  if(!fim)throw new Error('A resposta foi cortada no caminho.');
+  if(!chegando){chegando={role:'assistant',content:''};conversa.push(chegando);}
+  if(fim.recusa&&!chegando.content.trim())chegando.content='Não consegui responder essa pergunta. Tente reformular.';
+  if(!chegando.content.trim())chegando.content='(sem resposta)';
+  if(fim.cortado)chegando.content+='\n\n(resposta cortada por tamanho)';
+  return fim;
 }
 
 registerPage('ia',function(){render();carregarSaldo();});
