@@ -100,7 +100,22 @@ async function descobrirModeloGemini() {
   }
 }
 
+// 503 ("high demand") e 500 são passageiros no Google: tenta mais duas vezes
+// com espera curta (cabe folgado nos 60 s da função).
+const ESPERAS_GEMINI = [1500, 4000];
+
 async function chamarGemini(corpo) {
+  let tentativa = await chamarGeminiUmaVez(corpo);
+  for (const ms of ESPERAS_GEMINI) {
+    if (tentativa.r.status !== 503 && tentativa.r.status !== 500) break;
+    console.warn(`[chat gemini] ${tentativa.r.status}; nova tentativa em ${ms} ms`);
+    await new Promise((ok) => setTimeout(ok, ms));
+    tentativa = await chamarGeminiUmaVez(corpo);
+  }
+  return tentativa;
+}
+
+async function chamarGeminiUmaVez(corpo) {
   const r = await fetch(`${GEMINI_URL}/v1beta/models/${encodeURIComponent(GEMINI_MODELO)}:generateContent`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY },
@@ -139,6 +154,8 @@ async function responderGemini(res, dados, conversa) {
     if (r.status === 400 && /api key/i.test(msg)) return erro(res, 503, 'Chave do Gemini inválida na Vercel.');
     if (r.status === 401 || r.status === 403) return erro(res, 503, 'Chave do Gemini inválida ou sem permissão.');
     if (r.status === 404) return erro(res, 503, `Modelo ${GEMINI_MODELO} não encontrado no Gemini.`);
+    if (r.status === 503 || r.status === 500)
+      return erro(res, 503, 'O Gemini está sobrecarregado agora (comum no plano gratuito). Tente de novo em alguns minutos.');
     return erro(res, 502, 'Falha no serviço do Gemini. Tente de novo.');
   }
   const cand = j && j.candidates && j.candidates[0];
