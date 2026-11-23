@@ -55,7 +55,15 @@ function montar(caixa){
         '<button type="submit" class="btn btn-primary" id="ilLer">Ler</button>'+
       '</div>'+
     '</form>'+
-    '<div id="ilRevisao" aria-live="polite"></div>';
+    '<div id="ilRevisao" aria-live="polite"></div>'+
+    '<details class="il-atalho" id="ilAtalho"><summary>Atalho do iPhone (mandar fotos de outros apps)</summary><div id="ilAtalhoCorpo"></div></details>';
+  el('ilAtalho').addEventListener('toggle',function(){if(this.open)carregarAtalho();});
+  el('ilAtalhoCorpo').addEventListener('click',function(e){
+    if(e.target.closest('#ilGerarChave'))gerarChave();
+    if(e.target.closest('#ilRevogarChave'))revogarChave();
+    if(e.target.closest('#ilCopiarChave'))copiar('ilChaveNova');
+    if(e.target.closest('#ilCopiarUrl'))copiar('ilUrlAtalho');
+  });
   el('ilForm').addEventListener('submit',function(e){e.preventDefault();ler();});
   el('ilFoto').addEventListener('change',async function(){
     var f=this.files&&this.files[0];this.value='';if(!f)return;
@@ -76,6 +84,7 @@ function montar(caixa){
     if(campo==='incluir'){renderRevisao();var c=document.querySelector('#ilRevisao [data-i="'+i+'"] [data-campo="incluir"]');if(c)c.focus();}
   });
   rev.addEventListener('click',function(e){
+    if(e.target.closest('#ilRevisarFoto'))revisarProxima();
     if(e.target.closest('#ilGravar'))gravar();
     if(e.target.closest('#ilDescartar')){itens=[];aviso='';renderRevisao();}
   });
@@ -94,6 +103,9 @@ function opcoes(lista,atual){
 function renderRevisao(){
   var r=el('ilRevisao');if(!r)return;
   if(lendo){r.innerHTML='<p class="il-lendo">Lendo…</p>';return;}
+  var fila=fotosAtalho.length&&!itens.length?'<div class="il-fila"><span>'+fotosAtalho.length+(fotosAtalho.length===1?' foto recebida':' fotos recebidas')+' pelo atalho</span>'+
+    '<button type="button" class="btn btn-sm btn-primary" id="ilRevisarFoto">Revisar</button></div>':'';
+  if(fila){r.innerHTML=fila+(aviso?'<p class="il-aviso">'+esc(aviso)+'</p>':'');return;}
   if(!itens.length){
     r.innerHTML=aviso?'<p class="il-aviso">'+esc(aviso)+'</p>':
       '<p class="ia-vazio">Escreva o gasto ou mande a foto do cupom. Você revisa tudo antes de gravar.</p>';
@@ -124,11 +136,13 @@ function renderRevisao(){
 }
 
 // ---------------------------------------------------------------- ler
+// Devolve true se a leitura terminou (com itens ou com aviso); false em erro.
 async function ler(){
   var texto=(el('ilTexto').value||'').trim();
-  if(lendo)return;
-  if(!texto&&!foto){toast('Escreva o gasto ou escolha uma foto.','error');return;}
-  if(!navigator.onLine){toast('Sem internet: ler com IA precisa de conexão.','error');return;}
+  if(lendo)return false;
+  if(!texto&&!foto){toast('Escreva o gasto ou escolha uma foto.','error');return false;}
+  if(!navigator.onLine){toast('Sem internet: ler com IA precisa de conexão.','error');return false;}
+  var ok=false;
   lendo=true;aviso='';itens=[];renderRevisao();el('ilLer').disabled=true;
   try{
     var token=window.nuvemToken?await window.nuvemToken():null;
@@ -150,11 +164,102 @@ async function ler(){
     if(!itens.length&&!aviso)aviso='Não encontrei nada para lançar.';
     if(itens.length){el('ilTexto').value='';foto=null;renderFoto();}
     if(j.uso&&typeof window.iaAtualizarSaldo==='function')window.iaAtualizarSaldo();
+    ok=true;
   }catch(e){
     toast('Lançar com IA: '+((e&&e.message)||'falha'),'error');
   }
   lendo=false;el('ilLer').disabled=false;renderRevisao();
+  return ok;
 }
+
+// ---------------------------------------------------------------- atalho
+// Fotos mandadas pelo atalho do iPhone ficam numa fila no servidor
+// (/api/atalho). O app avisa, o usuário toca em Revisar, a foto entra aqui
+// como se tivesse sido escolhida na tela, a IA lê e ela sai da fila. Gravar
+// continua sendo só pelo botão Lançar, depois da revisão.
+var fotosAtalho=[],avisouNaSessao=false,ultimaChecagem=0,chaveNova='';
+
+async function apiAtalho(metodo,qs){
+  var token=window.nuvemToken?await window.nuvemToken():null;
+  if(!token)throw new Error('Entre de novo.');
+  var r=await fetch('/api/atalho'+(qs||''),{method:metodo,headers:{'Authorization':'Bearer '+token}});
+  var j=null;try{j=await r.json();}catch(e){}
+  if(!r.ok)throw new Error((j&&j.erro)||('Erro '+r.status));
+  return j;
+}
+
+async function verificarFotos(forcar){
+  if(!navigator.onLine)return;
+  if(!forcar&&Date.now()-ultimaChecagem<30000)return;
+  ultimaChecagem=Date.now();
+  var j;try{j=await apiAtalho('GET');}catch(e){return;}
+  fotosAtalho=j.fotos||[];renderRevisao();
+  if(el('ilAtalho')&&el('ilAtalho').open)renderAtalho(j.chave);
+  if(fotosAtalho.length&&!avisouNaSessao&&curPage!=='ia'){
+    avisouNaSessao=true;
+    toast(fotosAtalho.length+(fotosAtalho.length===1?' foto recebida':' fotos recebidas')+' pelo atalho.','info',{acao:'Revisar',dur:10000,onAcao:function(){
+      if(window.iaAbrirLancar)window.iaAbrirLancar();revisarProxima();
+    }});
+  }
+}
+
+async function revisarProxima(){
+  var f=fotosAtalho[0];if(!f||lendo)return;
+  try{
+    var d=await apiAtalho('GET','?id='+f.id);
+    foto={media_type:d.media_type,data:d.dados,url:'data:'+d.media_type+';base64,'+d.dados};
+    renderFoto();
+    fotosAtalho.shift();
+    if(await ler()){apiAtalho('DELETE','?id='+f.id).catch(function(){});}
+    else{fotosAtalho.unshift(f);}
+    renderRevisao();
+  }catch(e){toast('Atalho: '+((e&&e.message)||'falha'),'error');}
+}
+
+async function carregarAtalho(){
+  var c=el('ilAtalhoCorpo');if(!c)return;
+  c.innerHTML='<p class="il-lendo">Carregando…</p>';
+  try{var j=await apiAtalho('GET');fotosAtalho=j.fotos||[];renderRevisao();renderAtalho(j.chave);}
+  catch(e){c.innerHTML='<p class="il-aviso">'+esc(e.message)+'</p>';}
+}
+
+function renderAtalho(chave){
+  var c=el('ilAtalhoCorpo');if(!c)return;
+  var url=location.origin+'/api/atalho';
+  var estado=chave?'Chave ativa desde '+new Date(chave.criado_em).toLocaleDateString('pt-BR')+
+      (chave.usado_em?' · última foto em '+new Date(chave.usado_em).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'}):' · ainda não usada'):
+    'Nenhuma chave criada.';
+  c.innerHTML='<p class="il-atalho-txt">Com o app <strong>Atalhos</strong> do iPhone, você manda a foto de um cupom de qualquer app (Fotos, WhatsApp, e-mail) pelo botão Compartilhar. Ela fica esperando aqui até você revisar. A chave do atalho só entrega fotos: não lê seus dados nem lança nada.</p>'+
+    '<p class="il-atalho-estado">'+esc(estado)+'</p>'+
+    (chaveNova?'<div class="form-group"><label for="ilChaveNova">Sua chave (aparece só agora; copie para o atalho)</label><div class="il-copiar"><input id="ilChaveNova" class="form-control" readonly value="'+esc(chaveNova)+'"><button type="button" class="btn btn-sm btn-outline" id="ilCopiarChave">Copiar</button></div></div>':'')+
+    '<div class="form-group"><label for="ilUrlAtalho">Endereço para o atalho</label><div class="il-copiar"><input id="ilUrlAtalho" class="form-control" readonly value="'+esc(url)+'"><button type="button" class="btn btn-sm btn-outline" id="ilCopiarUrl">Copiar</button></div></div>'+
+    '<div class="il-fim"><button type="button" class="btn btn-sm btn-primary" id="ilGerarChave">'+(chave?'Gerar nova chave':'Gerar chave')+'</button>'+
+    (chave?'<button type="button" class="btn btn-sm btn-outline" id="ilRevogarChave">Revogar</button>':'')+
+    '<a class="btn btn-sm btn-outline" href="atalho.html" target="_blank" rel="noopener">Como montar o atalho</a></div>';
+}
+
+async function gerarChave(){
+  var tinha=/Gerar nova/.test((el('ilGerarChave')||{}).textContent||'');
+  if(tinha&&!confirm('A chave atual para de funcionar e o atalho precisará da nova. Gerar outra?'))return;
+  try{var j=await apiAtalho('POST','?acao=chave');chaveNova=j.chave;await carregarAtalho();toast('Chave gerada. Copie para o atalho: ela não aparece de novo.','success');}
+  catch(e){toast('Atalho: '+e.message,'error');}
+}
+async function revogarChave(){
+  if(!confirm('Revogar a chave? O atalho para de funcionar até você gerar outra.'))return;
+  try{await apiAtalho('DELETE','?acao=chave');chaveNova='';await carregarAtalho();toast('Chave revogada.','success');}
+  catch(e){toast('Atalho: '+e.message,'error');}
+}
+function copiar(id){
+  var i=el(id);if(!i)return;
+  var feito=function(){toast('Copiado.','success');};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(i.value).then(feito,function(){i.select();});
+  else{i.select();try{document.execCommand('copy');feito();}catch(e){}}
+}
+
+// Confere a fila ao abrir o app, ao voltar para ele e ao entrar no Assistente.
+setTimeout(function(){verificarFotos(true);},2500);
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')verificarFotos(false);});
+onNavigate(function(p){if(p==='ia')verificarFotos(true);});
 
 // ---------------------------------------------------------------- gravar
 function gravar(){
