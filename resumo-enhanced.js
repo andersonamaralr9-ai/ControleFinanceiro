@@ -133,14 +133,14 @@ window.renderResumo = function() {
   h += '<div class="rc6 t-rec clk" onclick="window._resRec()">';
   h += '<div class="rc6-lbl"><span class="rc6-dot" style="background:var(--ok)"></span>Receitas</div>';
   h += '<div class="rc6-val">' + fmtV(rec) + '</div>';
-  h += '<div class="rc6-row"><span class="rc6-rl">Recebido</span><span class="rc6-rv" style="color:var(--ok)">' + fc(rcf) + ' <span class="rc6-bdg g">' + rcn + '</span></span></div>';
-  h += '<div class="rc6-row"><span class="rc6-rl">Pendente</span><span class="rc6-rv">' + fc(rpn) + ' <span class="rc6-bdg y">' + rpnn + '</span></span></div>';
+  h += '<div class="rc6-row"><span class="rc6-rl">Recebido</span><span class="rc6-rv" style="color:var(--ok)">' + fc(rcf) + ' <span class="rc6-bdg g" title="' + rcn + ' lan&ccedil;amento(s)" aria-label="' + rcn + ' lan&ccedil;amento(s)">' + rcn + '</span></span></div>';
+  h += '<div class="rc6-row"><span class="rc6-rl">Pendente</span><span class="rc6-rv">' + fc(rpn) + ' <span class="rc6-bdg y" title="' + rpnn + ' lan&ccedil;amento(s)" aria-label="' + rpnn + ' lan&ccedil;amento(s)">' + rpnn + '</span></span></div>';
   h += '</div>';
   h += '<div class="rc6 t-desp clk" onclick="window._resDesp()">';
   h += '<div class="rc6-lbl"><span class="rc6-dot" style="background:var(--dn2)"></span>Despesas</div>';
   h += '<div class="rc6-val">' + fmtV(desp) + '</div>';
-  h += '<div class="rc6-row"><span class="rc6-rl">Pagas</span><span class="rc6-rv" style="color:var(--ok)">' + fc(dcf) + ' <span class="rc6-bdg g">' + dcn + '</span></span></div>';
-  h += '<div class="rc6-row"><span class="rc6-rl">Pendentes</span><span class="rc6-rv">' + fc(dpn) + ' <span class="rc6-bdg y">' + dpnn + '</span></span></div>';
+  h += '<div class="rc6-row"><span class="rc6-rl">Pagas</span><span class="rc6-rv" style="color:var(--ok)">' + fc(dcf) + ' <span class="rc6-bdg g" title="' + dcn + ' lan&ccedil;amento(s)" aria-label="' + dcn + ' lan&ccedil;amento(s)">' + dcn + '</span></span></div>';
+  h += '<div class="rc6-row"><span class="rc6-rl">Pendentes</span><span class="rc6-rv">' + fc(dpn) + ' <span class="rc6-bdg y" title="' + dpnn + ' lan&ccedil;amento(s)" aria-label="' + dpnn + ' lan&ccedil;amento(s)">' + dpnn + '</span></span></div>';
   h += '</div>';
   h += '<div class="rc6 t-cc clk" onclick="window._resFat()">';
   h += '<div class="rc6-lbl"><span class="rc6-dot" style="background:var(--pri2)"></span>Fatura do cartão</div>';
@@ -155,13 +155,17 @@ window.renderResumo = function() {
   // ─── MOBILE LIST ───
   h += '<div class="rm-list">';
   h += '<div class="rm-sh">Principal</div>';
-  h += '<div class="rm-ln" onclick="window._resRec()"><span class="rm-ic">'+icoA('investimentos')+'</span><span class="rm-lb">Receitas</span><span class="rm-vl" style="color:var(--ok)">' + fc(rec) + '</span><span class="rm-sub"><span class="rm-b g">' + rcn + '</span><span class="rm-b y">' + rpnn + '</span></span></div>';
-  h += '<div class="rm-ln" onclick="window._resDesp()"><span class="rm-ic">'+icoA('baixa')+'</span><span class="rm-lb">Despesas</span><span class="rm-vl" style="color:var(--dn2)">' + fc(desp) + '</span><span class="rm-sub"><span class="rm-b g">' + dcn + '</span><span class="rm-b y">' + dpnn + '</span></span></div>';
-  h += '<div class="rm-ln rm-sal"><span class="rm-ic">'+icoA('dinheiro')+'</span><span class="rm-lb">Saldo</span><span class="rm-vl" style="color:' + (sal >= 0 ? 'var(--inf2)' : 'var(--dn2)') + '">' + fc(sal) + '</span></div>';
+  // Padrao do app (ver CLAUDE.md): total neutro; a cor fica no icone e nos
+  // status. As contagens eram dois selos soltos ("4 5", "83 19") sem dizer o
+  // que contavam; agora sao texto sob o rotulo.
+  function qt(n, um, varios){ return n + ' ' + (n === 1 ? um : varios); }
+  h += '<div class="rm-ln" onclick="window._resRec()"><span class="rm-ic" style="color:var(--ok)">'+icoA('investimentos')+'</span><span class="rm-lb">Receitas<small class="rm-det">' + qt(rcn, 'recebida', 'recebidas') + ' &middot; ' + rpnn + ' a receber</small></span><span class="rm-vl">' + fc(rec) + '</span></div>';
+  h += '<div class="rm-ln" onclick="window._resDesp()"><span class="rm-ic" style="color:var(--dn2)">'+icoA('baixa')+'</span><span class="rm-lb">Despesas<small class="rm-det">' + qt(dcn, 'paga', 'pagas') + ' &middot; ' + dpnn + ' a pagar</small></span><span class="rm-vl">' + fc(desp) + '</span></div>';
+  h += '<div class="rm-ln rm-sal"><span class="rm-ic">'+icoA('dinheiro')+'</span><span class="rm-lb">Saldo</span><span class="rm-vl" style="color:' + (sal >= 0 ? 'var(--tx)' : 'var(--dn2)') + '">' + fc(sal) + '</span></div>';
   h += '<div class="rm-sh">Detalhes</div>';
-  h += '<div class="rm-ln" onclick="window._resFat()"><span class="rm-ic">'+icoA('cartoes')+'</span><span class="rm-lb">Fatura Cart\u00e3o</span><span class="rm-vl" style="color:var(--wn)">' + fc(fT) + '</span></div>';
-  h += '<div class="rm-ln" onclick="nav(\'contratos\')"><span class="rm-ic">'+icoA('contratos')+'</span><span class="rm-lb">Contratos</span><span class="rm-vl" style="color:var(--pri2)">' + cA + '</span></div>';
-  h += '<div class="rm-ln" onclick="nav(\'assinaturas\')"><span class="rm-ic">'+icoA('assinaturas')+'</span><span class="rm-lb">Assinaturas</span><span class="rm-vl" style="color:var(--wn)">' + fc(aT) + '</span></div>';
+  h += '<div class="rm-ln" onclick="window._resFat()"><span class="rm-ic">'+icoA('cartoes')+'</span><span class="rm-lb">Fatura do cart\u00e3o</span><span class="rm-vl">' + fc(fT) + '</span></div>';
+  h += '<div class="rm-ln" onclick="nav(\'contratos\')"><span class="rm-ic">'+icoA('contratos')+'</span><span class="rm-lb">Contratos</span><span class="rm-vl">' + qt(cA, 'ativo', 'ativos') + '</span></div>';
+  h += '<div class="rm-ln" onclick="nav(\'assinaturas\')"><span class="rm-ic">'+icoA('assinaturas')+'</span><span class="rm-lb">Assinaturas</span><span class="rm-vl">' + fc(aT) + '</span></div>';
   h += '<div class="rm-sh">Status pagamentos</div>';
   h += '<div class="rm-ln"><span class="rm-ic" style="color:var(--ok)">'+icoA('checkpag')+'</span><span class="rm-lb">Recebido</span><span class="rm-vl" style="color:var(--ok)">' + fc(rcf) + '</span></div>';
   h += '<div class="rm-ln"><span class="rm-ic" style="color:var(--wn)">'+icoA('relogio')+'</span><span class="rm-lb">A receber</span><span class="rm-vl" style="color:var(--wn)">' + fc(rpn) + '</span></div>';
@@ -254,9 +258,9 @@ window.renderResumo = function() {
     }
     var linhas = [];
     if (fI.length) linhas.push(linha('cartoes', 'window._resFat()', 'Fatura do cart&atilde;o',
-      fI.length + ' compra' + (fI.length === 1 ? '' : 's'), fmtV(fT), 'var(--wn)'));
+      fI.length + ' compra' + (fI.length === 1 ? '' : 's'), fmtV(fT), 'var(--tx)'));
     if (cA) linhas.push(linha('contratos', "nav('contratos')", 'Contratos',
-      'receita ' + fmtV(cR) + ' &middot; despesa ' + fmtV(cD), cA + (cA === 1 ? ' ativo' : ' ativos'), 'var(--pri2)'));
+      'receita ' + fmtV(cR) + ' &middot; despesa ' + fmtV(cD), cA + (cA === 1 ? ' ativo' : ' ativos'), 'var(--tx)'));
     if (aA) linhas.push(linha('assinaturas', "nav('assinaturas')", 'Assinaturas',
       aA + ' ativa' + (aA === 1 ? '' : 's'), fmtV(aT), 'var(--tx)'));
 
@@ -337,23 +341,26 @@ window.renderResumoInvest = function() {
   var dh = '<div class="ri-desk ih-card">';
   dh += '<div class="ih-top"><div class="ih-title">Investimentos &mdash; ' + mesNomeFull(ma) + '</div><div class="ih-link" onclick="nav(\'investimentos\')">Ver detalhes &rarr;</div></div>';
   dh += '<div class="ih-grid">';
-  dh += '<div class="ih-item"><div class="ih-lbl">Saldo Inicial</div><div class="ih-val" style="color:var(--inf2)">' + fmtV(saldoInicial) + '</div><div class="ih-sub">Abertura de ' + mesNome(ma) + '</div></div>';
+  dh += '<div class="ih-item"><div class="ih-lbl">Saldo Inicial</div><div class="ih-val">' + fmtV(saldoInicial) + '</div><div class="ih-sub">Abertura de ' + mesNome(ma) + '</div></div>';
   dh += '<div class="ih-item"><div class="ih-lbl">Rentabilidade</div><div class="ih-val" style="color:' + rentColor + '">' + (rentMes >= 0 ? '+' : '') + fmtV(rentMes) + '</div><div class="ih-sub">' + (saldoInicial > 0 ? (rentMes / saldoInicial * 100).toFixed(2).replace('.', ',') + '% no m&ecirc;s' : '&mdash;') + '</div></div>';
   // Aportes/resgates em coluna propria (nos tres desenhos e uma coluna, nao
   // um subtitulo da rentabilidade).
   var nMov = (aporteMes ? 1 : 0) + (resgateMes ? 1 : 0);
   dh += '<div class="ih-item"><div class="ih-lbl">Aportes / Resgates</div><div class="ih-val">' + fmtV(aporteMes) + ' / ' + fmtV(resgateMes) + '</div><div class="ih-sub">' + nMov + ' movimenta&ccedil;' + (nMov === 1 ? '&atilde;o' : '&otilde;es') + '</div></div>';
-  dh += '<div class="ih-item"><div class="ih-lbl">Saldo Fechamento</div><div class="ih-val" style="color:var(--pri2)">' + fmtV(saldoFechamento) + '</div><div class="ih-sub" style="color:' + salColor + '">' + (diff >= 0 ? '+' : '') + fmtV(diff) + ' no mes</div></div>';
+  dh += '<div class="ih-item"><div class="ih-lbl">Saldo Fechamento</div><div class="ih-val">' + fmtV(saldoFechamento) + '</div><div class="ih-sub" style="color:' + salColor + '">' + (diff >= 0 ? '+' : '') + fmtV(diff) + ' no mes</div></div>';
   dh += '</div></div>';
 
   // \u2500\u2500\u2500 MOBILE: .rm-list (oculto no desktop via CSS .rm-list { display:none }) \u2500\u2500\u2500
   var mh = '<div class="rm-list">';
   mh += '<div class="rm-sh">Investimentos</div>';
-  mh += '<div class="rm-ln"><span class="rm-ic">\ud83d\udcb0</span><span class="rm-lb">Saldo Inicial</span><span class="rm-vl" style="color:var(--inf2)">' + fc(saldoInicial) + '</span></div>';
-  mh += '<div class="rm-ln"><span class="rm-ic">\ud83d\udcc8</span><span class="rm-lb">Rentabilidade</span><span class="rm-vl" style="color:' + rentColor + '">' + (rentMes >= 0 ? '+' : '') + fc(rentMes) + '</span></div>';
-  mh += '<div class="rm-ln"><span class="rm-ic" style="color:var(--ok)">\u2191</span><span class="rm-lb">Aportes</span><span class="rm-vl" style="color:var(--ok)">' + fc(aporteMes) + '</span></div>';
-  mh += '<div class="rm-ln"><span class="rm-ic" style="color:var(--dn2)">\u2193</span><span class="rm-lb">Resgates</span><span class="rm-vl" style="color:var(--dn2)">' + fc(resgateMes) + '</span></div>';
-  mh += '<div class="rm-ln" onclick="nav(\'investimentos\')"><span class="rm-ic">\ud83d\udcb3</span><span class="rm-lb">Saldo Fechamento</span><span class="rm-vl" style="color:var(--pri2)">' + fc(saldoFechamento) + '</span></div>';
+  // Mesmo padrao da lista de cima: valor neutro, cor so no que indica ganho
+  // ou perda; icones de traco (eram emoji, que nao acompanham o visual).
+  var icoI = typeof iconeSVG === 'function' ? iconeSVG : function(){ return ''; };
+  mh += '<div class="rm-ln"><span class="rm-ic">' + icoI('caixa') + '</span><span class="rm-lb">Saldo Inicial</span><span class="rm-vl">' + fc(saldoInicial) + '</span></div>';
+  mh += '<div class="rm-ln"><span class="rm-ic">' + icoI('investimentos') + '</span><span class="rm-lb">Rentabilidade</span><span class="rm-vl" style="color:' + rentColor + '">' + (rentMes >= 0 ? '+' : '') + fc(rentMes) + '</span></div>';
+  mh += '<div class="rm-ln"><span class="rm-ic" style="color:var(--ok)">' + icoI('mais') + '</span><span class="rm-lb">Aportes</span><span class="rm-vl">' + fc(aporteMes) + '</span></div>';
+  mh += '<div class="rm-ln"><span class="rm-ic" style="color:var(--dn2)">' + icoI('baixa') + '</span><span class="rm-lb">Resgates</span><span class="rm-vl">' + fc(resgateMes) + '</span></div>';
+  mh += '<div class="rm-ln" onclick="nav(\'investimentos\')"><span class="rm-ic">' + icoI('dinheiro') + '</span><span class="rm-lb">Saldo Fechamento</span><span class="rm-vl">' + fc(saldoFechamento) + '</span></div>';
   mh += '</div>';
 
   el.innerHTML = dh + mh;

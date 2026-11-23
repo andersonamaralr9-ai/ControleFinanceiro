@@ -1165,10 +1165,8 @@ tr{transition:background .12s}
   .rm-ic { font-size: .9em; flex-shrink: 0; width: 20px; text-align: center; }
   .rm-lb { font-size: .68em; color: var(--tx2); flex: 1; min-width: 0; font-weight: 600; }
   .rm-vl { font-size: .78em; font-weight: 700; text-align: right; white-space: nowrap; }
-  .rm-sub { font-size: .5em; color: var(--tx3); display: flex; gap: 4px; align-items: center; margin-left: 4px; flex-shrink: 0; }
-  .rm-sub .rm-b { padding: 1px 4px; border-radius:var(--rad-sm); font-weight: 700; font-size: .9em; }
-  .rm-sub .rm-b.g { background: rgba(0,206,201,.15); color: var(--ok); }
-  .rm-sub .rm-b.y { background: rgba(253,203,110,.15); color: var(--wn); }
+  /* Contagens sob o rotulo (eram selos "4 5" sem legenda) */
+  .rm-det { display: block; font-size: max(10px, .9em); font-weight: 400; color: var(--tx3); margin-top: 2px; }
   .rm-sal { background: var(--bg3); padding: 10px; }
   .rm-sal .rm-vl { font-size: .95em; }
   .rm-sh { padding: 6px 10px; font-size: .5em; color: var(--tx3); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; background: var(--bg3); }

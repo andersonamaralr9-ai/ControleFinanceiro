@@ -316,11 +316,15 @@ body.pack-noturno .ih-item:nth-child(3) .ih-val,
 body.pack-noturno .ih-item:nth-child(4) .ih-val{color:var(--tx)!important}
 body.pack-noturno .ih-title{font-family:'Bodoni Moda',serif!important;font-style:italic!important;font-size:1.2em!important}
 
-/* ── Maiores despesas: filetes, numeros em serifa, sem barra ── */
+/* ── Maiores despesas: filetes, sem barra ──
+   O valor ficava em Bodoni a 125%: numa lista secundaria destoava do nome
+   ao lado e do resto do Resumo (usuario apontou em 23/11/2026). A serifa
+   fica so nos numeros de destaque (saldo, cartoes); aqui, mesma fonte e
+   tamanho do nome, com algarismos tabulares. */
 body.pack-noturno .rc-ic{display:none!important}
 body.pack-noturno .rc-bar-bg{display:none!important}
 body.pack-noturno .rc-item{border-bottom:1px solid #2a3850!important;padding:12px 0!important}
-body.pack-noturno .rc-val{font-family:'Bodoni Moda',serif!important;font-size:1.25em!important;color:var(--tx)!important}
+body.pack-noturno .rc-val{font-family:inherit!important;font-size:1em!important;font-weight:600!important;font-variant-numeric:tabular-nums!important;color:var(--tx)!important}
 `;
 
 // ── Seletor (Configurações) ──
