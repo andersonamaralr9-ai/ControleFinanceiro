@@ -8,6 +8,10 @@
 // saldo é o crédito informado pelo usuário menos o gasto desde então.
 // O valor oficial continua sendo o do console da Anthropic.
 
+// Haiku 5.5 por padrão (23/11/2026): barato e suficiente para ler os totais
+// e para extrair lançamentos. Trocável por CLAUDE_MODELO na Vercel.
+export const CLAUDE_MODELO = process.env.CLAUDE_MODELO || 'claude-haiku-5-5';
+
 export const SB_URL = 'https://fuicmmnwumgmtwgemzuy.supabase.co';
 export const SB_PUBLICA = 'sb_publishable_-C1CbKZJlFqDws8yi0glrA_o-WL4wwS';
 
