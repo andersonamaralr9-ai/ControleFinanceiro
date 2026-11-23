@@ -69,23 +69,65 @@ function escolherProvedor() {
 // REST oficial (generateContent). Modelo trocável por GEMINI_MODELO sem
 // mexer no código. Plano gratuito: o Google pode usar o conteúdo para
 // melhorar os produtos — a tela avisa.
-const GEMINI_MODELO = process.env.GEMINI_MODELO || 'gemini-2.5-flash';
+// O Google aposenta modelos para contas novas (o 2.5-flash deu 404 em
+// 23/11/2026). Se o modelo der 404, descobrimos um "flash" disponível na
+// lista da própria API e guardamos enquanto a função estiver de pé.
+let GEMINI_MODELO = process.env.GEMINI_MODELO || 'gemini-3.8-flash';
 const GEMINI_URL = process.env.GEMINI_URL || 'https://generativelanguage.googleapis.com';
+
+function versaoModelo(nome) {
+  const m = /gemini-(\d+(?:\.\d+)?)/.exec(nome);
+  return m ? parseFloat(m[1]) : 0;
+}
+
+async function descobrirModeloGemini() {
+  try {
+    const r = await fetch(`${GEMINI_URL}/v1beta/models?pageSize=1000`, {
+      headers: { 'x-goog-api-key': process.env.GEMINI_API_KEY },
+    });
+    if (!r.ok) return null;
+    const j = await r.json();
+    const nomes = (j.models || [])
+      .filter((m) => (m.supportedGenerationMethods || []).includes('generateContent'))
+      .map((m) => String(m.name || '').replace(/^models\//, ''))
+      // Flash estável: sem lite, preview, experimental, imagem, áudio etc.
+      .filter((n) => /^gemini-[\d.]+-flash$/.test(n));
+    nomes.sort((a, b) => versaoModelo(b) - versaoModelo(a));
+    return nomes[0] || null;
+  } catch (e) {
+    console.error('[chat gemini] lista de modelos', e);
+    return null;
+  }
+}
+
+async function chamarGemini(corpo) {
+  const r = await fetch(`${GEMINI_URL}/v1beta/models/${encodeURIComponent(GEMINI_MODELO)}:generateContent`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY },
+    body: JSON.stringify(corpo),
+  });
+  const j = await r.json().catch(() => null);
+  return { r, j };
+}
 
 async function responderGemini(res, dados, conversa) {
   const corpo = {
     systemInstruction: { parts: [{ text: SISTEMA }, { text: `<dados_do_usuario>\n${dados}\n</dados_do_usuario>` }] },
     contents: conversa.map((m) => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })),
-    generationConfig: { maxOutputTokens: 8192 },
+    // Folga para o "raciocínio" interno dos modelos novos, que também conta aqui.
+    generationConfig: { maxOutputTokens: 16384 },
   };
   let r, j = null;
   try {
-    r = await fetch(`${GEMINI_URL}/v1beta/models/${encodeURIComponent(GEMINI_MODELO)}:generateContent`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY },
-      body: JSON.stringify(corpo),
-    });
-    j = await r.json().catch(() => null);
+    ({ r, j } = await chamarGemini(corpo));
+    if (r.status === 404) {
+      const novo = await descobrirModeloGemini();
+      if (novo && novo !== GEMINI_MODELO) {
+        console.warn(`[chat gemini] ${GEMINI_MODELO} indisponível; usando ${novo}`);
+        GEMINI_MODELO = novo;
+        ({ r, j } = await chamarGemini(corpo));
+      }
+    }
   } catch (e) {
     console.error('[chat gemini] rede', e);
     return erro(res, 502, 'Falha ao falar com o Gemini. Tente de novo.');
