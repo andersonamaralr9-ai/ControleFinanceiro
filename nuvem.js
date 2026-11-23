@@ -325,6 +325,12 @@ async function sincronizar(opc){
   return ok;
 }
 window.nuvemSincronizar=sincronizar;
+// Token da sessao para chamadas ao servidor (ia.js -> /api/chat). Renova
+// sozinho se estiver perto de expirar; null sem login ou sem servidor.
+window.nuvemToken=async function(){
+  if(!sb)return null;
+  try{var r=await sb.auth.getSession();return r&&r.data&&r.data.session?r.data.session.access_token:null;}catch(e){return null;}
+};
 
 function agendarEnvio(){
   clearTimeout(_envTimer);

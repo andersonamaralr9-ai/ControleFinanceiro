@@ -1,0 +1,9 @@
+{
+  "name": "financeiro-pro",
+  "private": true,
+  "type": "module",
+  "description": "App estatico (sem build) + funcoes da Vercel em api/",
+  "dependencies": {
+    "@anthropic-ai/sdk": "1.10.0"
+  }
+}
