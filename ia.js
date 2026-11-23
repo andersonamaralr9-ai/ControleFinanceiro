@@ -81,7 +81,10 @@ function montarRetrato(){
   L.push('');L.push('# Situação do mês atual ('+mesH+')');
   L.push('Receitas '+n2(tH.rec)+' (recebido '+n2(tH.recOk)+', a receber '+n2(tH.rec-tH.recOk)+')');
   L.push('Despesas '+n2(tH.des)+' (pago '+n2(tH.desOk)+', a pagar '+n2(tH.des-tH.desOk)+')');
-  L.push('Saldo previsto do mês '+n2(tH.rec-tH.des));
+  var resgH=0,aporH=0;
+  (S.lancamentos||[]).forEach(function(l){if(l.origemInvest&&String(l.data||'').slice(0,7)===mesH){if(l.tipo==='receita')resgH+=Number(l.valor)||0;else aporH+=Number(l.valor)||0;}});
+  L.push('Resultado do mês (receitas − despesas, sem aportes/resgates) '+n2(tH.rec-tH.des));
+  L.push('Sobra na conta (resultado + resgates '+n2(resgH)+' − aportes '+n2(aporH)+') '+n2(tH.rec-tH.des+resgH-aporH)+'. É o número em destaque no Resumo do app.');
   var pend=EH.filter(function(e){return e.tipo==='despesa'&&!pagos(mesH)[chave(e)];})
     .sort(function(a,b){return String(dataPagar(a,mesH)).localeCompare(String(dataPagar(b,mesH)));});
   L.push('Despesas pendentes do mês (vencimento | valor | descrição | origem):');

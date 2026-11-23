@@ -79,6 +79,19 @@ window.renderResumo = function() {
     else { desp += e.valor; dI.push(e); if (p) { dcf += e.valor; dcn++; } else { dpn += e.valor; dpnn++; } }
   });
   var sal = rec - desp;
+  // Aportes e resgates sao transferencias: ficam fora de receitas e despesas
+  // (o "resultado do mes"), mas mexem no dinheiro da conta. Com eles, o numero
+  // em destaque e a SOBRA NA CONTA = resultado + resgates - aportes; o
+  // resultado aparece logo abaixo (decidido com o usuario em 23/11/2026).
+  var resgT = 0, aporT = 0;
+  (S.lancamentos || []).forEach(function(l) {
+    if (!l.origemInvest || getMes(l.data) !== curMes) return;
+    if (l.tipo === 'receita') resgT += Number(l.valor) || 0; else aporT += Number(l.valor) || 0;
+  });
+  var temTransf = resgT > 0 || aporT > 0;
+  var sobra = sal + resgT - aporT;
+  var txtTransf = (resgT ? 'resgates +' + fmtV(resgT) : '') + (resgT && aporT ? ' &middot; ' : '') + (aporT ? 'aportes &minus;' + fmtV(aporT) : '');
+
 
   var fI = typeof faturaCC === 'function' ? faturaCC(curMes) : [];
   var fT = fI.reduce(function(s, i) { return s + (Number(i.valor) || 0); }, 0);
@@ -113,15 +126,15 @@ window.renderResumo = function() {
   // fica sempre no DOM, mas so aparece nos visuais que o desenho previa
   // (regra em app.css) — o visual Atual continua como foi aprovado.
   var pctComp = rec > 0 ? Math.min(Math.round(desp / rec * 100), 100) : 0;
-  h += '<div class="r-hero' + (sal < 0 ? ' negativo' : '') + '">';
+  h += '<div class="r-hero' + (sobra < 0 ? ' negativo' : '') + '">';
   // Centavos num span proprio: o visual Noturno os desenha menores que os
   // reais. Sem estilo proprio, .cent nao muda nada nos outros visuais.
-  var salFmt = fmtV(sal), iVir = salFmt.lastIndexOf(',');
+  var salFmt = fmtV(sobra), iVir = salFmt.lastIndexOf(',');
   if(iVir > -1) salFmt = salFmt.slice(0, iVir) + '<span class="cent">' + salFmt.slice(iVir) + '</span>';
-  h += '<div><div class="r-hero-lbl">Saldo do mes</div><div class="r-hero-val">' + salFmt + '</div>';
+  h += '<div><div class="r-hero-lbl">' + (temTransf ? 'Sobra na conta' : 'Saldo do m&ecirc;s') + '</div><div class="r-hero-val">' + salFmt + '</div>';
   h += '<div class="r-hero-prog"><div class="r-hero-prog-bg"><div class="r-hero-prog-fill" style="width:' + pctComp + '%"></div></div>';
   h += '<span class="r-hero-prog-lbl">' + pctComp + '% da receita j&aacute; comprometida</span></div>';
-  h += '<div class="r-hero-sub">Receitas ' + fmtV(rec) + ' &minus; Despesas ' + fmtV(desp) + '</div></div>';
+  h += '<div class="r-hero-sub">' + (temTransf ? 'Resultado do m&ecirc;s ' + fmtV(sal) + ' (receitas ' + fmtV(rec) + ' &minus; despesas ' + fmtV(desp) + ') &middot; ' + txtTransf : 'Receitas ' + fmtV(rec) + ' &minus; Despesas ' + fmtV(desp)) + '</div></div>';
   h += '<div><span class="r-hero-tag">' + mesNome(curMes) + '</span></div>';
   h += '</div>';
 
@@ -161,7 +174,7 @@ window.renderResumo = function() {
   function qt(n, um, varios){ return n + ' ' + (n === 1 ? um : varios); }
   h += '<div class="rm-ln" onclick="window._resRec()"><span class="rm-ic" style="color:var(--ok)">'+icoA('investimentos')+'</span><span class="rm-lb">Receitas<small class="rm-det">' + qt(rcn, 'recebida', 'recebidas') + ' &middot; ' + rpnn + ' a receber</small></span><span class="rm-vl">' + fc(rec) + '</span></div>';
   h += '<div class="rm-ln" onclick="window._resDesp()"><span class="rm-ic" style="color:var(--dn2)">'+icoA('baixa')+'</span><span class="rm-lb">Despesas<small class="rm-det">' + qt(dcn, 'paga', 'pagas') + ' &middot; ' + dpnn + ' a pagar</small></span><span class="rm-vl">' + fc(desp) + '</span></div>';
-  h += '<div class="rm-ln rm-sal"><span class="rm-ic">'+icoA('dinheiro')+'</span><span class="rm-lb">Saldo</span><span class="rm-vl" style="color:' + (sal >= 0 ? 'var(--tx)' : 'var(--dn2)') + '">' + fc(sal) + '</span></div>';
+  h += '<div class="rm-ln rm-sal"><span class="rm-ic">'+icoA('dinheiro')+'</span><span class="rm-lb">' + (temTransf ? 'Sobra na conta<small class="rm-det">resultado do m&ecirc;s ' + fmtV(sal) + ' &middot; ' + txtTransf + '</small>' : 'Saldo') + '</span><span class="rm-vl" style="color:' + (sobra >= 0 ? 'var(--tx)' : 'var(--dn2)') + '">' + fc(sobra) + '</span></div>';
   h += '<div class="rm-sh">Detalhes</div>';
   h += '<div class="rm-ln" onclick="window._resFat()"><span class="rm-ic">'+icoA('cartoes')+'</span><span class="rm-lb">Fatura do cart\u00e3o</span><span class="rm-vl">' + fc(fT) + '</span></div>';
   h += '<div class="rm-ln" onclick="nav(\'contratos\')"><span class="rm-ic">'+icoA('contratos')+'</span><span class="rm-lb">Contratos</span><span class="rm-vl">' + qt(cA, 'ativo', 'ativos') + '</span></div>';
