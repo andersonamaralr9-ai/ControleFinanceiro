@@ -193,7 +193,7 @@ Módulos, na ordem em que carregam (a ordem importa):
 | `melhorias.js` | Modal de histórico (contratos/assinaturas) com editar/excluir, filtros, Extrato Categorizado |
 | `checkpagamentos.js` | Tela Check de Pagamentos |
 | `investimentos.js` | Tela de Investimentos (v7) |
-| `investimentos-integra.js` | Integração investimentos ↔ lançamentos. Aporte/resgate cria lançamento com `origemInvest:true`, que desde nov/2026 é **transferência**: o `allEntries` o deixa fora de todos os totais e só o devolve com `allEntries(mes,{transferencias:true})` (listas de Lançamentos), exibido como "Transferência". O Resumo mostra em destaque a **sobra na conta** (resultado + resgates − aportes, que é o dinheiro de verdade) e, abaixo, o **resultado do mês** (receitas − despesas); quando não há aporte/resgate no mês, é só "Saldo". Também faz, uma vez (`S.config.migImoveis`), a troca dos contratos/lançamentos "Investimento" para "Imóveis". **Quem embrulha ou reescreve `allEntries` tem que repassar o 2º parâmetro** (`antecipacao.js` e `contratos-enhanced.js` já repassam) |
+| `investimentos-integra.js` | Integração investimentos ↔ lançamentos |
 | `rent-saldo.js` | Lançar rentabilidade por valor ou por saldo |
 | `compras-filtro.js` | Tela de Compras do cartão (filtra pela fatura do mês) |
 | `planejamento.js` | Tela **Planejar** (v2, nov/2026): limites por categoria (`S.planejamento[mes][cat]`), "Sugerir pela média" dos 3 meses anteriores, copiar do mês anterior, gastos sem limite e **metas** (`S.config.metas`, array trocado inteiro a cada mudança para o carimbo do mapa `config` pegar). Edição em janela própria (`#modalPj`), sem `prompt()`. Esconde o formulário e a tabela antigos do `index.html` |

@@ -15,7 +15,7 @@
     _renderLancs();
     var el=document.getElementById('lancMobCards');
     if(!el){el=document.createElement('div');el.id='lancMobCards';el.className='mob-cards';document.getElementById('pg-lancs').appendChild(el);}
-    var E=allEntries(lancMes,{transferencias:true});E.sort(function(a,b){return b.data.localeCompare(a.data);});
+    var E=allEntries(lancMes);E.sort(function(a,b){return b.data.localeCompare(a.data);});
     if(!E.length){el.innerHTML='<p style="color:var(--tx3);text-align:center;padding:20px">Nenhum lan\u00e7amento</p>';return;}
     el.innerHTML=E.map(function(e){
       var cor=e.tipo==='receita'?'var(--ok)':'var(--dn2)';

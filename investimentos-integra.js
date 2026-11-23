@@ -405,49 +405,5 @@ if(_origSalvar){
   };
 }
 
-// ================================================================
-// REORGANIZAÇÃO "INVESTIMENTO" → "IMÓVEIS" (uma vez, 23/11/2026)
-// ================================================================
-// A categoria "Investimento" misturava aportes/resgates (agora tratados como
-// transferência pelo allEntries) com gastos reais dos imóveis (condomínios,
-// financiamento, SPU). Estes vão para a categoria de despesa "Imóveis".
-// Roda uma vez, só com dados no aparelho (num aparelho recém-logado, sem
-// dados, não faz nada e não marca), avisa e oferece Desfazer. A marca fica em
-// S.config.migImoveis (sincroniza) para não repetir nem refazer após Desfazer.
-function migrarImoveis(){
-  if(!window.NUVEM_ATIVA || !window.cloudOk || typeof S === 'undefined' || !S) return true;
-  if(!S.config) S.config = {};
-  if(S.config.migImoveis) return true;
-  var ehInv = function(x){ return x && (x.categoria || x.cat) === 'Investimento'; };
-  var contratos = (S.contratos || []).filter(ehInv);
-  var lancs = (S.lancamentos || []).filter(function(l){ return ehInv(l) && !l.origemInvest; });
-  if(!(S.contratos || []).length && !(S.lancamentos || []).length) return false;   // dados ainda não chegaram
-  if(!contratos.length && !lancs.length) return true;                             // nada a fazer
-  var antes = contratos.map(function(c){ return [c, c.categoria, c.cat]; }).concat(lancs.map(function(l){ return [l, l.categoria, l.cat]; }));
-  var tinhaCat = S.cats && S.cats.despesa && S.cats.despesa.indexOf('Imóveis') !== -1;
-  if(S.cats && S.cats.despesa && !tinhaCat) S.cats.despesa.push('Imóveis');
-  antes.forEach(function(a){ a[0].categoria = 'Imóveis'; if(a[0].cat) a[0].cat = 'Imóveis'; });
-  S.config.migImoveis = 1;
-  salvar();
-  if(typeof renderAll === 'function') renderAll();
-  var nomes = contratos.map(function(c){ return c.desc; }).slice(0, 3).join(', ');
-  toast('Organizei "Investimento": ' + contratos.length + ' contrato(s)' + (nomes ? ' (' + nomes + ')' : '') + ' e ' + lancs.length +
-    ' lançamento(s) foram para "Imóveis". Aportes e resgates agora são transferências.', 'success', { dur: 15000, acao: 'Desfazer', onAcao: function(){
-      antes.forEach(function(a){ a[0].categoria = a[1]; if(a[2] !== undefined) a[0].cat = a[2]; });
-      if(!tinhaCat && S.cats && S.cats.despesa) S.cats.despesa = S.cats.despesa.filter(function(c){ return c !== 'Imóveis'; });
-      salvar(); if(typeof renderAll === 'function') renderAll();
-      toast('Categorias voltaram para "Investimento".', 'info');
-    } });
-  return true;
-}
-// Espera a nuvem e os dados chegarem (até ~1 min), sem travar nada.
-var _migTentativas = 0;
-var _migTimer = setInterval(function(){
-  _migTentativas++;
-  var feito = false;
-  try { feito = migrarImoveis(); } catch(e) { console.warn('[migrarImoveis]', e); feito = true; }
-  if(feito || _migTentativas > 30) clearInterval(_migTimer);
-}, 2000);
-
 console.log('[Financeiro Pro] Integração Investimentos ↔ Lançamentos v1 carregada.');
 })();
