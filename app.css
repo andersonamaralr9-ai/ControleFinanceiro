@@ -2276,3 +2276,34 @@ td, .rel-table td, .inv-panel-card-row .val, .ips-val, .proj-val {
 }
 .el-acoes{display:flex;gap:8px;margin-top:14px;}
 .el-acoes .btn{flex:1;}
+
+/* ═══════════════════════════════════════════════════════════
+   Novo lançamento rápido (nov/2026) — lanc-rapido.js
+   ═══════════════════════════════════════════════════════════ */
+#modalNovoLanc .lr{display:flex;flex-direction:column;gap:14px;}
+#modalNovoLanc .lr .form-group{margin:0;min-width:0;}
+.lr-tipo{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;background:var(--bg3);border-radius:var(--rad);}
+.lr-tp{min-height:44px;border:0;border-radius:calc(var(--rad) - 2px);background:transparent;color:var(--tx2);font:inherit;font-weight:600;cursor:pointer;}
+.lr-tp.on{background:var(--bg2);color:var(--dn2);box-shadow:var(--sh);}
+.lr-receita .lr-tp.on{color:var(--ok);}
+.lr-val-lbl{font-size:.75em;color:var(--tx3);margin-bottom:-8px;}
+.lr-val{display:flex;align-items:baseline;gap:8px;border-bottom:2px solid var(--bg4);padding:2px 2px 6px;}
+.lr-val:focus-within{border-bottom-color:var(--dn2);}
+.lr-receita .lr-val:focus-within{border-bottom-color:var(--ok);}
+.lr-val span{font-size:1.1em;color:var(--tx3);font-weight:600;}
+#modalNovoLanc .lr-val input{flex:1;min-width:0;width:auto;border:0!important;background:transparent!important;box-shadow:none!important;padding:0!important;font-size:2em!important;font-weight:700;color:var(--tx);font-variant-numeric:tabular-nums;height:auto;}
+#modalNovoLanc .lr-val input:focus{outline:none;}
+.lr-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+.lr-chips:empty{display:none;}
+.lr-chip{min-height:36px;padding:0 12px;border:1px solid var(--bg4);border-radius:18px;background:var(--bg3);color:var(--tx2);font:inherit;font-size:.82em;cursor:pointer;}
+.lr-chip.on{border-color:var(--pri);color:var(--tx);background:var(--bg2);box-shadow:inset 0 0 0 1px var(--pri);}
+.lr-opc{color:var(--tx3);font-weight:400;}
+.lr-erro{border-color:var(--dn2)!important;}
+.lr-val .lr-erro{color:var(--dn2)!important;}
+#modalNovoLanc .lr .form-group:has(#lData){display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;align-items:center!important;justify-content:flex-start!important;gap:6px;}
+#modalNovoLanc .lr .form-group:has(#lData) label{flex:1 1 100%;text-align:left;}
+#modalNovoLanc .lr #lrDatas{margin:0;flex-wrap:nowrap;}
+#modalNovoLanc .lr #lData{flex:1 1 0!important;min-width:0!important;width:auto!important;max-width:none!important;}
+#modalNovoLanc .lr{gap:12px;}
+.lr-palpite{font-size:.75em;color:var(--tx3);margin:0 0 6px;line-height:1.35;}
+.lr-palpite b{color:var(--tx);font-weight:600;}

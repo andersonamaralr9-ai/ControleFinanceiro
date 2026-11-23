@@ -424,7 +424,7 @@ td{font-size:.86em;}
      chegava depois da primeira pintura.
      Vem DEPOIS do <style> acima de proposito: e essa ordem que os
      modulos tinham antes, e trocar isso inverteria a precedencia. -->
-<link rel="stylesheet" href="app.css?v=46">
+<link rel="stylesheet" href="app.css?v=50">
 </head>
 <body class="theme-dark">
 
@@ -711,16 +711,22 @@ td{font-size:.86em;}
      .page impedia o modal de aparecer fora da tela de Lancamentos. -->
 <div class="modal" id="modalNovoLanc"><div class="modal-content">
   <div class="modal-header"><h3>Novo Lan&ccedil;amento</h3><span class="modal-close" onclick="closeM('modalNovoLanc')">&times;</span></div>
-  <!-- Ordem pensada para o mobile (2 colunas): os campos curtos pareiam
-       nas linhas e os longos levam .fg-full, sem sobrar celula vazia. -->
-  <div class="modal-body"><div class="form-grid">
-    <div class="form-group"><label>Tipo</label><select id="lTipo" class="form-control" onchange="updLCats()"><option value="despesa">Despesa</option><option value="receita">Receita</option></select></div>
-    <div class="form-group"><label>Valor (R$)</label><input id="lValor" class="form-control" placeholder="0,00" inputmode="decimal"></div>
-    <div class="form-group fg-full"><label>Descri&ccedil;&atilde;o</label><input id="lDesc" class="form-control"></div>
-    <div class="form-group fg-full"><label>Categoria</label><select id="lCat" class="form-control"></select></div>
-    <div class="form-group fg-full"><label>Data</label><input type="date" id="lData" class="form-control"></div>
-    <div class="form-group fg-full"><label>Observa&ccedil;&atilde;o</label><input id="lObs" class="form-control"></div>
-  </div></div>
+  <!-- Lancamento rapido (nov/2026, lanc-rapido.js): valor primeiro, tipo em
+       dois botoes, categorias mais usadas em chips, Hoje/Ontem. Os IDs
+       (lTipo, lValor, lDesc, lCat, lData, lObs) sao os mesmos que o addLanc le. -->
+  <div class="modal-body lr">
+    <div class="lr-tipo" role="radiogroup" aria-label="Tipo">
+      <button type="button" class="lr-tp" data-t="despesa" role="radio">Despesa</button>
+      <button type="button" class="lr-tp" data-t="receita" role="radio">Receita</button>
+    </div>
+    <select id="lTipo" hidden onchange="updLCats()"><option value="despesa">Despesa</option><option value="receita">Receita</option></select>
+    <label class="lr-val-lbl" for="lValor">Valor</label>
+    <div class="lr-val"><span aria-hidden="true">R$</span><input id="lValor" class="form-control" placeholder="0,00" inputmode="decimal" autocomplete="off" enterkeyhint="next"></div>
+    <div class="form-group"><label for="lDesc">Descri&ccedil;&atilde;o</label><input id="lDesc" class="form-control" list="lrSugDesc" autocomplete="off" enterkeyhint="next"><datalist id="lrSugDesc"></datalist></div>
+    <div class="form-group"><label for="lCat">Categoria</label><div class="lr-chips" id="lrCats"></div><select id="lCat" class="form-control"></select></div>
+    <div class="form-group"><label for="lData">Data</label><div class="lr-chips" id="lrDatas"></div><input type="date" id="lData" class="form-control"></div>
+    <div class="form-group"><label for="lObs">Observa&ccedil;&atilde;o <small class="lr-opc">(opcional)</small></label><input id="lObs" class="form-control" enterkeyhint="done"></div>
+  </div>
   <div class="modal-footer"><button class="btn btn-outline" onclick="closeM('modalNovoLanc')">Cancelar</button><button class="btn btn-primary" onclick="addLanc()">Adicionar</button></div>
 </div></div>
 
@@ -1154,6 +1160,7 @@ g('extAte').value=hojeStr();
 <script src="icones.js?v=9"></script>
 <script src="ia-lancar.js?v=2"></script>
 <script src="ia.js?v=8"></script>
+<script src="lanc-rapido.js?v=5"></script>
 <script src="barra-inferior.js?v=2"></script>
 <script src="menu.js?v=1"></script>
 <script src="alertas.js?v=2"></script>
