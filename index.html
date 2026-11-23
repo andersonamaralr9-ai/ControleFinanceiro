@@ -424,7 +424,7 @@ td{font-size:.86em;}
      chegava depois da primeira pintura.
      Vem DEPOIS do <style> acima de proposito: e essa ordem que os
      modulos tinham antes, e trocar isso inverteria a precedencia. -->
-<link rel="stylesheet" href="app.css?v=43">
+<link rel="stylesheet" href="app.css?v=46">
 </head>
 <body class="theme-dark">
 
@@ -735,7 +735,7 @@ td{font-size:.86em;}
     <div class="form-group fg-full"><label>Data</label><input type="date" id="elData" class="form-control"></div>
     <div class="form-group fg-full"><label>Obs</label><input id="elObs" class="form-control"></div>
   </div>
-  <input type="hidden" id="elId"><button class="btn btn-primary" onclick="updateLanc()" style="width:100%;margin-top:14px">Salvar</button>
+  <input type="hidden" id="elId"><div class="el-acoes"><button type="button" class="btn btn-outline" style="color:var(--dn2)" onclick="var i=g('elId').value;closeM('modalEditLanc');delLanc(i)">Excluir</button><button type="button" class="btn btn-primary" onclick="updateLanc()">Salvar</button></div>
 </div></div></div>
 
 <div class="modal" id="modalEditCompra"><div class="modal-content"><div class="modal-header"><h3>Editar Compra</h3><span class="modal-close" onclick="closeM('modalEditCompra')">&times;</span></div><div class="modal-body">
@@ -1132,7 +1132,7 @@ g('extAte').value=hojeStr();
 </script>
 <script src="nuvem.js?v=8"></script>
 <script src="auth.js?v=15"></script>
-<script src="mobile-cards.js?v=5"></script>
+<script src="mobile-cards.js?v=20"></script>
 <script src="antecipacao.js?v=7"></script>
 <script src="melhorias.js?v=11"></script>
 <script src="checkpagamentos.js?v=8"></script>

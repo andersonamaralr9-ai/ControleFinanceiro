@@ -2244,3 +2244,35 @@ td, .rel-table td, .inv-panel-card-row .val, .ips-val, .proj-val {
 .inv-tr-saldo{display:block;color:var(--tx3);font-size:.76em;margin-top:4px;font-variant-numeric:tabular-nums}
 .inv-tr-2col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .inv-tr-dica{color:var(--tx3);font-size:.8em;line-height:1.45;margin:4px 0 0}
+
+/* ═══════════════════════════════════════════════════════════
+   Lançamentos no celular (nov/2026) — mobile-cards.js
+   Filtros recolhidos em "Filtros" + lista agrupada por dia.
+   ═══════════════════════════════════════════════════════════ */
+.lf-toggle{display:none;}
+@media(max-width:768px){
+  #pg-lancs .filter-bar.lf-bar{display:flex!important;flex-direction:row!important;align-items:center!important;flex-wrap:wrap!important;gap:8px;padding:0;background:none;border:0;box-shadow:none;}
+  #pg-lancs .lf-bar #lfBusca{flex:1 1 0!important;width:auto!important;min-width:0;}
+  /* No celular o "+" da barra inferior ja cria lancamento; o botao grande so ocupava espaco. */
+  #pg-lancs .page-actions .btn-primary{display:none;}
+  #pg-lancs .lf-bar .lf-toggle{display:inline-flex;width:auto!important;align-items:center;gap:6px;flex:0 0 auto;min-height:44px;}
+  #pg-lancs .lf-bar select{display:none;flex:1 1 100%;}
+  #pg-lancs .lf-bar.lf-aberto select{display:block;}
+  .lf-n{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--pri);color:#fff;font-size:.72em;font-weight:700;}
+  .lm-resumo{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:.78em;color:var(--tx3);margin:2px 2px 10px;font-variant-numeric:tabular-nums;}
+  .lm-dia{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:14px 4px 6px;font-size:.75em;font-weight:600;text-transform:uppercase;letter-spacing:.03em;color:var(--tx3);}
+  .lm-dia-t{font-variant-numeric:tabular-nums;text-transform:none;letter-spacing:0;}
+  .lm-grupo{background:var(--bg2);border:1px solid var(--bg4);border-radius:var(--rad);overflow:hidden;}
+  .lm-it{display:flex;align-items:center;gap:10px;padding:11px 12px;min-height:52px;box-sizing:border-box;}
+  .lm-it+.lm-it{border-top:1px solid var(--bg4);}
+  .lm-ed{cursor:pointer;-webkit-tap-highlight-color:transparent;}
+  .lm-ed:active{background:var(--bg3);}
+  .lm-tx{flex:1;min-width:0;}
+  .lm-desc{font-size:.88em;font-weight:500;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .lm-meta{font-size:.72em;color:var(--tx3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .lm-obs{font-size:.7em;color:var(--tx3);font-style:italic;margin-top:2px;overflow-wrap:anywhere;}
+  .lm-val{flex:0 0 auto;font-size:.88em;font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums;}
+  .lm-vazio{color:var(--tx3);text-align:center;padding:24px 8px;}
+}
+.el-acoes{display:flex;gap:8px;margin-top:14px;}
+.el-acoes .btn{flex:1;}

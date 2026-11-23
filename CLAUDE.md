@@ -188,7 +188,7 @@ Módulos, na ordem em que carregam (a ordem importa):
 |---|---|
 | `nuvem.js` | Login e sync com o Supabase (migração em curso, ver `PLANO-MIGRACAO.md`). Desligado por padrão; liga com `?nuvem=supabase` ou em `*.vercel.app`. Carrega **antes** do `auth.js`, que para depois dos helpers quando ele está ligado |
 | `auth.js` | Login, multiusuário, sync com Gist, token cifrado (AES-GCM/PBKDF2), merge com tombstones, carimbo `_ts` |
-| `mobile-cards.js` | Listas em card no mobile (lançamentos, extrato) |
+| `mobile-cards.js` | Listas no mobile. Lançamentos (nov/2026): agrupados por dia com total diário, mesmos filtros/ordem da tabela, toque no manual abre a edição (que tem Excluir), filtros recolhidos no botão "Filtros" (#lfToggle, CSS no fim do app.css). No celular o botão "Novo lançamento" fica oculto (o + da barra já faz isso). Extrato continua em card |
 | `antecipacao.js` | Antecipação de parcelas do cartão |
 | `melhorias.js` | Modal de histórico (contratos/assinaturas) com editar/excluir, filtros, Extrato Categorizado |
 | `checkpagamentos.js` | Tela Check de Pagamentos |
