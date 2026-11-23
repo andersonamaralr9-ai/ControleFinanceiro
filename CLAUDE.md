@@ -30,7 +30,10 @@ achando que a mudança não tinha sido aplicada.
 **App instalável (PWA, nov/2026):** o `sw.js` guarda os arquivos para abrir
 sem internet. Ele confia no `?v=N`: arquivo com `?v` é servido do cache até
 o número mudar. Ou seja, **esquecer de subir o `?v` agora é pior**: a versão
-velha fica presa no aparelho, mesmo recarregando. O `index.html` vem sempre
+velha fica presa no aparelho, mesmo recarregando. E **nunca reutilize um
+número**, nem de um branch descartado: em nov/2026 o `app.css?v=30` de uma
+prévia abandonada ficou no cache do aparelho de teste e o `v=30` seguinte,
+com outro conteúdo, "não aparecia". Na dúvida, pule um número. O `index.html` vem sempre
 da rede (com rede). Mudou a *lógica* do `sw.js`? Troque `VERSAO` lá dentro.
 `/api/*` e Supabase nunca passam pelo cache.
 
