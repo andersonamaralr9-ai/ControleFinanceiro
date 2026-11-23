@@ -1016,6 +1016,12 @@ function faturaCC(mes){let itens=[];S.comprasCartao.forEach(c=>{let p=c.parcelas
 
 function updateSidebarStats(){}
 // renderResumoInvest e renderResumo legados removidos — resumo-enhanced.js e a unica fonte de verdade
+// Substitutos ate o resumo-enhanced.js (um dos ultimos scripts) chegar e
+// trocar por versoes reais. Sem eles, em rede lenta, o renderAll do
+// mobile-cards.js (100 ms apos carregar) dava ReferenceError e parava no
+// primeiro passo, sem desenhar as outras telas. O resumo-enhanced.js desenha
+// o Resumo ao carregar, entao nada se perde.
+window.renderResumo=function(){};window.renderResumoInvest=function(){};
 
 function catBadgeClass(cat){var c=(cat||'').toLowerCase();if(/alimenta|mercado|food|caju|refei/.test(c))return'cb-food';if(/moradia|aluguel|casa|condom/.test(c))return'cb-home';if(/saúde|farmácia|médico|plano/.test(c))return'cb-health';if(/educa|escola|curso|facul/.test(c))return'cb-edu';if(/investiment|poupança|renda fixa|ações|tesouro|cdb|fii/.test(c))return'cb-invest';if(/salário|venda|rendimento|bônus|renda/.test(c))return'cb-income';if(/cartão|fatura|parcela|assinat/.test(c))return'cb-card';if(/lazer|entreten|viagem|bar|restaur/.test(c))return'cb-leisure';if(/transp|uber|carro|gasolina|comb/.test(c))return'cb-transport';return'cb-other';}
 function getCats(t){return S.cats[t]||[];}
