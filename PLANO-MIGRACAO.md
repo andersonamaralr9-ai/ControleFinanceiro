@@ -19,6 +19,16 @@ os dados reais contra um servidor falso. **Fase 6 concluída:** repositório
 privado `financeiro-backup` no ar; o primeiro backup real (19/11/2026,
 13:22 UTC) ficou igual ao backup do Gist nas 14 partes do estado. Roda
 segunda e quinta, sob demanda e quando o script/workflow muda.
+**Fase 7a concluída (23/11/2026): Assistente de análise (só leitura)** no
+app oficial. `ia.js` monta o retrato dos dados com as funções das telas
+(`allEntries` por mês, planejamento, cartões, investimentos, patrimônio) e
+`api/chat.js` responde com o **Claude Haiku 5.5** (~US$ 0,004 a pergunta;
+modelo trocável por `CLAUDE_MODELO`). O Gemini gratuito ficou como
+alternativa (`GEMINI_API_KEY`), mas recusou tudo por sobrecarga (503) e o
+`gemini-2.5-flash` já não existe para contas novas. Saldo de créditos
+**estimado** no topo do Assistente (`api/saldo.js`, tabelas `ia_uso` e
+`ia_credito`): a Anthropic não dá o saldo pela chave comum. Falta a 7b
+(lançar por foto/texto com confirmação).
 
 Lição do ensaio: itens nunca editados não têm `_ts` e entram com `ts=0`.
 A primeira versão do `nuvem.js` tratava "não conheço" como 0 e descartava
