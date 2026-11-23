@@ -27,8 +27,14 @@ modelo trocável por `CLAUDE_MODELO`). O Gemini gratuito ficou como
 alternativa (`GEMINI_API_KEY`), mas recusou tudo por sobrecarga (503) e o
 `gemini-2.5-flash` já não existe para contas novas. Saldo de créditos
 **estimado** no topo do Assistente (`api/saldo.js`, tabelas `ia_uso` e
-`ia_credito`): a Anthropic não dá o saldo pela chave comum. Falta a 7b
-(lançar por foto/texto com confirmação).
+`ia_credito`): a Anthropic não dá o saldo pela chave comum.
+**Fase 7b concluída (23/11/2026): lançar por foto ou texto.** Aba no
+Assistente (`ia-lancar.js`); `api/extrair.js` só PROPÕE os itens em JSON
+preso a um esquema (categorias e cartões só os do usuário) e não grava
+nada. O usuário revisa cada item; o app grava no formato do
+`addLanc`/`addCompra` via `salvar()` (obs "Lançado com IA"), com Desfazer
+que usa `markDeleted`. Foto reduzida a 1600 px no aparelho antes de enviar.
+**Migração e fase 7 concluídas.**
 
 Lição do ensaio: itens nunca editados não têm `_ts` e entram com `ts=0`.
 A primeira versão do `nuvem.js` tratava "não conheço" como 0 e descartava

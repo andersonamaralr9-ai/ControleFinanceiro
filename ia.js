@@ -91,15 +91,34 @@ function montarTela(){
   var main=document.querySelector('.main');if(!main)return;
   var pg=document.createElement('div');pg.className='page';pg.id='pg-ia';
   pg.innerHTML='<h2 class="page-title">Assistente</h2>'+
-    '<p class="ia-sub">Pergunte sobre os seus números. O assistente só consulta: não lança nem altera nada.</p>'+
     '<div class="ia-saldo" id="iaSaldo" aria-live="polite"></div>'+
+    '<div class="ia-abas" role="tablist">'+
+      '<button type="button" role="tab" id="iaAbaPerguntar" aria-controls="iaModoPerguntar" aria-selected="true" class="ia-aba ativa">Perguntar</button>'+
+      '<button type="button" role="tab" id="iaAbaLancar" aria-controls="iaModoLancar" aria-selected="false" class="ia-aba">Lançar por foto ou texto</button>'+
+    '</div>'+
+    '<div id="iaModoLancar" role="tabpanel" aria-labelledby="iaAbaLancar" hidden>'+
+    '<p class="ia-sub">Escreva o gasto ou mande a foto do cupom. A IA preenche, você confere e só então grava.</p>'+
+    '<div id="iaLancarCaixa"></div></div>'+
+    '<div id="iaModoPerguntar" role="tabpanel" aria-labelledby="iaAbaPerguntar">'+
+    '<p class="ia-sub">Pergunte sobre os seus números. Aqui o assistente só consulta: não lança nem altera nada.</p>'+
     '<div class="ia-sugestoes" id="iaSugestoes"></div>'+
     '<div class="ia-chat" id="iaChat" aria-live="polite"></div>'+
     '<form class="ia-form" id="iaForm"><label for="iaPergunta" class="ia-oculto">Sua pergunta</label>'+
     '<textarea id="iaPergunta" class="form-control" rows="2" placeholder="Ex.: Quanto gastei com alimentação em outubro?"></textarea>'+
     '<button type="submit" class="btn btn-primary" id="iaEnviar">Perguntar</button></form>'+
-    '<div class="ia-rodape"><span id="iaUso"></span> <button type="button" class="btn btn-sm btn-outline" id="iaNova">Nova conversa</button></div>';
+    '<div class="ia-rodape"><span id="iaUso"></span> <button type="button" class="btn btn-sm btn-outline" id="iaNova">Nova conversa</button></div>'+
+    '</div>';
   main.appendChild(pg);
+  if(typeof window.iaMontarLancar==='function')window.iaMontarLancar(el('iaLancarCaixa'));
+  else el('iaAbaLancar').hidden=true;
+  function aba(qual){
+    var lancar=qual==='lancar';
+    el('iaModoLancar').hidden=!lancar;el('iaModoPerguntar').hidden=lancar;
+    el('iaAbaLancar').classList.toggle('ativa',lancar);el('iaAbaPerguntar').classList.toggle('ativa',!lancar);
+    el('iaAbaLancar').setAttribute('aria-selected',String(lancar));el('iaAbaPerguntar').setAttribute('aria-selected',String(!lancar));
+  }
+  el('iaAbaPerguntar').addEventListener('click',function(){aba('perguntar');});
+  el('iaAbaLancar').addEventListener('click',function(){aba('lancar');});
   var sug=['Quanto gastei este mês e como isso se compara ao mês passado?','Quais categorias mais pesaram nos últimos 3 meses?','Quanto vou pagar de fatura nos próximos meses?','Estou dentro do planejamento deste mês?'];
   el('iaSugestoes').innerHTML=sug.map(function(s){return '<button type="button" class="ia-sug">'+esc(s)+'</button>';}).join('');
   el('iaSugestoes').addEventListener('click',function(e){var b=e.target.closest('.ia-sug');if(b){el('iaPergunta').value=b.textContent;enviar();}});
@@ -151,6 +170,7 @@ async function chamarSaldo(metodo,corpo){
   return j;
 }
 
+window.iaAtualizarSaldo=function(){carregarSaldo();};
 async function carregarSaldo(){
   if(!navigator.onLine)return;
   try{saldo=await chamarSaldo('GET');saldoErro='';}catch(e){saldoErro='Saldo de créditos indisponível agora.';}

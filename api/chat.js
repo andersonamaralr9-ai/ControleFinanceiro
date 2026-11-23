@@ -15,7 +15,7 @@
 //    no próprio Supabase; sem login válido, 401;
 //  - limites de tamanho para a conta não estourar por engano.
 import Anthropic from '@anthropic-ai/sdk';
-import { usuarioDoToken, tokenDoPedido, custoUSD, registrarUso } from './_ia.js';
+import { usuarioDoToken, tokenDoPedido, custoUSD, registrarUso, CLAUDE_MODELO } from './_ia.js';
 
 export const config = { maxDuration: 60 };
 
@@ -57,10 +57,8 @@ function escolherProvedor() {
 }
 
 // ---------------------------------------------------------------- Claude
-// Haiku 5.5 por padrão (23/11/2026): o app já manda os totais calculados,
-// o modelo só lê e explica — e sai por ~US$ 0,004 a pergunta. Trocável por
-// CLAUDE_MODELO (ex.: claude-sonnet-5-5, claude-opus-5-5) sem mexer no código.
-const CLAUDE_MODELO = process.env.CLAUDE_MODELO || 'claude-haiku-5-5';
+// Modelo em CLAUDE_MODELO (_ia.js; Haiku 5.5 por padrão, ~US$ 0,004 a
+// pergunta). Reserva do servidor só no Opus.
 const CLAUDE_COM_RESERVA = /^claude-opus-5-5$/.test(CLAUDE_MODELO);
 
 // ---------------------------------------------------------------- Gemini
