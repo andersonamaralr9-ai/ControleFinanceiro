@@ -197,6 +197,7 @@ Módulos, na ordem em que carregam (a ordem importa):
 | `relatorios.js` | 10 relatórios + exportação Excel |
 | `lixeira.js` | Lixeira: itens excluídos restauráveis por 30 dias |
 | `icones.js` | Vocabulário de ícones SVG (`iconeSVG`) |
+| `ia-lancar.js` | Aba "Lançar por foto ou texto" do Assistente: `api/extrair.js` propõe os itens (não grava), o usuário revisa e o app grava no formato do `addLanc`/`addCompra` via `salvar()`. Carrega **antes** do `ia.js`, que chama `iaMontarLancar` |
 | `ia.js` | Tela Assistente (só com a nuvem ligada): monta o retrato dos dados com `allEntries` e chama `api/chat.js` (Claude Haiku 5.5 por padrão, Gemini como alternativa); quadro de saldo estimado via `api/saldo.js`. Chaves só nas variáveis da Vercel; `api/_ia.js` tem a tabela de preços — atualize se a Anthropic mudar os preços |
 | `a11y.js` | Acessibilidade genérica após cada render |
 | `theme-persist.js` | Persistência do tema |
