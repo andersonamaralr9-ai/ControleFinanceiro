@@ -301,8 +301,8 @@ function _ceSincronizaFiltros(){
 // Override allEntries para respeitar dataFim
 // ================================================================
 var _origAllEntries = window.allEntries;
-window.allEntries = function(mes, op){
-  var entries = _origAllEntries(mes, op);   // repassa op (ex.: {transferencias:true})
+window.allEntries = function(mes){
+  var entries = _origAllEntries(mes);
   return entries.filter(function(e){
     if(e.origem !== 'Contrato') return true;
     var descBase = (e.desc || '').replace(' (Contrato)', '');

@@ -252,6 +252,7 @@ window.renderInvest = function(){
         '<button class="ivt-btn' + (_invVistaAtual === 'lista' ? ' on' : '') + '" id="invBtnLista" onclick="invSetVista(\'lista\')">Lista</button>' +
         '<button class="ivt-btn' + (_invVistaAtual === 'detalhe' ? ' on' : '') + '" id="invBtnDetalhe" onclick="invSetVista(\'detalhe\')">&#9635; Detalhado</button>' +
       '</div>' +
+      (invs.length > 1 ? '<button type="button" class="btn btn-outline inv-btn-transf" onclick="invAbrirTransferir()">&#8644; Transferir</button>' : '') +
       '<button onclick="invOpenNovoAtivo()" style="background:var(--priG);border:none;color:#fff;border-radius:10px;padding:9px 16px;font-size:.8em;font-weight:700;cursor:pointer;">&#65291; Novo ativo</button>' +
     '</div>' +
   '</div>';
@@ -612,6 +613,80 @@ window.invDelRent = function(invId, mes){
       'Rentabilidade de ' + _invFmt(Number(alvo.valor) || 0));
   inv.rentabilidade = (inv.rentabilidade || []).filter(function(r){ return r.mes !== mes; });
   salvar(); _invRenderPanel(); renderInvest();
+};
+
+// ================================================================
+// TRANSFERIR ENTRE INVESTIMENTOS (nov/2026)
+// ================================================================
+// Resgate na origem + aporte no destino, de uma vez. O dinheiro não passa
+// pela conta, então NÃO cria lançamento (aporte/resgate normais continuam
+// criando, pelo investimentos-integra.js, que só intercepta invAddMov).
+// As duas pontas levam o mesmo transfId, para o Desfazer achar as duas.
+function _invModalTransf(){
+  var m = document.getElementById('modalInvTransf');
+  if(m) return m;
+  m = document.createElement('div'); m.className = 'modal'; m.id = 'modalInvTransf';
+  m.innerHTML = '<div class="modal-content"><div class="modal-header"><h3>Transferir entre investimentos</h3>' +
+    '<span class="modal-close" onclick="closeM(\'modalInvTransf\')">&times;</span></div>' +
+    '<div class="modal-body">' +
+    '<div class="form-group"><label for="invTrDe">De</label><select id="invTrDe" class="form-control"></select><small class="inv-tr-saldo" id="invTrSaldo"></small></div>' +
+    '<div class="form-group"><label for="invTrPara">Para</label><select id="invTrPara" class="form-control"></select></div>' +
+    '<div class="inv-tr-2col"><div class="form-group"><label for="invTrVal">Valor (R$)</label><input id="invTrVal" class="form-control" inputmode="decimal" placeholder="0,00"></div>' +
+    '<div class="form-group"><label for="invTrData">Data</label><input id="invTrData" type="date" class="form-control"></div></div>' +
+    '<p class="inv-tr-dica">Registra um resgate na origem e um aporte no destino. Como o dinheiro não passa pela sua conta, não cria lançamento e o saldo do mês não muda.</p>' +
+    '</div>' +
+    '<div class="modal-footer"><button type="button" class="btn btn-outline" onclick="closeM(\'modalInvTransf\')">Cancelar</button>' +
+    '<button type="button" class="btn btn-primary" onclick="invConfirmarTransferir()">Transferir</button></div></div>';
+  document.body.appendChild(m);
+  document.getElementById('invTrDe').addEventListener('change', _invTrAtualizar);
+  return m;
+}
+function _invTrSaldo(inv){ return _invCalcAtivo(inv, _invGetMesDe(new Date().toISOString())).fechamento; }
+function _invTrAtualizar(){
+  var de = (S.investimentos || []).find(function(x){ return x.id === document.getElementById('invTrDe').value; });
+  document.getElementById('invTrSaldo').textContent = de ? 'Saldo atual: ' + _invFmt(_invTrSaldo(de)) : '';
+  var para = document.getElementById('invTrPara');
+  Array.prototype.forEach.call(para.options, function(o){ o.disabled = de && o.value === de.id; });
+  if(de && para.value === de.id){ var outra = Array.prototype.find.call(para.options, function(o){ return !o.disabled; }); if(outra) para.value = outra.value; }
+}
+window.invAbrirTransferir = function(){
+  var invs = S.investimentos || [];
+  if(invs.length < 2){ toast('Cadastre pelo menos dois investimentos para transferir.', 'info'); return; }
+  _invModalTransf();
+  var opts = invs.map(function(i){ return '<option value="' + i.id + '">' + (i.nome || '-') + (i.tipo && i.tipo !== i.nome ? ' (' + i.tipo + ')' : '') + '</option>'; }).join('');
+  document.getElementById('invTrDe').innerHTML = opts;
+  document.getElementById('invTrPara').innerHTML = opts;
+  document.getElementById('invTrPara').value = invs[1].id;
+  document.getElementById('invTrVal').value = '';
+  document.getElementById('invTrData').value = typeof hojeStr === 'function' ? hojeStr() : new Date().toISOString().slice(0, 10);
+  _invTrAtualizar();
+  openM('modalInvTransf');
+  setTimeout(function(){ document.getElementById('invTrVal').focus(); }, 50);
+};
+window.invConfirmarTransferir = function(){
+  var invs = S.investimentos || [];
+  var de = invs.find(function(x){ return x.id === document.getElementById('invTrDe').value; });
+  var para = invs.find(function(x){ return x.id === document.getElementById('invTrPara').value; });
+  var val = _invNum(document.getElementById('invTrVal').value);
+  var data = document.getElementById('invTrData').value;
+  if(!de || !para || de === para){ toast('Escolha origem e destino diferentes.', 'error'); return; }
+  if(isNaN(val) || val <= 0){ toast('Informe um valor válido.', 'error'); return; }
+  if(!data){ toast('Informe a data.', 'error'); return; }
+  var saldo = _invTrSaldo(de);
+  if(val > saldo + 0.005){ toast('Valor maior que o saldo de ' + (de.nome || 'origem') + ' (' + _invFmt(saldo) + ').', 'error'); return; }
+  var tid = typeof uid === 'function' ? uid() : String(Date.now());
+  var novoId = function(){ return typeof uid === 'function' ? uid() : String(Date.now() + Math.random()); };
+  if(!Array.isArray(de.movimentacoes)) de.movimentacoes = [];
+  if(!Array.isArray(para.movimentacoes)) para.movimentacoes = [];
+  de.movimentacoes.push({ tipo: 'resgate', valor: val, data: data, obs: 'Transferência para ' + (para.nome || '-'), id: novoId(), transfId: tid });
+  para.movimentacoes.push({ tipo: 'aporte', valor: val, data: data, obs: 'Transferência de ' + (de.nome || '-'), id: novoId(), transfId: tid });
+  salvar(); closeM('modalInvTransf'); renderInvest();
+  if(_invAtivoSel && typeof _invRenderPanel === 'function') _invRenderPanel();
+  toast('Transferido ' + _invFmt(val) + ' de ' + (de.nome || '-') + ' para ' + (para.nome || '-') + '.', 'success', { acao: 'Desfazer', onAcao: function(){
+    [de, para].forEach(function(inv){ inv.movimentacoes = (inv.movimentacoes || []).filter(function(m){ return m.transfId !== tid; }); });
+    salvar(); renderInvest(); if(_invAtivoSel && typeof _invRenderPanel === 'function') _invRenderPanel();
+    toast('Transferência desfeita.', 'info');
+  }});
 };
 
 // ================================================================

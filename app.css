@@ -2208,7 +2208,7 @@ td, .rel-table td, .inv-panel-card-row .val, .ips-val, .proj-val {
 .pj-comp-tab table{width:100%;font-size:.8em;font-variant-numeric:tabular-nums}
 .pj-comp-tab th,.pj-comp-tab td{padding:6px 8px;text-align:right;white-space:nowrap}
 .pj-comp-tab th:first-child,.pj-comp-tab td:first-child{text-align:left}
-.pj-corpo{padding:4px 0}
+.pj-corpo{padding-bottom:4px}
 .pj-dica{color:var(--tx3);font-size:.8em;line-height:1.45;margin:4px 0 0}
 .pj-2col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .btn.pj-remover{color:var(--dn2);margin-right:auto}
@@ -2238,3 +2238,9 @@ td, .rel-table td, .inv-panel-card-row .val, .ips-val, .proj-val {
 .al-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--dn2);color:#fff;font-size:.68em;font-weight:700;line-height:1;margin-left:auto}
 .bi-aba{position:relative}
 .bi-aba .al-badge{position:absolute;top:2px;left:calc(50% + 6px);margin:0;min-width:16px;height:16px;font-size:.85em}
+
+/* Transferir entre investimentos (investimentos.js) */
+.inv-btn-transf{font-size:.8em;padding:8px 14px}
+.inv-tr-saldo{display:block;color:var(--tx3);font-size:.76em;margin-top:4px;font-variant-numeric:tabular-nums}
+.inv-tr-2col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.inv-tr-dica{color:var(--tx3);font-size:.8em;line-height:1.45;margin:4px 0 0}
