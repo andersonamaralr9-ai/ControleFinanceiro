@@ -81,7 +81,10 @@ function montarRetrato(){
   L.push('');L.push('# Situação do mês atual ('+mesH+')');
   L.push('Receitas '+n2(tH.rec)+' (recebido '+n2(tH.recOk)+', a receber '+n2(tH.rec-tH.recOk)+')');
   L.push('Despesas '+n2(tH.des)+' (pago '+n2(tH.desOk)+', a pagar '+n2(tH.des-tH.desOk)+')');
-  L.push('Saldo previsto do mês '+n2(tH.rec-tH.des));
+  var resgH=0,aporH=0;
+  (S.lancamentos||[]).forEach(function(l){if(l.origemInvest&&String(l.data||'').slice(0,7)===mesH){if(l.tipo==='receita')resgH+=Number(l.valor)||0;else aporH+=Number(l.valor)||0;}});
+  L.push('Resultado do mês (receitas − despesas, sem aportes/resgates) '+n2(tH.rec-tH.des));
+  L.push('Sobra na conta (resultado + resgates '+n2(resgH)+' − aportes '+n2(aporH)+') '+n2(tH.rec-tH.des+resgH-aporH)+'. É o número em destaque no Resumo do app.');
   var pend=EH.filter(function(e){return e.tipo==='despesa'&&!pagos(mesH)[chave(e)];})
     .sort(function(a,b){return String(dataPagar(a,mesH)).localeCompare(String(dataPagar(b,mesH)));});
   L.push('Despesas pendentes do mês (vencimento | valor | descrição | origem):');
@@ -123,6 +126,12 @@ function montarRetrato(){
   var ms=typeof window.planMetas==='function'?window.planMetas():[];
   L.push('');L.push('# Metas (nome | valor da meta | guardado | prazo)');
   L.push(ms.length?ms.map(function(x){return x.nome+' | '+n2(x.alvo)+' | '+n2(x.guardado)+' | '+(x.prazo||'sem prazo');}).join('\n'):'(nenhuma meta)');
+
+  // Aportes e resgates: transferências (fora de receitas e despesas)
+  var tr=(S.lancamentos||[]).filter(function(l){var m=String(l.data||'').slice(0,7);return l.origemInvest&&m>=ini&&m<=fim;})
+    .sort(function(a,b){return String(a.data).localeCompare(String(b.data));});
+  L.push('');L.push('# Transferências para investimentos de '+ini+' a '+fim+' (aportes e resgates; NÃO entram em receitas, despesas nem saldo do mês)');
+  L.push(tr.length?tr.map(function(l){return br(l.data)+' | '+(l.tipo==='despesa'?'aporte':'resgate')+' | '+n2(l.valor)+' | '+String(l.desc||'');}).join('\n'):'(nenhuma)');
 
   // Detalhe por mês
   L.push('');L.push('# Lançamentos detalhados de '+ini+' a '+fim+' (mesma regra da tela Resumo)');
