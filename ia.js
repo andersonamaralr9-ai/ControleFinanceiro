@@ -87,6 +87,7 @@ function montarTela(){
     var a=document.createElement('a');a.id='nav-ia';a.setAttribute('onclick',"nav('ia')");
     a.innerHTML='<span class="nav-ic">&#10022;</span><span>Assistente</span>';
     resumo.parentNode.insertBefore(a,resumo.nextSibling);
+    if(typeof window.aplicarIcones==='function')window.aplicarIcones();
   }
   var main=document.querySelector('.main');if(!main)return;
   var pg=document.createElement('div');pg.className='page';pg.id='pg-ia';
@@ -117,6 +118,8 @@ function montarTela(){
     el('iaAbaLancar').classList.toggle('ativa',lancar);el('iaAbaPerguntar').classList.toggle('ativa',!lancar);
     el('iaAbaLancar').setAttribute('aria-selected',String(lancar));el('iaAbaPerguntar').setAttribute('aria-selected',String(!lancar));
   }
+  // Atalho da barra inferior: abre direto na aba Lançar.
+  window.iaAbrirLancar=function(){nav('ia');aba('lancar');};
   el('iaAbaPerguntar').addEventListener('click',function(){aba('perguntar');});
   el('iaAbaLancar').addEventListener('click',function(){aba('lancar');});
   var sug=['Quanto gastei este mês e como isso se compara ao mês passado?','Quais categorias mais pesaram nos últimos 3 meses?','Quanto vou pagar de fatura nos próximos meses?','Estou dentro do planejamento deste mês?'];
