@@ -124,6 +124,12 @@ function montarRetrato(){
   L.push('');L.push('# Metas (nome | valor da meta | guardado | prazo)');
   L.push(ms.length?ms.map(function(x){return x.nome+' | '+n2(x.alvo)+' | '+n2(x.guardado)+' | '+(x.prazo||'sem prazo');}).join('\n'):'(nenhuma meta)');
 
+  // Aportes e resgates: transferências (fora de receitas e despesas)
+  var tr=(S.lancamentos||[]).filter(function(l){var m=String(l.data||'').slice(0,7);return l.origemInvest&&m>=ini&&m<=fim;})
+    .sort(function(a,b){return String(a.data).localeCompare(String(b.data));});
+  L.push('');L.push('# Transferências para investimentos de '+ini+' a '+fim+' (aportes e resgates; NÃO entram em receitas, despesas nem saldo do mês)');
+  L.push(tr.length?tr.map(function(l){return br(l.data)+' | '+(l.tipo==='despesa'?'aporte':'resgate')+' | '+n2(l.valor)+' | '+String(l.desc||'');}).join('\n'):'(nenhuma)');
+
   // Detalhe por mês
   L.push('');L.push('# Lançamentos detalhados de '+ini+' a '+fim+' (mesma regra da tela Resumo)');
   for(var d=ini;d<=fim;d=addMes(d,1)){

@@ -346,7 +346,7 @@ window.renderResumoInvest = function() {
   // Aportes/resgates em coluna propria (nos tres desenhos e uma coluna, nao
   // um subtitulo da rentabilidade).
   var nMov = (aporteMes ? 1 : 0) + (resgateMes ? 1 : 0);
-  dh += '<div class="ih-item"><div class="ih-lbl">Aportes / Resgates</div><div class="ih-val">' + fmtV(aporteMes) + ' / ' + fmtV(resgateMes) + '</div><div class="ih-sub">' + nMov + ' movimenta&ccedil;' + (nMov === 1 ? '&atilde;o' : '&otilde;es') + '</div></div>';
+  dh += '<div class="ih-item"><div class="ih-lbl">Aportes / Resgates</div><div class="ih-val">' + fmtV(aporteMes) + ' / ' + fmtV(resgateMes) + '</div><div class="ih-sub">' + (aporteMes - resgateMes >= 0 ? 'Guardado no m&ecirc;s: ' : 'Retirado no m&ecirc;s: ') + fmtV(Math.abs(aporteMes - resgateMes)) + '</div></div>';
   dh += '<div class="ih-item"><div class="ih-lbl">Saldo Fechamento</div><div class="ih-val">' + fmtV(saldoFechamento) + '</div><div class="ih-sub" style="color:' + salColor + '">' + (diff >= 0 ? '+' : '') + fmtV(diff) + ' no mes</div></div>';
   dh += '</div></div>';
 
@@ -360,6 +360,10 @@ window.renderResumoInvest = function() {
   mh += '<div class="rm-ln"><span class="rm-ic">' + icoI('investimentos') + '</span><span class="rm-lb">Rentabilidade</span><span class="rm-vl" style="color:' + rentColor + '">' + (rentMes >= 0 ? '+' : '') + fc(rentMes) + '</span></div>';
   mh += '<div class="rm-ln"><span class="rm-ic" style="color:var(--ok)">' + icoI('mais') + '</span><span class="rm-lb">Aportes</span><span class="rm-vl">' + fc(aporteMes) + '</span></div>';
   mh += '<div class="rm-ln"><span class="rm-ic" style="color:var(--dn2)">' + icoI('baixa') + '</span><span class="rm-lb">Resgates</span><span class="rm-vl">' + fc(resgateMes) + '</span></div>';
+  // Aportes e resgates sao transferencias (nao entram em receitas/despesas
+  // desde 23/11/2026); o liquido mostra quanto foi guardado no mes.
+  var liq = aporteMes - resgateMes;
+  mh += '<div class="rm-ln"><span class="rm-ic">' + icoI('caixa') + '</span><span class="rm-lb">' + (liq >= 0 ? 'Guardado no m&ecirc;s' : 'Retirado no m&ecirc;s') + '<small class="rm-det">aportes &minus; resgates; fora de receitas e despesas</small></span><span class="rm-vl">' + fc(Math.abs(liq)) + '</span></div>';
   mh += '<div class="rm-ln" onclick="nav(\'investimentos\')"><span class="rm-ic">' + icoI('dinheiro') + '</span><span class="rm-lb">Saldo Fechamento</span><span class="rm-vl">' + fc(saldoFechamento) + '</span></div>';
   mh += '</div>';
 

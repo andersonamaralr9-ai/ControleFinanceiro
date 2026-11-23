@@ -373,14 +373,20 @@
   // ============================================================
   // ★★★ CORREÇÃO: OVERRIDE allEntries — respeitar antecipações
   // ============================================================
-  window.allEntries = function(mes){
+  window.allEntries = function(mes, op){
     var E = [];
+    // Aportes e resgates (lancamentos criados pela tela de Investimentos,
+    // origemInvest) sao dinheiro mudando de lugar, nao receita/despesa: ficam
+    // fora de todos os totais. So a lista de Lancamentos pede para ve-los
+    // ({transferencias:true}). Decidido com o usuario em 23/11/2026.
+    var comT = !!(op && op.transferencias);
     var _arr = function(v){ return Array.isArray(v) ? v : []; };
 
     // — Lançamentos manuais (sem alteração) —
-    S.lancamentos.filter(function(l){ return getMes(l.data) === mes; }).forEach(function(l){
+    S.lancamentos.filter(function(l){ return getMes(l.data) === mes && (comT || !l.origemInvest); }).forEach(function(l){
       E.push({
-        tipo:l.tipo, desc:l.desc, cat:l.categoria||l.cat||'Outros',
+        transferencia:!!l.origemInvest,
+        tipo:l.tipo, desc:l.desc, cat:l.origemInvest ? 'Transferência' : (l.categoria||l.cat||'Outros'),
         valor:Number(l.valor)||0, data:l.data, obs:l.obs||'',
         origem:'Lan\u00e7amento', id:l.id, isManual:true
       });
